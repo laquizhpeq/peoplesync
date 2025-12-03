@@ -29,7 +29,7 @@ jobs:
 
       # 3. Verificar el formato de Flutter (opcional, pero recomendado)
       - name: Verify formatting
-        run: dart format --output=none --set-exit-if-changed .
+        run: flutter format --output=none --set-exit-if-changed .
 
       # 4. Analizar el código de Flutter
       # Considera pasar '--fatal-infos' para un análisis más estricto.
