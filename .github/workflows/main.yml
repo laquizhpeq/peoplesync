@@ -18,20 +18,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 1. Configurar Flutter (Añadimos 'flutter-version' para garantizar una versión reciente con 'flutter format')
+      # 1. Configurar Flutter (CORREGIDO: Forzamos la instalación de la ÚLTIMA versión 'stable' para obtener el SDK de Dart > 3.10.1)
       - name: Setup Flutter SDK
         uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
-          # Especificamos una versión estable conocida y reciente para asegurar la compatibilidad con 'flutter format'
-          flutter-version: '3.22.0' 
+          channel: 'stable' 
+          # Aseguramos la última versión estable que contiene una versión de Dart >= 3.10.1
+          # Si deseas especificar una versión, usa flutter-version: '3.22.0' (o la más reciente)
 
       # 2. Obtener dependencias con flutter pub get
       - name: Install dependencies
         run: flutter pub get
 
-      # 3. Verificar el formato de Flutter (Cambiado de 'flutter format' a 'dart format' como plan de contingencia)
-      # Nota: Usamos 'dart format' que es el comando subyacente y más compatible si 'flutter format' falla.
+      # 3. Verificar el formato de Flutter (Usamos 'dart format' como el comando más compatible en CI)
       - name: Verify formatting
         run: dart format --output=none --set-exit-if-changed .
 
