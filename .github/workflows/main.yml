@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 1. Configurar Flutter en lugar de solo Dart
+      # 1. Configurar Flutter
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable' # Puedes cambiar a 'beta' o 'dev' si es necesario
@@ -27,12 +27,11 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # 3. Verificar el formato de Flutter (opcional, pero recomendado)
+      # 3. Verificar el formato de Flutter (CORREGIDO: Usando 'flutter format')
       - name: Verify formatting
         run: flutter format --output=none --set-exit-if-changed .
 
       # 4. Analizar el código de Flutter
-      # Considera pasar '--fatal-infos' para un análisis más estricto.
       - name: Analyze project source
         run: flutter analyze
 
