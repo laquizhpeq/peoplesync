@@ -1,0 +1,28 @@
+
+version: '3.8'
+
+services:
+  peoplesync-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: build-env
+    container_name: peoplesync-dev
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+      - /app/.dart_tool/
+      - /app/.pub-cache/
+      - /app/build/
+    environment:
+      - CHROME_EXECUTABLE=/usr/bin/chromium-browser
+    # Ejecutamos con poll para detectar cambios en Windows
+    command: >
+      sh -c "
+      flutter config --enable-web &&
+      flutter pub get && 
+      flutter run -d web-server --web-hostname 0.0.0.0 --web-port 8080
+      "
+    stdin_open: true
+    tty: true

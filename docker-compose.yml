@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  peoplesync:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: peoplesync-app
+    ports:
+      - "8080:80"
+    restart: unless-stopped
