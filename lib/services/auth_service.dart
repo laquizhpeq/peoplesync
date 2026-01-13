@@ -21,9 +21,7 @@ class AuthService {
         password: password,
       );
     } on FirebaseAuthException catch (e) {
-      debugPrint(
-        'AuthService.signInWithEmailAndPassword -> ${e.code}',
-      );
+      debugPrint('AuthService.signInWithEmailAndPassword -> ${e.code}');
       throw Exception(_mapFirebaseError(e));
     }
   }
@@ -39,9 +37,7 @@ class AuthService {
         password: password,
       );
     } on FirebaseAuthException catch (e) {
-      debugPrint(
-        'AuthService.createUserWithEmailAndPassword -> ${e.code}',
-      );
+      debugPrint('AuthService.createUserWithEmailAndPassword -> ${e.code}');
       throw Exception(_mapFirebaseError(e));
     }
   }

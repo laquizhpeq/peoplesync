@@ -38,9 +38,9 @@ class _LoginScreenState extends State<LoginScreen> {
         );
         // Navegar a la pantalla principal o mostrar éxito
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Login exitoso')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Login exitoso')));
         }
       } on FirebaseAuthException catch (e) {
         setState(() {
@@ -63,9 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Login'),
-      ),
+      appBar: AppBar(title: const Text('Login')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
