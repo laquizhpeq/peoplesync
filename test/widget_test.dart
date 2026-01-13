@@ -8,35 +8,35 @@ void main() {
 
   setUpAll(() async {
     // Mock MethodChannel for Firebase Core
-    const MethodChannel channel = MethodChannel('plugins.flutter.io/firebase_core');
-    
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
-      channel,
-      (MethodCall methodCall) async {
-        if (methodCall.method == 'Firebase#initializeCore') {
-          return [
-            {
-              'name': '[DEFAULT]',
-              'options': {
-                'apiKey': 'test',
-                'appId': 'test',
-                'messagingSenderId': 'test',
-                'projectId': 'test',
-              },
-              'pluginConstants': {},
-            }
-          ];
-        }
-        if (methodCall.method == 'Firebase#initializeApp') {
-          return {
-            'name': methodCall.arguments['appName'],
-            'options': methodCall.arguments['options'],
-            'pluginConstants': {},
-          };
-        }
-        return null;
-      },
+    const MethodChannel channel = MethodChannel(
+      'plugins.flutter.io/firebase_core',
     );
+
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+          if (methodCall.method == 'Firebase#initializeCore') {
+            return [
+              {
+                'name': '[DEFAULT]',
+                'options': {
+                  'apiKey': 'test',
+                  'appId': 'test',
+                  'messagingSenderId': 'test',
+                  'projectId': 'test',
+                },
+                'pluginConstants': {},
+              },
+            ];
+          }
+          if (methodCall.method == 'Firebase#initializeApp') {
+            return {
+              'name': methodCall.arguments['appName'],
+              'options': methodCall.arguments['options'],
+              'pluginConstants': {},
+            };
+          }
+          return null;
+        });
 
     await Firebase.initializeApp();
   });
