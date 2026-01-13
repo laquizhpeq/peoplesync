@@ -14,12 +14,21 @@ services:
       - /app/build/
     environment:
       - CHROME_EXECUTABLE=/usr/bin/chromium-browser
+      - FIREBASE_API_KEY=${FIREBASE_API_KEY}
+      - FIREBASE_AUTH_DOMAIN=${FIREBASE_AUTH_DOMAIN}
+      - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
+      - FIREBASE_STORAGE_BUCKET=${FIREBASE_STORAGE_BUCKET}
+      - FIREBASE_MESSAGING_SENDER_ID=${FIREBASE_MESSAGING_SENDER_ID}
+      - FIREBASE_APP_ID=${FIREBASE_APP_ID}
+      - FIREBASE_MEASUREMENT_ID=${FIREBASE_MEASUREMENT_ID}
+    env_file:
+      - .env
     # Ejecutamos con poll para detectar cambios en Windows
     command: >
       sh -c "
       flutter config --enable-web &&
       flutter pub get && 
-      flutter run -d web-server --web-hostname 0.0.0.0 --web-port 8080
+      flutter run -d web-server --web-hostname 0.0.0.0 --web-port 8080 --dart-define=FIREBASE_API_KEY=$FIREBASE_API_KEY --dart-define=FIREBASE_AUTH_DOMAIN=$FIREBASE_AUTH_DOMAIN --dart-define=FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID --dart-define=FIREBASE_STORAGE_BUCKET=$FIREBASE_STORAGE_BUCKET --dart-define=FIREBASE_MESSAGING_SENDER_ID=$FIREBASE_MESSAGING_SENDER_ID --dart-define=FIREBASE_APP_ID=$FIREBASE_APP_ID --dart-define=FIREBASE_MEASUREMENT_ID=$FIREBASE_MEASUREMENT_ID
       "
     stdin_open: true
     tty: true

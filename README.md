@@ -37,3 +37,7 @@ docker compose -f docker-compose-dev.yml down --remove-orphans
 ```bash
 flutter analyze
 ```
+# Dart format code Command
+```bash
+dart format lib/
+```

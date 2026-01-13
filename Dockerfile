@@ -3,6 +3,15 @@ FROM ubuntu:22.04 AS build-env
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+# Argumentos de construcción para Firebase
+ARG FIREBASE_API_KEY
+ARG FIREBASE_AUTH_DOMAIN
+ARG FIREBASE_PROJECT_ID
+ARG FIREBASE_STORAGE_BUCKET
+ARG FIREBASE_MESSAGING_SENDER_ID
+ARG FIREBASE_APP_ID
+ARG FIREBASE_MEASUREMENT_ID
+
 # Instalar dependencias
 RUN apt-get update && apt-get install -y \
     curl git wget unzip libgconf-2-4 gdb libstdc++6 libglu1-mesa \
@@ -31,10 +40,10 @@ RUN flutter pub get
 # Copiar el resto del código
 COPY . .
 
-# Limpiar y compilar con flags adicionales de seguridad
+# Limpiar y compilar con flags adicionales de seguridad y variables de entorno
 RUN flutter clean
 RUN flutter pub get
-RUN flutter build web --release
+RUN flutter build web --release --dart-define=FIREBASE_API_KEY=$FIREBASE_API_KEY --dart-define=FIREBASE_AUTH_DOMAIN=$FIREBASE_AUTH_DOMAIN --dart-define=FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID --dart-define=FIREBASE_STORAGE_BUCKET=$FIREBASE_STORAGE_BUCKET --dart-define=FIREBASE_MESSAGING_SENDER_ID=$FIREBASE_MESSAGING_SENDER_ID --dart-define=FIREBASE_APP_ID=$FIREBASE_APP_ID --dart-define=FIREBASE_MEASUREMENT_ID=$FIREBASE_MEASUREMENT_ID
 
 # Etapa 2: Nginx para servir la web
 FROM nginx:alpine
