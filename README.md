@@ -21,6 +21,10 @@ docker run -d -p 8080:80 --name peoplesync-app peoplesync-web
 ```bash 
 docker-compose up --build -d
 ```
+# Development build
+```bash 
+docker-compose -f docker-compose-dev.yml up --build -d
+```
 # Development
 ```bash
 docker-compose -f docker-compose-dev.yml attach peoplesync-dev
