@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:peoplesync/main.dart';
+import 'package:peoplesync/app.dart';
 import 'package:firebase_core_platform_interface/firebase_core_platform_interface.dart';
 
 class MockFirebasePlatform extends FirebasePlatform {
