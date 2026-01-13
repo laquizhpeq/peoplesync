@@ -1,0 +1,17 @@
+.git
+.idea
+.vscode
+.dart_tool
+.pub-cache
+build
+android
+ios
+linux
+macos
+windows
+test
+doc
+coverage
+*.iml
+*.log
+.DS_Store
