@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import 'core/constants/routes.dart';
 import 'features/auth/auth_page.dart';
 
 class MyApp extends StatelessWidget {
@@ -9,7 +11,11 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'PeopleSync',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: const AuthPage(),
+      initialRoute: Routes.login,
+      routes: {
+        Routes.login: (context) => const AuthPage(),
+        Routes.home: (context) => const AuthPage(),
+      },
     );
   }
 }
