@@ -4,7 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 void setupFirebaseMocks() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  final messenger = TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+  final messenger =
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
 
   // Mock Firebase Core
   const coreChannel = MethodChannel('plugins.flutter.io/firebase_core');
@@ -20,7 +21,7 @@ void setupFirebaseMocks() {
             'projectId': 'test_project_id',
           },
           'pluginConstants': {},
-        }
+        },
       ];
     }
     if (call.method == 'Firebase#initializeApp') {
@@ -43,8 +44,9 @@ void setupFirebaseMocks() {
         return null;
       case 'Auth#addAuthStateListener':
         final handle = call.arguments['handle'];
-        final streamChannel =
-            MethodChannel('plugins.flutter.io/firebase_auth_stream_handler/$handle');
+        final streamChannel = MethodChannel(
+          'plugins.flutter.io/firebase_auth_stream_handler/$handle',
+        );
         messenger.setMockMethodCallHandler(streamChannel, (_) async => null);
         return {'handle': handle};
       default:
