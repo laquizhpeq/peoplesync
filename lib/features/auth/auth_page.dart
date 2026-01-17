@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../core/constants/app_strings.dart';
 import '../../shared/widgets/design/buttons/app_primary_button.dart';
 import '../../shared/widgets/design/inputs/app_password_field.dart';
 import '../../shared/widgets/design/inputs/app_text_field.dart';
@@ -47,7 +48,7 @@ class _AuthPageState extends State<AuthPage> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Login exitoso')));
+        ).showSnackBar(const SnackBar(content: Text(AppStrings.loginSuccess)));
       }
     } on FirebaseAuthException catch (e) {
       setState(() {
@@ -55,7 +56,7 @@ class _AuthPageState extends State<AuthPage> {
       });
     } catch (_) {
       setState(() {
-        _errorMessage = 'Ocurrió un error inesperado';
+        _errorMessage = AppStrings.unexpectedError;
       });
     } finally {
       if (mounted) {
@@ -69,7 +70,7 @@ class _AuthPageState extends State<AuthPage> {
   @override
   Widget build(BuildContext context) {
     return AppPage(
-      title: 'Login',
+      title: AppStrings.login,
       centerBody: true,
       body: Form(
         key: _formKey,
@@ -89,10 +90,10 @@ class _AuthPageState extends State<AuthPage> {
 
             AppTextField(
               controller: _emailController,
-              label: 'Email',
+              label: AppStrings.email,
               keyboardType: TextInputType.emailAddress,
               validator: (value) => value == null || value.isEmpty
-                  ? 'Por favor ingrese su email'
+                  ? AppStrings.pleaseEnterEmail
                   : null,
             ),
 
@@ -100,9 +101,9 @@ class _AuthPageState extends State<AuthPage> {
 
             AppPasswordField(
               controller: _passwordController,
-              label: 'Contraseña',
+              label: AppStrings.password,
               validator: (value) => value == null || value.isEmpty
-                  ? 'Por favor ingrese su contraseña'
+                  ? AppStrings.pleaseEnterPassword
                   : null,
             ),
 
@@ -112,7 +113,7 @@ class _AuthPageState extends State<AuthPage> {
               onPressed: _isLoading ? null : _login,
               child: _isLoading
                   ? const CircularProgressIndicator()
-                  : const Text('Iniciar sesión'),
+                  : const Text(AppStrings.signIn),
             ),
           ],
         ),

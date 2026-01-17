@@ -1,48 +1,34 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:peoplesync/app.dart';
-import 'package:firebase_core_platform_interface/firebase_core_platform_interface.dart';
+import 'package:peoplesync/core/constants/app_strings.dart';
 
-class MockFirebasePlatform extends FirebasePlatform {
-  @override
-  FirebaseAppPlatform app([String name = defaultFirebaseAppName]) {
-    return FirebaseAppPlatform(
-      name,
-      const FirebaseOptions(
-        apiKey: 'test',
-        appId: 'test',
-        messagingSenderId: 'test',
-        projectId: 'test',
-      ),
-    );
-  }
-
-  @override
-  Future<FirebaseAppPlatform> initializeApp({
-    String? name,
-    FirebaseOptions? options,
-  }) async {
-    return app(name ?? defaultFirebaseAppName);
-  }
-
-  @override
-  List<FirebaseAppPlatform> get apps => [app()];
-}
+import 'helpers/firebase_helpers.dart';
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
+  // Configura las simulaciones de Firebase antes de los tests
+  setupFirebaseMocks();
 
-  setUpAll(() {
-    FirebasePlatform.instance = MockFirebasePlatform();
+  setUpAll(() async {
+    // Inicializa la app de Firebase simulada
+    await Firebase.initializeApp();
   });
 
   testWidgets('Login screen smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+    // Construye la app y refresca la UI
     await tester.pumpWidget(const MyApp());
 
-    // Verificar que estamos en la pantalla de Login
-    expect(find.text('Login'), findsWidgets);
-    expect(find.text('Email'), findsOneWidget);
-    expect(find.text('Contraseña'), findsOneWidget);
-    expect(find.text('Iniciar Sesión'), findsOneWidget);
+    // Espera a que se resuelvan los futures y se construya la UI
+    await tester.pumpAndSettle();
+
+    // Verifica que el título de la página es 'Login'
+    expect(find.text(AppStrings.login), findsOneWidget);
+
+    // Verifica que los campos de texto están presentes
+    expect(find.text(AppStrings.email), findsOneWidget);
+    expect(find.text(AppStrings.password), findsOneWidget);
+
+    // Verifica que el botón de inicio de sesión está presente
+    expect(find.text(AppStrings.signIn), findsOneWidget);
   });
 }
