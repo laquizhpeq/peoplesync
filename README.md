@@ -17,27 +17,57 @@ samples, guidance on mobile development, and a full API reference.
 
 docker build -t peoplesync-web .
 docker run -d -p 8080:80 --name peoplesync-app peoplesync-web
+
 # Producction
+
 ```bash 
 docker-compose up --build -d
 ```
+
 # Development build
+
 ```bash 
 docker-compose -f docker-compose-dev.yml up --build -d
 ```
+
 # Development
+
 ```bash
 docker-compose -f docker-compose-dev.yml attach peoplesync-dev
 ```
-# Remove obsolet docker 
+
+# Remove obsolet docker
+
 ```bash
 docker compose -f docker-compose-dev.yml down --remove-orphans
 ```
-# Flutter analize code Command 
+
+# Flutter analize code Command
+
 ```bash
 flutter analyze
 ```
+
 # Dart format code Command
+
 ```bash
 dart format lib/
+```
+
+## Estructura del proyecto
+
+```bash
+tree
+```
+
+## fix dart
+
+```bash
+dart fix --dry-n
+```
+
+## preview widget
+
+```bash
+flutter widget-preview start
 ```
