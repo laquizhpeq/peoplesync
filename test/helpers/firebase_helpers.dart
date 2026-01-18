@@ -9,24 +9,50 @@ void setupFirebaseMocks() {
   const codec = StandardMessageCodec();
 
   // --- Mock Firebase Core (using Pigeon/BasicMessageChannel) ---
-  // This is the modern way to mock Firebase initialization.
+  // This handler has been updated to return data in the List format expected
+  // by modern versions of the firebase_core plugin.
   messenger.setMockMessageHandler(
     'dev.flutter.pigeon.firebase_core_platform_interface.FirebaseCoreHostApi.initializeCore',
     (ByteData? message) async {
-      final list = <Object?>[
-        <String, Object?>{
-          'name': defaultFirebaseAppName,
-          'options': <String, Object?>{
-            'apiKey': 'test_api_key',
-            'appId': 'test_app_id',
-            'messagingSenderId': 'test_sender_id',
-            'projectId': 'test_project_id',
-          },
-          'isAutomaticDataCollectionEnabled': false,
-          'pluginConstants': <String, Object?>{},
-        },
+      // The PigeonFirebaseOptions object serialized as a list.
+      final optionsList = <Object?>[
+        'test_api_key', // apiKey
+        'test_app_id', // appId
+        'test_sender_id', // messagingSenderId
+        'test_project_id', // projectId
+        null, // authDomain
+        null, // databaseURL
+        null, // storageBucket
+        null, // measurementId
+        null, // trackingId
+        null, // deepLinkURLScheme
+        null, // androidClientId
+        null, // iosClientId
+        null, // iosBundleId
+        null, // appGroupId
       ];
-      return codec.encodeMessage(list);
+
+      // The PigeonInitializeResponse object serialized as a list.
+      final responseList = <Object?>[
+        defaultFirebaseAppName, // name
+        optionsList, // options
+        false, // isAutomaticDataCollectionEnabled
+        <String, Object?>{}, // pluginConstants
+      ];
+
+      // The return value of initializeCore is a List<PigeonInitializeResponse?>
+      final coreResponse = <Object?>[responseList];
+
+      // The pigeon system wraps the result in a list.
+      return codec.encodeMessage(<Object?>[coreResponse]);
+    },
+  );
+
+  // This mock handles the `initializeApp` call, which is separate.
+  messenger.setMockMessageHandler(
+    'dev.flutter.pigeon.firebase_core_platform_interface.FirebaseCoreHostApi.initializeApp',
+    (ByteData? message) async {
+      return codec.encodeMessage(<Object?, Object?>{});
     },
   );
 
@@ -35,7 +61,6 @@ void setupFirebaseMocks() {
   messenger.setMockMethodCallHandler(authChannel, (call) async {
     switch (call.method) {
       case 'Auth#getRedirectResult':
-        return null;
       case 'Auth#currentUser':
         return null;
       case 'Auth#addAuthStateListener':
