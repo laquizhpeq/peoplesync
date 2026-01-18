@@ -71,3 +71,15 @@ dart fix --dry-n
 ```bash
 flutter widget-preview start
 ```
+
+## test
+
+```bash
+flutter test /app/test/widget_test.dart
+```
+
+## Generar los ficheros de simulación:
+
+```bash
+flutter pub run build_runner build --delete-conflicting-outputs
+```
