@@ -7,10 +7,13 @@ void setupFirebaseMocks() {
   final messenger =
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
 
-  // Mock Firebase Core
-  const coreChannel = MethodChannel('plugins.flutter.io/firebase_core');
+  // --- Mock Firebase Core ---
+  // The channel name has been updated to match modern Firebase versions.
+  const coreChannel = MethodChannel(
+    'dev.flutter.pigeon.firebase_core_platform_interface.FirebaseCoreHostApi',
+  );
   messenger.setMockMethodCallHandler(coreChannel, (call) async {
-    if (call.method == 'Firebase#initializeCore') {
+    if (call.method == 'initializeCore') {
       return [
         {
           'name': defaultFirebaseAppName,
@@ -24,17 +27,18 @@ void setupFirebaseMocks() {
         },
       ];
     }
-    if (call.method == 'Firebase#initializeApp') {
-      return {
-        'name': call.arguments['appName'],
-        'options': call.arguments['options'],
-        'pluginConstants': {},
-      };
+    if (call.method == 'initializeApp') {
+      final Map<Object?, Object?> args =
+          call.arguments as Map<Object?, Object?>;
+      final String appName = args['appName']! as String;
+      final Map<Object?, Object?> options =
+          args['options']! as Map<Object?, Object?>;
+      return {'name': appName, 'options': options, 'pluginConstants': {}};
     }
     return null;
   });
 
-  // Mock Firebase Auth
+  // --- Mock Firebase Auth ---
   const authChannel = MethodChannel('plugins.flutter.io/firebase_auth');
   messenger.setMockMethodCallHandler(authChannel, (call) async {
     switch (call.method) {
