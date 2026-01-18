@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_core_platform_interface/firebase_core_platform_interface.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -6,57 +7,38 @@ void setupFirebaseMocks() {
   TestWidgetsFlutterBinding.ensureInitialized();
   final messenger =
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
-  const codec = StandardMessageCodec();
 
-  // --- Mock Firebase Core (using Pigeon/BasicMessageChannel) ---
-  // This handler has been updated to return data in the List format expected
-  // by modern versions of the firebase_core plugin.
-  messenger.setMockMessageHandler(
-    'dev.flutter.pigeon.firebase_core_platform_interface.FirebaseCoreHostApi.initializeCore',
-    (ByteData? message) async {
-      // The PigeonFirebaseOptions object serialized as a list.
-      final optionsList = <Object?>[
-        'test_api_key', // apiKey
-        'test_app_id', // appId
-        'test_sender_id', // messagingSenderId
-        'test_project_id', // projectId
-        null, // authDomain
-        null, // databaseURL
-        null, // storageBucket
-        null, // measurementId
-        null, // trackingId
-        null, // deepLinkURLScheme
-        null, // androidClientId
-        null, // iosClientId
-        null, // iosBundleId
-        null, // appGroupId
+  // --- Mock Firebase Core ---
+  // This is the definitive mock for the legacy MethodChannel used in tests.
+  const coreChannel = MethodChannel('plugins.flutter.io/firebase_core');
+  messenger.setMockMethodCallHandler(coreChannel, (call) async {
+    if (call.method == 'Firebase#initializeCore') {
+      // This method expects a List<Map<String, dynamic>>.
+      return <Map<String, dynamic>>[
+        {
+          'name': defaultFirebaseAppName,
+          'options': {
+            'apiKey': 'test_api_key',
+            'appId': 'test_app_id',
+            'messagingSenderId': 'test_sender_id',
+            'projectId': 'test_project_id',
+          },
+          'pluginConstants': <String, dynamic>{},
+        },
       ];
+    }
+    if (call.method == 'Firebase#initializeApp') {
+      // This method expects a Map<String, dynamic>.
+      return <String, dynamic>{
+        'name': call.arguments['appName'],
+        'options': call.arguments['options'],
+        'pluginConstants': {},
+      };
+    }
+    return null;
+  });
 
-      // The PigeonInitializeResponse object serialized as a list.
-      final responseList = <Object?>[
-        defaultFirebaseAppName, // name
-        optionsList, // options
-        false, // isAutomaticDataCollectionEnabled
-        <String, Object?>{}, // pluginConstants
-      ];
-
-      // The return value of initializeCore is a List<PigeonInitializeResponse?>
-      final coreResponse = <Object?>[responseList];
-
-      // The pigeon system wraps the result in a list.
-      return codec.encodeMessage(<Object?>[coreResponse]);
-    },
-  );
-
-  // This mock handles the `initializeApp` call, which is separate.
-  messenger.setMockMessageHandler(
-    'dev.flutter.pigeon.firebase_core_platform_interface.FirebaseCoreHostApi.initializeApp',
-    (ByteData? message) async {
-      return codec.encodeMessage(<Object?, Object?>{});
-    },
-  );
-
-  // --- Mock Firebase Auth (still uses MethodChannel) ---
+  // --- Mock Firebase Auth ---
   const authChannel = MethodChannel('plugins.flutter.io/firebase_auth');
   messenger.setMockMethodCallHandler(authChannel, (call) async {
     switch (call.method) {
