@@ -1,4 +1,4 @@
-import 'package:firebase_core_platform_interface/firebase_core_platform_interface.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -6,39 +6,31 @@ void setupFirebaseMocks() {
   TestWidgetsFlutterBinding.ensureInitialized();
   final messenger =
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+  const codec = StandardMessageCodec();
 
-  // --- Mock Firebase Core ---
-  // The channel name has been updated to match modern Firebase versions.
-  const coreChannel = MethodChannel(
-    'dev.flutter.pigeon.firebase_core_platform_interface.FirebaseCoreHostApi',
-  );
-  messenger.setMockMethodCallHandler(coreChannel, (call) async {
-    if (call.method == 'initializeCore') {
-      return [
-        {
+  // --- Mock Firebase Core (using Pigeon/BasicMessageChannel) ---
+  // This is the modern way to mock Firebase initialization.
+  messenger.setMockMessageHandler(
+    'dev.flutter.pigeon.firebase_core_platform_interface.FirebaseCoreHostApi.initializeCore',
+    (ByteData? message) async {
+      final list = <Object?>[
+        <String, Object?>{
           'name': defaultFirebaseAppName,
-          'options': {
+          'options': <String, Object?>{
             'apiKey': 'test_api_key',
             'appId': 'test_app_id',
             'messagingSenderId': 'test_sender_id',
             'projectId': 'test_project_id',
           },
-          'pluginConstants': {},
+          'isAutomaticDataCollectionEnabled': false,
+          'pluginConstants': <String, Object?>{},
         },
       ];
-    }
-    if (call.method == 'initializeApp') {
-      final Map<Object?, Object?> args =
-          call.arguments as Map<Object?, Object?>;
-      final String appName = args['appName']! as String;
-      final Map<Object?, Object?> options =
-          args['options']! as Map<Object?, Object?>;
-      return {'name': appName, 'options': options, 'pluginConstants': {}};
-    }
-    return null;
-  });
+      return codec.encodeMessage(list);
+    },
+  );
 
-  // --- Mock Firebase Auth ---
+  // --- Mock Firebase Auth (still uses MethodChannel) ---
   const authChannel = MethodChannel('plugins.flutter.io/firebase_auth');
   messenger.setMockMethodCallHandler(authChannel, (call) async {
     switch (call.method) {
