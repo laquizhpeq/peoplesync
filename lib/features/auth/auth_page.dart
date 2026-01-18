@@ -1,9 +1,18 @@
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+
+import '../../core/constants/app_strings.dart';
+import '../../shared/widgets/design/buttons/app_primary_button.dart';
+import '../../shared/widgets/design/inputs/app_password_field.dart';
+import '../../shared/widgets/design/inputs/app_text_field.dart';
+import '../../shared/widgets/design/layout/app_page.dart';
 import 'auth_service.dart';
 
 class AuthPage extends StatefulWidget {
-  const AuthPage({super.key});
+  // Allow injecting an AuthService for testing purposes.
+  final AuthService? authService;
+
+  const AuthPage({super.key, this.authService});
 
   @override
   State<AuthPage> createState() => _AuthPageState();
@@ -13,9 +22,17 @@ class _AuthPageState extends State<AuthPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _authService = AuthService();
+  late final AuthService _authService;
+
   bool _isLoading = false;
   String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    // Use the injected service if available, otherwise create a new one.
+    _authService = widget.authService ?? AuthService();
+  }
 
   @override
   void dispose() {
@@ -25,102 +42,90 @@ class _AuthPageState extends State<AuthPage> {
   }
 
   Future<void> _login() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-        _errorMessage = null;
-      });
+    if (!_formKey.currentState!.validate()) return;
 
-      try {
-        await _authService.signInWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-        );
-        // Navegar a la pantalla principal o mostrar éxito
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Login exitoso')));
-        }
-      } on FirebaseAuthException catch (e) {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      await _authService.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text(AppStrings.loginSuccess)));
+      }
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        _errorMessage = e.message;
+      });
+    } catch (_) {
+      setState(() {
+        _errorMessage = AppStrings.unexpectedError;
+      });
+    } finally {
+      if (mounted) {
         setState(() {
-          _errorMessage = e.message;
+          _isLoading = false;
         });
-      } catch (e) {
-        setState(() {
-          _errorMessage = 'Ocurrió un error inesperado';
-        });
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (_errorMessage != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
-                  child: Text(
-                    _errorMessage!,
-                    style: const TextStyle(color: Colors.red),
+    return AppPage(
+      title: AppStrings.login,
+      centerBody: true,
+      body: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (_errorMessage != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Text(
+                  _errorMessage!,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.error,
                   ),
                 ),
-              TextFormField(
-                controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingrese su email';
-                  }
-                  return null;
-                },
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _passwordController,
-                decoration: const InputDecoration(
-                  labelText: 'Contraseña',
-                  border: OutlineInputBorder(),
-                ),
-                obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingrese su contraseña';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _login,
-                  child: _isLoading
-                      ? const CircularProgressIndicator()
-                      : const Text('Iniciar Sesión'),
-                ),
-              ),
-            ],
-          ),
+
+            AppTextField(
+              controller: _emailController,
+              label: AppStrings.email,
+              keyboardType: TextInputType.emailAddress,
+              validator: (value) => value == null || value.isEmpty
+                  ? AppStrings.pleaseEnterEmail
+                  : null,
+            ),
+
+            const SizedBox(height: 16),
+
+            AppPasswordField(
+              controller: _passwordController,
+              label: AppStrings.password,
+              validator: (value) => value == null || value.isEmpty
+                  ? AppStrings.pleaseEnterPassword
+                  : null,
+            ),
+
+            const SizedBox(height: 24),
+
+            AppPrimaryButton(
+              onPressed: _isLoading ? null : _login,
+              child: _isLoading
+                  ? const CircularProgressIndicator()
+                  : const Text(AppStrings.signIn),
+            ),
+          ],
         ),
       ),
     );
