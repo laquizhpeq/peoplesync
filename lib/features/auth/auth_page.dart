@@ -9,7 +9,10 @@ import '../../shared/widgets/design/layout/app_page.dart';
 import 'auth_service.dart';
 
 class AuthPage extends StatefulWidget {
-  const AuthPage({super.key});
+  // Allow injecting an AuthService for testing purposes.
+  final AuthService? authService;
+
+  const AuthPage({super.key, this.authService});
 
   @override
   State<AuthPage> createState() => _AuthPageState();
@@ -19,10 +22,17 @@ class _AuthPageState extends State<AuthPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _authService = AuthService();
+  late final AuthService _authService;
 
   bool _isLoading = false;
   String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    // Use the injected service if available, otherwise create a new one.
+    _authService = widget.authService ?? AuthService();
+  }
 
   @override
   void dispose() {
