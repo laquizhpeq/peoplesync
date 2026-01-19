@@ -64,7 +64,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '153192912808',
     projectId: 'peoplesync-8c0c3',
     storageBucket: 'peoplesync-8c0c3.firebasestorage.app',
-    iosClientId: '153192912808-7q76b2ga2fbn3omq1gee96vat17g3gnt.apps.googleusercontent.com',
+    iosClientId:
+        '153192912808-7q76b2ga2fbn3omq1gee96vat17g3gnt.apps.googleusercontent.com',
     iosBundleId: 'com.example.peoplesync',
   );
 
@@ -74,7 +75,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '153192912808',
     projectId: 'peoplesync-8c0c3',
     storageBucket: 'peoplesync-8c0c3.firebasestorage.app',
-    iosClientId: '153192912808-7q76b2ga2fbn3omq1gee96vat17g3gnt.apps.googleusercontent.com',
+    iosClientId:
+        '153192912808-7q76b2ga2fbn3omq1gee96vat17g3gnt.apps.googleusercontent.com',
     iosBundleId: 'com.example.peoplesync',
   );
 
