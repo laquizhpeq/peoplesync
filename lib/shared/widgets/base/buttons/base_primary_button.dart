@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widget_previews.dart';
 
 class BasePrimaryButton extends StatelessWidget {
   final VoidCallback? onPressed;
@@ -21,3 +22,7 @@ class BasePrimaryButton extends StatelessWidget {
     );
   }
 }
+
+@Preview(name: 'BasePrimaryButton')
+Widget basePrimaryButtonPreview() =>
+    const BasePrimaryButton(onPressed: null, child: Text('BasePrimaryButton'));
