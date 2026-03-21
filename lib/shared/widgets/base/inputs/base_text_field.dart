@@ -5,6 +5,10 @@ class BaseTextField extends StatelessWidget {
   final String label;
   final TextInputType keyboardType;
   final String? Function(String?)? validator;
+  final bool obscureText;
+  final Widget? suffixIcon;
+  final Widget? prefixIcon; // <--- Nuevo: Opción 1 (Extra)
+  final String? hintText; // <--- Nuevo: Opción 1 (Extra)
 
   const BaseTextField({
     super.key,
@@ -12,6 +16,10 @@ class BaseTextField extends StatelessWidget {
     required this.label,
     this.keyboardType = TextInputType.text,
     this.validator,
+    this.obscureText = false,
+    this.suffixIcon,
+    this.prefixIcon,
+    this.hintText,
   });
 
   @override
@@ -20,7 +28,14 @@ class BaseTextField extends StatelessWidget {
       controller: controller,
       keyboardType: keyboardType,
       validator: validator,
-      decoration: InputDecoration(labelText: label),
+      obscureText: obscureText,
+      // Hereda el estilo global y añade los extras proporcionados
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hintText,
+        suffixIcon: suffixIcon,
+        prefixIcon: prefixIcon,
+      ),
     );
   }
 }

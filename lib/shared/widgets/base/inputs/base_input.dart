@@ -6,6 +6,8 @@ abstract class BaseInput extends StatelessWidget {
   final String? hint;
   final String? errorText;
   final bool enabled;
+  final TextInputType keyboardType;
+  final String? Function(String?)? validator;
 
   const BaseInput({
     super.key,
@@ -14,5 +16,7 @@ abstract class BaseInput extends StatelessWidget {
     this.hint,
     this.errorText,
     this.enabled = true,
+    this.keyboardType = TextInputType.text,
+    this.validator,
   });
 }
