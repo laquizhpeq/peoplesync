@@ -8,5 +8,7 @@
     }
   },
   "dart.flutterHotReloadOnSave": true,
-  "dart.flutterHotRestartOnSave": false
+  "dart.flutterHotRestartOnSave": false,
+  "java.configuration.updateBuildConfiguration": "interactive",
+  "java.search.scope": "all"
 }
