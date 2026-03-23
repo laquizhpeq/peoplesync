@@ -1,0 +1,18 @@
+﻿Analyzing peoplesync2...                                        
+
+   info - Don't invoke 'print' in production code - lib\features\auth\auth_viewmodel.dart:27:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\features\auth\auth_viewmodel.dart:36:7 - avoid_print
+   info - Parameter 'key' could be a super parameter - lib\pages\auth\auth_page.dart:11:9 - use_super_parameters
+  error - Expected to find ';' - lib\pages\auth\auth_page.dart:105:7 - expected_token
+warning - Dead code - lib\pages\auth\auth_page.dart:105:8 - dead_code
+  error - Expected an identifier - lib\pages\auth\auth_page.dart:105:8 - missing_identifier
+  error - Expected to find ';' - lib\pages\auth\auth_page.dart:105:8 - expected_token
+  error - Unexpected text ';' - lib\pages\auth\auth_page.dart:105:8 - unexpected_token
+  error - Expected an identifier - lib\pages\auth\auth_page.dart:106:5 - missing_identifier
+  error - Unexpected text ';' - lib\pages\auth\auth_page.dart:106:5 - unexpected_token
+   info - Unnecessary empty statement - lib\pages\auth\auth_page.dart:106:6 - empty_statements
+   info - Parameter 'key' could be a super parameter - lib\pages\home\home_page.dart:7:9 - use_super_parameters
+   info - Parameter 'key' could be a super parameter - lib\pages\profile\profile_page.dart:9:9 - use_super_parameters
+warning - Unused import: 'package:peoplesync/shared/themes/color_scheme.dart' - lib\shared\widgets\design\bottom_nav\bottom_nav_bar.dart:4:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\shared\widgets\design\bottom_nav\bottom_nav_bar.dart:7:9 - use_super_parameters
+

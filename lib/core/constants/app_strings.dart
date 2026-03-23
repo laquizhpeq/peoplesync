@@ -25,4 +25,14 @@ class AppStrings {
       '© 2026 PeopleSync. Todos los derechos reservados.';
   static const String or = 'O continúa con';
   static const String appName = 'PeopleSync';
+
+  // Bottom navigation
+  static const String home = 'Inicio';
+  static const String profile = 'Perfil';
+
+  // Profile Page
+  static const String name = 'Nombre';
+  static const String phone = 'Teléfono';
+  static const String bio = 'Biografía';
+  static const String saveChanges = 'Guardar cambios';
 }
