@@ -39,16 +39,16 @@ class _AuthPageState extends State<AuthPage> {
       password: _passwordController.text.trim(),
     );
     if (!mounted) return;
-    
+
     if (viewModel.errorMessage == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login successful')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Login successful')));
       context.go('/');
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(viewModel.errorMessage!)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(viewModel.errorMessage!)));
     }
   }
 
@@ -56,56 +56,56 @@ class _AuthPageState extends State<AuthPage> {
   Widget build(BuildContext context) {
     return Consumer<AuthViewModel>(
       builder: (context, viewModel, child) => AppPage(
-          title: AppStrings.blank,
-          centerBody: true,
-          body: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(vertical: 40),
-              child: Container(
-                constraints: const BoxConstraints(maxWidth: 400),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const AuthLogo(),
-                      const SizedBox(height: 24),
-                      const AuthTextWelcome(),
-                      const SizedBox(height: 32),
+        title: AppStrings.blank,
+        centerBody: true,
+        body: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(vertical: 40),
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const AuthLogo(),
+                    const SizedBox(height: 24),
+                    const AuthTextWelcome(),
+                    const SizedBox(height: 32),
 
-                      if (viewModel.errorMessage != null)
-                        AuthErrorBanner(message: viewModel.errorMessage!),
+                    if (viewModel.errorMessage != null)
+                      AuthErrorBanner(message: viewModel.errorMessage!),
 
-                      AuthFormFields(
-                        emailController: _emailController,
-                        passwordController: _passwordController,
-                      ),
+                    AuthFormFields(
+                      emailController: _emailController,
+                      passwordController: _passwordController,
+                    ),
 
-                      const AuthPasswordResetLink(),
-                      const SizedBox(height: 24),
+                    const AuthPasswordResetLink(),
+                    const SizedBox(height: 24),
 
-                      AuthMainActionButton(
-                        isLoading: viewModel.isLoading,
-                        onPressed: _login,
-                      ),
+                    AuthMainActionButton(
+                      isLoading: viewModel.isLoading,
+                      onPressed: _login,
+                    ),
 
-                      const SizedBox(height: 24),
-                      const AuthSeparator(),
-                      const SizedBox(height: 24),
+                    const SizedBox(height: 24),
+                    const AuthSeparator(),
+                    const SizedBox(height: 24),
 
-                      const AuthGoogleButton(),
-                      const SizedBox(height: 24),
+                    const AuthGoogleButton(),
+                    const SizedBox(height: 24),
 
-                      const AuthSignUpLink(),
-                      const SizedBox(height: 40),
+                    const AuthSignUpLink(),
+                    const SizedBox(height: 40),
 
-                      const AuthFooterLinks(),
-                    ],
-                  ),
+                    const AuthFooterLinks(),
+                  ],
                 ),
               ),
             ),
           ),
+        ),
       ),
     );
   }

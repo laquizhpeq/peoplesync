@@ -6,7 +6,7 @@ import 'package:peoplesync/shared/widgets/design/inputs/app_text_field.dart';
 class AuthFormFields extends StatelessWidget {
   final TextEditingController emailController;
   final TextEditingController passwordController;
-  
+
   const AuthFormFields({
     super.key,
     required this.emailController,

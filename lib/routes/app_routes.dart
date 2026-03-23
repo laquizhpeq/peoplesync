@@ -14,10 +14,7 @@ class AppRoutes {
   static final GoRouter router = GoRouter(
     initialLocation: login,
     routes: [
-      GoRoute(
-        path: home,
-        builder: (context, state) => const HomePage(),
-      ),
+      GoRoute(path: home, builder: (context, state) => const HomePage()),
       GoRoute(
         path: login,
         builder: (context, state) => ChangeNotifierProvider<AuthViewModel>(
@@ -25,10 +22,7 @@ class AppRoutes {
           child: const AuthPage(),
         ),
       ),
-      GoRoute(
-        path: profile,
-        builder: (context, state) => const ProfilePage(),
-      ),
+      GoRoute(path: profile, builder: (context, state) => const ProfilePage()),
     ],
   );
 }

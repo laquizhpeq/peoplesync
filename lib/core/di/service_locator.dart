@@ -11,7 +11,7 @@ void setupServiceLocator() {
   getIt.registerLazySingleton<AuthService>(() => AuthService());
   getIt.registerLazySingleton<ProfileService>(() => ProfileService());
 
-  // ViewModels (Factory allows creating a new instance when requested to avoid lingering state, 
+  // ViewModels (Factory allows creating a new instance when requested to avoid lingering state,
   // or they can be Singletons if global state is required. For now, Factory is safe for pages,
   // but if we need global state later, we can change it to registerLazySingleton).
   getIt.registerFactory<AuthViewModel>(

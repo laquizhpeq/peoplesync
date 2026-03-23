@@ -5,10 +5,10 @@ import 'package:peoplesync/shared/widgets/design/buttons/app_primary_button.dart
 class AuthMainActionButton extends StatelessWidget {
   final bool isLoading;
   final VoidCallback? onPressed;
-  
+
   const AuthMainActionButton({
-    super.key, 
-    required this.isLoading, 
+    super.key,
+    required this.isLoading,
     this.onPressed,
   });
 

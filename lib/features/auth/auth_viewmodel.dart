@@ -32,8 +32,8 @@ class AuthViewModel extends ChangeNotifier {
       _isLoading = false;
       // Extract message from Exception if present
       final errorStr = e.toString();
-      _errorMessage = errorStr.startsWith('Exception: ') 
-          ? errorStr.substring(11) 
+      _errorMessage = errorStr.startsWith('Exception: ')
+          ? errorStr.substring(11)
           : errorStr;
       notifyListeners();
       debugPrint('AuthViewModel: login error: $_errorMessage');

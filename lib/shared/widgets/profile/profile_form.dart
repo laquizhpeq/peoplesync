@@ -6,11 +6,7 @@ class ProfileForm extends StatefulWidget {
   final UserProfile? profile;
   final void Function(String name, String phone, String bio) onSave;
 
-  const ProfileForm({
-    super.key,
-    required this.profile,
-    required this.onSave,
-  });
+  const ProfileForm({super.key, required this.profile, required this.onSave});
 
   @override
   State<ProfileForm> createState() => _ProfileFormState();

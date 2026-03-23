@@ -3,7 +3,7 @@ import 'package:peoplesync/core/constants/app_strings.dart';
 
 class AuthPasswordResetLink extends StatelessWidget {
   final VoidCallback? onPressed;
-  
+
   const AuthPasswordResetLink({super.key, this.onPressed});
 
   @override
@@ -23,7 +23,7 @@ class AuthPasswordResetLink extends StatelessWidget {
 
 class AuthSignUpLink extends StatelessWidget {
   final VoidCallback? onPressed;
-  
+
   const AuthSignUpLink({super.key, this.onPressed});
 
   @override
@@ -64,7 +64,7 @@ class AuthSeparator extends StatelessWidget {
 
 class AuthErrorBanner extends StatelessWidget {
   final String message;
-  
+
   const AuthErrorBanner({super.key, required this.message});
 
   @override

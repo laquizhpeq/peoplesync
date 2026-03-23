@@ -3,7 +3,7 @@ import 'package:peoplesync/core/constants/app_strings.dart';
 
 class AuthGoogleButton extends StatelessWidget {
   final VoidCallback? onPressed;
-  
+
   const AuthGoogleButton({super.key, this.onPressed});
 
   @override
@@ -15,10 +15,7 @@ class AuthGoogleButton extends StatelessWidget {
           minimumSize: const Size(double.infinity, 50),
           side: BorderSide(color: Colors.grey[300]!),
         ),
-        icon: const Icon(
-          Icons.g_mobiledata,
-          size: 30,
-        ),
+        icon: const Icon(Icons.g_mobiledata, size: 30),
         label: const Text(AppStrings.signInWithGoogle),
         onPressed: onPressed ?? () {},
       ),

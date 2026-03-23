@@ -42,7 +42,9 @@ class ProfilePage extends StatelessWidget {
                             bio: bio,
                           );
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Perfil guardado con éxito')),
+                            const SnackBar(
+                              content: Text('Perfil guardado con éxito'),
+                            ),
                           );
                         },
                       ),

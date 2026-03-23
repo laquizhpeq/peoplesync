@@ -16,7 +16,7 @@ class AuthFooterLinks extends StatelessWidget {
     final style = Theme.of(
       context,
     ).textTheme.bodySmall?.copyWith(color: Colors.grey);
-    
+
     return Column(
       children: [
         Row(

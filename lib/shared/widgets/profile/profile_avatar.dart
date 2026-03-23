@@ -4,11 +4,7 @@ class ProfileAvatar extends StatelessWidget {
   final String? photoUrl;
   final VoidCallback? onEditPhoto;
 
-  const ProfileAvatar({
-    super.key,
-    this.photoUrl,
-    this.onEditPhoto,
-  });
+  const ProfileAvatar({super.key, this.photoUrl, this.onEditPhoto});
 
   @override
   Widget build(BuildContext context) {
