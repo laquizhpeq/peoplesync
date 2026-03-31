@@ -31,6 +31,7 @@ class BottomNavBar extends StatelessWidget {
     // If we have 0 or 1, we hide it to avoid the "items.length >= 2" assertion error.
     if (navProvider.menus.length < 2) {
       if (navProvider.menus.isNotEmpty) {
+        // ignore: avoid_print
         print(
           'BottomNavBar: Hiding because only 1 menu was found. Firestore needs at least 2 for BottomNavigationBar.',
         );

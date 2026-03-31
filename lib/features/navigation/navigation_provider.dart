@@ -18,6 +18,7 @@ class NavigationProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
 
   Future<void> loadMenus(String uid) async {
+    // ignore: avoid_print
     print('NavigationProvider: Starting loadMenus for $uid');
     _isLoading = true;
     _errorMessage = null;
@@ -26,8 +27,10 @@ class NavigationProvider extends ChangeNotifier {
     try {
       _menus = await navigationService.fetchMenusForUser(uid);
       _hasLoaded = true;
+      // ignore: avoid_print
       print('NavigationProvider: Successfully loaded ${_menus.length} menus');
     } catch (e) {
+      // ignore: avoid_print
       print('NavigationProvider: Error loading menus: $e');
       _errorMessage = 'Error loading menus: $e';
       _hasLoaded = false;

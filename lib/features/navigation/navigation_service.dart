@@ -11,21 +11,25 @@ class NavigationService {
       if (doc.exists && doc.data() != null) {
         return doc.data()!['rol_id'] as String?;
       } else {
+        // ignore: avoid_print
         print(
           'NavigationService.fetchUserRoleId: document for $uid does not exist',
         );
       }
     } on FirebaseException catch (e) {
       if (e.code == 'permission-denied') {
+        // ignore: avoid_print
         print(
           'NavigationService.fetchUserRoleId: PERMISSION DENIED for user $uid. Check Firestore rules.',
         );
       } else {
+        // ignore: avoid_print
         print(
           'NavigationService.fetchUserRoleId error: ${e.code} - ${e.message}',
         );
       }
     } catch (e) {
+      // ignore: avoid_print
       print('NavigationService.fetchUserRoleId unexpected error: $e');
     }
     return null;
@@ -40,14 +44,18 @@ class NavigationService {
         if (data['menus'] is List) {
           return List<String>.from(data['menus']);
         } else {
+          // ignore: avoid_print
           print('NavigationService: Role document $roleId has no "menus" list');
         }
       } else {
+        // ignore: avoid_print
         print('NavigationService: Role document $roleId not found');
       }
     } on FirebaseException catch (e) {
+      // ignore: avoid_print
       print('NavigationService.fetchRoleMenus error: ${e.code} - ${e.message}');
     } catch (e) {
+      // ignore: avoid_print
       print('NavigationService.fetchRoleMenus unexpected error: $e');
     }
     return [];
@@ -65,6 +73,7 @@ class NavigationService {
           .get();
 
       if (querySnapshot.docs.isEmpty) {
+        // ignore: avoid_print
         print(
           'NavigationService: No documents found in "menus" collection for IDs: $menuIds',
         );
@@ -79,10 +88,12 @@ class NavigationService {
 
       return options;
     } on FirebaseException catch (e) {
+      // ignore: avoid_print
       print(
         'NavigationService.fetchMenuOptions error: ${e.code} - ${e.message}',
       );
     } catch (e) {
+      // ignore: avoid_print
       print('NavigationService.fetchMenuOptions unexpected error: $e');
     }
     return [];
@@ -90,25 +101,31 @@ class NavigationService {
 
   // Convenience method that chains all queries together for a given user id.
   Future<List<MenuOption>> fetchMenusForUser(String uid) async {
+    // ignore: avoid_print
     print('NavigationService: Fetching menus for UID: $uid');
 
     final roleId = await fetchUserRoleId(uid);
     if (roleId == null || roleId.isEmpty) {
+      // ignore: avoid_print
       print('NavigationService: No role found for UID $uid');
       return [];
     }
+    // ignore: avoid_print
     print('NavigationService: Found role: $roleId');
 
     final menuIds = await fetchRoleMenus(roleId);
     if (menuIds.isEmpty) {
+      // ignore: avoid_print
       print('NavigationService: No menus defined for role $roleId');
       return [];
     }
+    // ignore: avoid_print
     print(
       'NavigationService: Found ${menuIds.length} menu IDs for role $roleId: $menuIds',
     );
 
     final options = await fetchMenuOptions(menuIds);
+    // ignore: avoid_print
     print(
       'NavigationService: Successfully fetched ${options.length} menu options',
     );

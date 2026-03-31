@@ -39,8 +39,9 @@ class MenuOption {
       default:
         // Attempt a basic mapping check, fallback to help_outline
         if (iconName.contains('home')) return Icons.home;
-        if (iconName.contains('person') || iconName.contains('user'))
+        if (iconName.contains('person') || iconName.contains('user')) {
           return Icons.person;
+        }
         return Icons.help_outline;
     }
   }

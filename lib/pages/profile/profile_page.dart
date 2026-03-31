@@ -34,7 +34,7 @@ class ProfilePage extends StatelessWidget {
                 ProfileForm(
                   profile: viewModel.profile,
                   onSave: (name) {
-                    viewModel.updateProfile(full_name: name);
+                    viewModel.updateProfile(fullName: name);
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Perfil guardado con éxito'),

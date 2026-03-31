@@ -19,7 +19,7 @@ class _ProfileFormState extends State<ProfileForm> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(
-      text: widget.profile?.full_name ?? '',
+      text: widget.profile?.fullName ?? '',
     );
   }
 
@@ -27,7 +27,7 @@ class _ProfileFormState extends State<ProfileForm> {
   void didUpdateWidget(covariant ProfileForm oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.profile != widget.profile) {
-      _nameController.text = widget.profile?.full_name ?? '';
+      _nameController.text = widget.profile?.fullName ?? '';
     }
   }
 

@@ -28,9 +28,9 @@ class ProfileService {
   }
 
   // Update profile fields
-  Future<void> updateProfile({String? full_name}) async {
+  Future<void> updateProfile({String? fullName}) async {
     final data = <String, dynamic>{};
-    if (full_name != null) data['full_name'] = full_name;
+    if (fullName != null) data['full_name'] = fullName;
 
     await _userDoc.update(data);
   }

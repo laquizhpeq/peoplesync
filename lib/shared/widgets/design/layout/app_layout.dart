@@ -35,6 +35,7 @@ class _AppLayoutState extends State<AppLayout> {
       if (currentUser != null &&
           !navProvider.hasLoaded &&
           !navProvider.isLoading) {
+        // ignore: avoid_print
         print('AppLayout: Triggering initial menu load for ${currentUser.uid}');
         navProvider.loadMenus(currentUser.uid);
       }
