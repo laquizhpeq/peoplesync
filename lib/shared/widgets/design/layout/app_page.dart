@@ -1,4 +1,4 @@
-import '../../base/layout/base_page.dart';
+import 'base_page.dart';
 
 class AppPage extends BasePage {
   const AppPage({

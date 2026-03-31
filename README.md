@@ -20,13 +20,13 @@ docker run -d -p 8080:80 --name peoplesync-app peoplesync-web
 
 # Producction
 
-```bash 
+```bash
 docker-compose up --build -d
 ```
 
 # Development build
 
-```bash 
+```bash
 docker-compose -f docker-compose-dev.yml up --build -d
 ```
 

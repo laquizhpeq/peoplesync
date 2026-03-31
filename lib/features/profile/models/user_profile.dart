@@ -2,47 +2,35 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UserProfile {
   final String uid;
-  String displayName;
+  String full_name;
   String? email;
-  String? photoUrl;
-  String? phoneNumber;
-  String? bio;
-  DateTime? createdAt;
-  DateTime? updatedAt;
+  String rol_id;
+  DateTime? last_login;
 
   UserProfile({
     required this.uid,
-    this.displayName = '',
+    this.full_name = '',
     this.email,
-    this.photoUrl,
-    this.phoneNumber,
-    this.bio,
-    this.createdAt,
-    this.updatedAt,
+    required this.rol_id,
+    this.last_login,
   });
 
   factory UserProfile.fromMap(Map<String, dynamic> map, String uid) {
     return UserProfile(
       uid: uid,
-      displayName: map['displayName'] ?? '',
+      full_name: map['full_name'] ?? '',
       email: map['email'],
-      photoUrl: map['photoUrl'],
-      phoneNumber: map['phoneNumber'],
-      bio: map['bio'],
-      createdAt: map['createdAt']?.toDate(),
-      updatedAt: map['updatedAt']?.toDate(),
+      rol_id: map['rol_id'] ?? 'user', // Default to basic user role if none
+      last_login: map['last_login']?.toDate(),
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'displayName': displayName,
+      'full_name': full_name,
       'email': email,
-      'photoUrl': photoUrl,
-      'phoneNumber': phoneNumber,
-      'bio': bio,
-      'createdAt': createdAt ?? FieldValue.serverTimestamp(),
-      'updatedAt': FieldValue.serverTimestamp(),
+      'rol_id': rol_id,
+      'last_login': last_login ?? FieldValue.serverTimestamp(),
     };
   }
 }

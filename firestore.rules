@@ -1,0 +1,25 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // User Profiles: Users can only read/write their own profiles
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Roles: Authenticated users can read role definitions
+    match /rol/{roleId} {
+      allow read: if request.auth != null;
+    }
+    
+    // Menus: Authenticated users can read menu options
+    match /menus/{menuId} {
+      allow read: if request.auth != null;
+    }
+    
+    // Default: Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

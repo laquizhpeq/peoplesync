@@ -30,33 +30,11 @@ class ProfileViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> updateProfile({
-    String? displayName,
-    String? phoneNumber,
-    String? bio,
-  }) async {
+  Future<void> updateProfile({String? full_name}) async {
     _isLoading = true;
     notifyListeners();
     try {
-      await profileService.updateProfile(
-        displayName: displayName,
-        phoneNumber: phoneNumber,
-        bio: bio,
-      );
-      await _loadProfile(); // refresh
-    } catch (e) {
-      _errorMessage = e.toString();
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> updatePhoto(String filePath) async {
-    _isLoading = true;
-    notifyListeners();
-    try {
-      await profileService.updatePhotoUrl(filePath);
+      await profileService.updateProfile(full_name: full_name);
       await _loadProfile(); // refresh
     } catch (e) {
       _errorMessage = e.toString();

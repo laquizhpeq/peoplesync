@@ -1,11 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:peoplesync/features/navigation/navigation_provider.dart';
 import 'auth_service.dart';
 
 class AuthViewModel extends ChangeNotifier {
   final AuthService authService;
+  final NavigationProvider navigationProvider;
 
-  AuthViewModel({required this.authService});
+  AuthViewModel({required this.authService, required this.navigationProvider});
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -23,6 +25,13 @@ class AuthViewModel extends ChangeNotifier {
         email: email,
         password: password,
       );
+
+      // Attempt to load menus as soon as login succeeds
+      final uid = authService.currentUser?.uid;
+      if (uid != null) {
+        await navigationProvider.loadMenus(uid);
+      }
+
       // Login success: clear error and notify
       _isLoading = false;
       _errorMessage = null;
@@ -38,6 +47,12 @@ class AuthViewModel extends ChangeNotifier {
       notifyListeners();
       debugPrint('AuthViewModel: login error: $_errorMessage');
     }
+  }
+
+  Future<void> logout() async {
+    await authService.signOut();
+    navigationProvider.clearMenus();
+    notifyListeners();
   }
 
   void clearError() {
