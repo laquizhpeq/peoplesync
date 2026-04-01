@@ -18,7 +18,6 @@ class NavigationProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
 
   Future<void> loadMenus(String uid) async {
-
     print('NavigationProvider: Starting loadMenus for $uid');
     _isLoading = true;
     _errorMessage = null;
@@ -30,7 +29,6 @@ class NavigationProvider extends ChangeNotifier {
 
       print('NavigationProvider: Successfully loaded ${_menus.length} menus');
     } catch (e) {
-
       print('NavigationProvider: Error loading menus: $e');
       _errorMessage = 'Error loading menus: $e';
       _hasLoaded = false;
