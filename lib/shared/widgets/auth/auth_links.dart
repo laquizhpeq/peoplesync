@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:peoplesync/core/constants/app_strings.dart';
+import 'package:peoplesync/core/constants/routes.dart';
 
 class AuthPasswordResetLink extends StatelessWidget {
   final VoidCallback? onPressed;
@@ -33,7 +35,7 @@ class AuthSignUpLink extends StatelessWidget {
       children: [
         const Text(AppStrings.noAccount),
         TextButton(
-          onPressed: onPressed ?? () {},
+          onPressed: onPressed ?? () => context.go(Routes.register),
           child: const Text(
             AppStrings.signUp,
             style: TextStyle(fontWeight: FontWeight.bold),

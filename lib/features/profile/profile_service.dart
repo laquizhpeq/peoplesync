@@ -27,6 +27,20 @@ class ProfileService {
     return UserProfile.fromMap(data, doc.id);
   }
 
+  Future<void> createInitialProfile({
+    required String uid,
+    required String email,
+    required String fullName,
+    String roleId = 'usuario',
+  }) async {
+    await _firestore.collection('users').doc(uid).set({
+      'full_name': fullName,
+      'email': email,
+      'rol_id': roleId,
+      'last_login': FieldValue.serverTimestamp(),
+    });
+  }
+
   // Update profile fields
   Future<void> updateProfile({String? fullName}) async {
     final data = <String, dynamic>{};

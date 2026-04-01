@@ -1,13 +1,19 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:peoplesync/features/navigation/navigation_provider.dart';
+import 'package:peoplesync/features/profile/profile_service.dart';
 import 'auth_service.dart';
 
 class AuthViewModel extends ChangeNotifier {
   final AuthService authService;
+  final ProfileService profileService;
   final NavigationProvider navigationProvider;
 
-  AuthViewModel({required this.authService, required this.navigationProvider});
+  AuthViewModel({
+    required this.authService,
+    required this.profileService,
+    required this.navigationProvider,
+  });
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -46,6 +52,50 @@ class AuthViewModel extends ChangeNotifier {
           : errorStr;
       notifyListeners();
       debugPrint('AuthViewModel: login error: $_errorMessage');
+    }
+  }
+
+  Future<void> register({
+    required String fullName,
+    required String email,
+    required String password,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final credential = await authService.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      final user = credential.user;
+      if (user == null) {
+        throw Exception('No se pudo crear el usuario');
+      }
+
+      await profileService.createInitialProfile(
+        uid: user.uid,
+        email: email,
+        fullName: fullName,
+        roleId: 'usuario',
+      );
+
+      await navigationProvider.loadMenus(user.uid);
+
+      _isLoading = false;
+      _errorMessage = null;
+      notifyListeners();
+      debugPrint('AuthViewModel: register success');
+    } catch (e) {
+      _isLoading = false;
+      final errorStr = e.toString();
+      _errorMessage = errorStr.startsWith('Exception: ')
+          ? errorStr.substring(11)
+          : errorStr;
+      notifyListeners();
+      debugPrint('AuthViewModel: register error: $_errorMessage');
     }
   }
 
