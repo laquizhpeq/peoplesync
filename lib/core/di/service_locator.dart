@@ -22,6 +22,7 @@ void setupServiceLocator() {
   getIt.registerFactory<AuthViewModel>(
     () => AuthViewModel(
       authService: getIt<AuthService>(),
+      profileService: getIt<ProfileService>(),
       navigationProvider: getIt<NavigationProvider>(),
     ),
   );

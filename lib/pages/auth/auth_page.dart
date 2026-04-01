@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:peoplesync/core/constants/routes.dart';
 import 'package:peoplesync/features/auth/auth_viewmodel.dart';
 import 'package:peoplesync/core/constants/app_strings.dart';
 import 'package:peoplesync/shared/widgets/design/layout/app_page.dart';
@@ -44,7 +45,7 @@ class _AuthPageState extends State<AuthPage> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Login successful')));
-      context.go('/');
+      context.go(Routes.home);
     } else {
       ScaffoldMessenger.of(
         context,
@@ -86,6 +87,7 @@ class _AuthPageState extends State<AuthPage> {
 
                     AuthMainActionButton(
                       isLoading: viewModel.isLoading,
+                      label: AppStrings.signIn,
                       onPressed: _login,
                     ),
 

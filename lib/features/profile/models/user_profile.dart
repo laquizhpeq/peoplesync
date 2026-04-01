@@ -20,7 +20,8 @@ class UserProfile {
       uid: uid,
       fullName: map['full_name'] ?? '',
       email: map['email'],
-      rolId: map['rol_id'] ?? 'user', // Default to basic user role if none
+      rolId:
+          map['rol_id'] ?? 'usuario', // Default to basic user role if none
       lastLogin: map['last_login']?.toDate(),
     );
   }

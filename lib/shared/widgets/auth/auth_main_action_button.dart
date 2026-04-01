@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:peoplesync/core/constants/app_strings.dart';
 import 'package:peoplesync/shared/widgets/design/buttons/app_primary_button.dart';
 
 class AuthMainActionButton extends StatelessWidget {
   final bool isLoading;
+  final String label;
   final VoidCallback? onPressed;
 
   const AuthMainActionButton({
     super.key,
     required this.isLoading,
+    required this.label,
     this.onPressed,
   });
 
@@ -27,7 +28,7 @@ class AuthMainActionButton extends StatelessWidget {
                   color: Colors.white,
                 ),
               )
-            : const Text(AppStrings.signIn),
+            : Text(label),
       ),
     );
   }
