@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:flutter/foundation.dart';
 import 'package:peoplesync/features/navigation/models/menu_option.dart';
 import 'package:peoplesync/features/navigation/navigation_service.dart';
