@@ -1,4 +1,12 @@
 class AppStrings {
+  // Menu
+  static const String menu = 'Menú';
+  static const String home = 'Inicio';
+  static const String contacts = 'Contactos';
+  static const String mycards = 'Mis tarjetas';
+  static const String profile = 'Perfil';
+  static const String settings = 'Configuración';
+  static const String logout = 'Cerrar sesión';
   // AuthPage
   static const String blank = '';
   static const String login = 'Login';
@@ -26,13 +34,25 @@ class AppStrings {
   static const String or = 'O continúa con';
   static const String appName = 'PeopleSync';
 
-  // Bottom navigation
-  static const String home = 'Inicio';
-  static const String profile = 'Perfil';
-
   // Profile Page
   static const String name = 'Nombre';
   static const String phone = 'Teléfono';
   static const String bio = 'Biografía';
   static const String saveChanges = 'Guardar cambios';
+
+  // Home Page
+  static const String dashboard = 'Panel de control';
+  static const String welcomeBack = 'Bienvenido de nuevo';
+  static const String timeToConnect = 'Es hora de conectar';
+  static const String youHaventSpoken = 'No has hablado con nadie';
+  static const String startConversations = 'Inicia conversaciones';
+  static const String quickActions = 'Acciones rápidas';
+  static const String scanQR = 'Escanear QR';
+  static const String nearMe = 'Cerca de mí';
+  static const String addManually = 'Añadir manualmente';
+  static const String recentContacts = 'Contactos recientes';
+  static const String recentInteractions = 'Interacciones recientes';
+  static const String viewAll = 'Ver todo';
+  static const String message = 'Mensaje';
+  static const String dismiss = 'Descartar';
 }
