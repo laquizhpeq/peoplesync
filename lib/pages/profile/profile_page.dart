@@ -27,7 +27,8 @@ class ProfilePage extends StatelessWidget {
               children: [
                 ProfileAvatar(
                   onEditPhoto: () {
-                    // TODO: Implement image picker later or handle differently
+                    // ignore: avoid_print
+                    print("Editar foto");
                   },
                 ),
                 const SizedBox(height: 20),
