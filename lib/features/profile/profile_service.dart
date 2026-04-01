@@ -37,14 +37,17 @@ class ProfileService {
       'full_name': fullName,
       'email': email,
       'rol_id': roleId,
+      'photo_url': null,
+      'created_at': FieldValue.serverTimestamp(),
       'last_login': FieldValue.serverTimestamp(),
     });
   }
 
   // Update profile fields
-  Future<void> updateProfile({String? fullName}) async {
+  Future<void> updateProfile({String? fullName, String? photoUrl}) async {
     final data = <String, dynamic>{};
     if (fullName != null) data['full_name'] = fullName;
+    if (photoUrl != null) data['photo_url'] = photoUrl;
 
     await _userDoc.update(data);
   }

@@ -5,6 +5,8 @@ class UserProfile {
   String fullName;
   String? email;
   String rolId;
+  String? photoUrl;
+  DateTime? createdAt;
   DateTime? lastLogin;
 
   UserProfile({
@@ -12,6 +14,8 @@ class UserProfile {
     this.fullName = '',
     this.email,
     required this.rolId,
+    this.photoUrl,
+    this.createdAt,
     this.lastLogin,
   });
 
@@ -20,8 +24,10 @@ class UserProfile {
       uid: uid,
       fullName: map['full_name'] ?? '',
       email: map['email'],
-      rolId: map['rol_id'] ?? 'usuario', // Default to basic user role if none
-      lastLogin: map['last_login']?.toDate(),
+      rolId: map['rol_id'] ?? 'usuario',
+      photoUrl: map['photo_url'],
+      createdAt: (map['created_at'] as Timestamp?)?.toDate(),
+      lastLogin: (map['last_login'] as Timestamp?)?.toDate(),
     );
   }
 
@@ -30,6 +36,8 @@ class UserProfile {
       'full_name': fullName,
       'email': email,
       'rol_id': rolId,
+      'photo_url': photoUrl,
+      'created_at': createdAt ?? FieldValue.serverTimestamp(),
       'last_login': lastLogin ?? FieldValue.serverTimestamp(),
     };
   }
