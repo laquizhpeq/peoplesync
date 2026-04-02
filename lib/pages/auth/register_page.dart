@@ -101,6 +101,8 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Consumer<AuthViewModel>(
       builder: (context, viewModel, child) => AppPage(
         title: AppStrings.blank,
@@ -109,83 +111,161 @@ class _RegisterPageState extends State<RegisterPage> {
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(vertical: 40),
             child: Container(
-              constraints: const BoxConstraints(maxWidth: 400),
+              constraints: const BoxConstraints(maxWidth: 460),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(36),
+                gradient: LinearGradient(
+                  colors: [
+                    theme.colorScheme.surface.withValues(alpha: 0.82),
+                    theme.colorScheme.surface.withValues(alpha: 0.58),
+                  ],
+                ),
+                border: Border.all(
+                  color: theme.colorScheme.surface.withValues(alpha: 0.35),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                    blurRadius: 40,
+                    offset: const Offset(0, 24),
+                  ),
+                ],
+              ),
               child: Form(
                 key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const AuthLogo(),
-                    const SizedBox(height: 24),
-                    const AuthTextWelcome(
-                      title: 'Crea tu cuenta',
-                      description:
-                          'Completa tus datos para empezar con el rol usuario',
-                    ),
-                    const SizedBox(height: 32),
-                    if (viewModel.errorMessage != null)
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface.withValues(alpha: 0.88),
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 28),
+                      const AuthLogo(),
+                      const SizedBox(height: 24),
+                      const AuthTextWelcome(
+                        title: 'Crea tu cuenta',
+                        description:
+                            'Completa tus datos para empezar con el rol usuario',
+                      ),
+                      const SizedBox(height: 32),
+                      if (viewModel.errorMessage != null)
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            bottom: 24,
+                            left: 24,
+                            right: 24,
+                          ),
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.error.withValues(
+                                alpha: 0.08,
+                              ),
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                color: theme.colorScheme.error.withValues(
+                                  alpha: 0.18,
+                                ),
+                              ),
+                            ),
+                            child: Text(
+                              viewModel.errorMessage!,
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.error,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
                       Padding(
-                        padding: const EdgeInsets.only(
-                          bottom: 24,
-                          left: 24,
-                          right: 24,
-                        ),
-                        child: Text(
-                          viewModel.errorMessage!,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.error,
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Container(
+                          padding: const EdgeInsets.all(18),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surface.withValues(
+                              alpha: 0.74,
+                            ),
+                            borderRadius: BorderRadius.circular(28),
+                            border: Border.all(
+                              color: theme.colorScheme.onSurfaceVariant
+                                  .withValues(alpha: 0.12),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: theme.colorScheme.primary.withValues(
+                                  alpha: 0.08,
+                                ),
+                                blurRadius: 28,
+                                offset: const Offset(0, 18),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              AppTextField(
+                                controller: _nameController,
+                                label: AppStrings.name,
+                                validator: _validateName,
+                                prefixIcon: const Icon(Icons.person_outline),
+                              ),
+                              const SizedBox(height: 18),
+                              AppTextField(
+                                controller: _emailController,
+                                label: AppStrings.email,
+                                hintText: AppStrings.emailExample,
+                                keyboardType: TextInputType.emailAddress,
+                                validator: _validateEmail,
+                                prefixIcon: const Icon(
+                                  Icons.alternate_email_rounded,
+                                ),
+                              ),
+                              const SizedBox(height: 18),
+                              AppPasswordField(
+                                controller: _passwordController,
+                                label: AppStrings.password,
+                                validator: _validatePassword,
+                                customPrefixIcon: const Icon(
+                                  Icons.lock_outline_rounded,
+                                ),
+                              ),
+                              const SizedBox(height: 18),
+                              AppPasswordField(
+                                controller: _confirmPasswordController,
+                                label: 'Confirmar contrasena',
+                                validator: _validateConfirmPassword,
+                                customPrefixIcon: const Icon(
+                                  Icons.verified_user_outlined,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Column(
-                        children: [
-                          AppTextField(
-                            controller: _nameController,
-                            label: AppStrings.name,
-                            validator: _validateName,
-                            prefixIcon: const Icon(Icons.person_outline),
-                          ),
-                          const SizedBox(height: 20),
-                          AppTextField(
-                            controller: _emailController,
-                            label: AppStrings.email,
-                            hintText: AppStrings.emailExample,
-                            keyboardType: TextInputType.emailAddress,
-                            validator: _validateEmail,
-                            prefixIcon: const Icon(Icons.mail_outline),
-                          ),
-                          const SizedBox(height: 20),
-                          AppPasswordField(
-                            controller: _passwordController,
-                            label: AppStrings.password,
-                            validator: _validatePassword,
-                          ),
-                          const SizedBox(height: 20),
-                          AppPasswordField(
-                            controller: _confirmPasswordController,
-                            label: 'Confirmar contrasena',
-                            validator: _validateConfirmPassword,
-                          ),
-                        ],
+                      const SizedBox(height: 24),
+                      AuthMainActionButton(
+                        isLoading: viewModel.isLoading,
+                        label: AppStrings.signUp,
+                        onPressed: _register,
                       ),
-                    ),
-                    const SizedBox(height: 24),
-                    AuthMainActionButton(
-                      isLoading: viewModel.isLoading,
-                      label: AppStrings.signUp,
-                      onPressed: _register,
-                    ),
-                    const SizedBox(height: 16),
-                    TextButton(
-                      onPressed: () => context.go(Routes.login),
-                      child: const Text('Ya tengo una cuenta'),
-                    ),
-                    const SizedBox(height: 24),
-                    const AuthFooterLinks(),
-                  ],
+                      const SizedBox(height: 16),
+                      TextButton(
+                        onPressed: () => context.go(Routes.login),
+                        child: const Text('Ya tengo una cuenta'),
+                      ),
+                      const SizedBox(height: 24),
+                      const AuthFooterLinks(),
+                      const SizedBox(height: 28),
+                    ],
+                  ),
                 ),
               ),
             ),

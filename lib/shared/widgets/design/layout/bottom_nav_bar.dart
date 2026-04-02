@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:peoplesync/core/utils/route_utils.dart';
 import 'package:peoplesync/features/navigation/navigation_provider.dart';
 
 class BottomNavBar extends StatelessWidget {
@@ -8,8 +9,10 @@ class BottomNavBar extends StatelessWidget {
 
   int _calculateSelectedIndex(BuildContext context, List<String> routes) {
     try {
-      final String location = GoRouterState.of(context).uri.toString();
-      final index = routes.indexOf(location);
+      final location = normalizeAppRoute(GoRouterState.of(context).uri.path);
+      final index = routes.indexWhere(
+        (route) => isSameAppRoute(route, location),
+      );
       return index >= 0 ? index : 0;
     } catch (e) {
       return 0;
@@ -18,7 +21,7 @@ class BottomNavBar extends StatelessWidget {
 
   void _onItemTapped(BuildContext context, int index, List<String> routes) {
     if (index < routes.length) {
-      context.go(routes[index]);
+      context.go(normalizeAppRoute(routes[index]));
     }
   }
 
@@ -41,24 +44,45 @@ class BottomNavBar extends StatelessWidget {
 
     final routes = navProvider.menus.map((m) => m.route).toList();
 
-    return BottomNavigationBar(
-      currentIndex: _calculateSelectedIndex(context, routes),
-      onTap: (index) => _onItemTapped(context, index, routes),
-      selectedItemColor: theme.colorScheme.primary,
-      unselectedItemColor: theme.colorScheme.onSurfaceVariant,
-      showSelectedLabels: true,
-      showUnselectedLabels: true,
-      type: BottomNavigationBarType.fixed,
-      backgroundColor: theme.colorScheme.surface,
-      elevation: 8,
-      items: navProvider.menus
-          .map(
-            (menu) => BottomNavigationBarItem(
-              icon: Icon(menu.iconData),
-              label: menu.title,
-            ),
-          )
-          .toList(),
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        color: theme.colorScheme.surface.withValues(alpha: 0.96),
+        boxShadow: [
+          BoxShadow(
+            color: theme.colorScheme.primary.withValues(alpha: 0.12),
+            blurRadius: 28,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(28),
+        child: BottomNavigationBar(
+          currentIndex: _calculateSelectedIndex(context, routes),
+          onTap: (index) => _onItemTapped(context, index, routes),
+          selectedItemColor: theme.colorScheme.primary,
+          unselectedItemColor: theme.colorScheme.onSurfaceVariant,
+          showSelectedLabels: true,
+          showUnselectedLabels: true,
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          selectedLabelStyle: theme.textTheme.bodySmall?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+          unselectedLabelStyle: theme.textTheme.bodySmall,
+          items: navProvider.menus
+              .map(
+                (menu) => BottomNavigationBarItem(
+                  icon: Icon(menu.iconData),
+                  label: menu.title,
+                ),
+              )
+              .toList(),
+        ),
+      ),
     );
   }
 }

@@ -3,6 +3,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:peoplesync/features/navigation/models/menu_option.dart';
 import 'package:peoplesync/features/navigation/navigation_service.dart';
+import 'package:peoplesync/core/utils/route_utils.dart';
 
 class NavigationProvider extends ChangeNotifier {
   final NavigationService navigationService;
@@ -51,14 +52,14 @@ class NavigationProvider extends ChangeNotifier {
   // Helper method to check if a user is authorized for a specific route.
   // Exception: the base home route '/' may be globally allowed, or mapped as well based on roles.
   bool isAuthorized(String path) {
-    if (path == '/login') return true; // Login is public
-    // Allow root / or check if registered in the fetched DB route.
-    // If your app routes strictly base authorization on the exact string:
+    final normalizedPath = normalizeAppRoute(path);
+
+    if (normalizedPath == '/login') return true;
+    if (normalizedPath == '/contacts/new') return true;
     for (var m in _menus) {
-      if (m.route == path) return true;
+      if (isSameAppRoute(m.route, normalizedPath)) return true;
     }
-    // Alternatively, if Home is always accessible to authenticated users:
-    if (path == '/' || path == '/home') return true;
+    if (normalizedPath == '/' || normalizedPath == '/home') return true;
 
     return false;
   }

@@ -14,40 +14,48 @@ class ContactItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Container(
-      margin: const EdgeInsets.symmetric(
-        vertical: 4.0,
-      ), // Espacio entre tarjetas
+      margin: const EdgeInsets.symmetric(vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFF0F4F8), // Ese color gris azulado muy clarito
-        borderRadius: BorderRadius.circular(40), // Bordes estilo cápsula
+        color: theme.colorScheme.surface.withValues(alpha: 0.96),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(
+          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.08),
+        ),
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
         leading: CircleAvatar(
-          radius: 20,
+          radius: 24,
           backgroundImage: NetworkImage(imageUrl),
         ),
         title: Text(
           name,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-            color: Colors.black87,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w800,
           ),
         ),
         subtitle: Text(
           subtitle,
-          style: TextStyle(color: Colors.grey[600], fontSize: 14),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
         ),
-        trailing: const Icon(
-          Icons.chevron_right,
-          color: Colors.black26,
-          size: 10,
+        trailing: Container(
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            Icons.chevron_right_rounded,
+            color: theme.colorScheme.primary,
+          ),
         ),
-        onTap: () {
-          // Acción al tocar el contacto
-        },
+        onTap: () {},
       ),
     );
   }

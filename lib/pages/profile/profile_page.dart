@@ -143,7 +143,7 @@ class _AffinityHighlights extends StatelessWidget {
                 icon: Icons.music_note_rounded,
                 title: 'Cancion favorita',
                 subtitle:
-                    'Una pista rapida para abrir conversaciones con contexto',
+                    'Una pista rapida para recordar el tono y la energia de esa persona',
               ),
               SizedBox(height: 12),
               _HighlightCard(
@@ -162,7 +162,7 @@ class _AffinityHighlights extends StatelessWidget {
                 icon: Icons.music_note_rounded,
                 title: 'Cancion favorita',
                 subtitle:
-                    'Una pista rapida para abrir conversaciones con contexto',
+                    'Una pista rapida para recordar el tono y la energia de esa persona',
               ),
             ),
             SizedBox(width: 12),
@@ -253,12 +253,12 @@ class _ContactModelNotes extends StatelessWidget {
         SizedBox(height: 12),
         _BulletLine(
           text:
-              'Cada contacto puede ser manual o enlazado a otro usuario real, pero ambos comparten campos ricos como bio, intereses, cancion favorita y notas.',
+              'Cada contacto puede nacer manualmente, desde un usuario enlazado o por importacion futura mediante QR, siempre con campos opcionales y editables.',
         ),
         SizedBox(height: 12),
         _BulletLine(
           text:
-              'Las invitaciones o altas mutuas deberian vivir luego en una coleccion separada de requests para no contaminar contacts.',
+              'La ficha esta pensada para guardar identidad, afinidades, contexto y redes sociales sin depender de mensajeria interna.',
         ),
       ],
     );

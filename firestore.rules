@@ -1,28 +1,41 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // User Profiles: Users can only read/write their own profiles
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    function isSignedIn() {
+      return request.auth != null;
     }
 
-    // Personal contact book per user
-    match /users/{userId}/contacts/{contactId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
     }
-    
-    // Roles: Authenticated users can read role definitions
+
+    // Perfil propio del usuario
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+
+      // Agenda privada del usuario
+      match /contacts/{contactId} {
+        allow read, delete: if isOwner(userId);
+
+        // Crear contacto manual/importado dentro de la agenda del usuario autenticado
+        allow create: if isOwner(userId) &&
+          request.resource.data.owner_uid == request.auth.uid;
+
+        // Editar solo contactos ya pertenecientes al mismo usuario
+        allow update: if isOwner(userId) &&
+          resource.data.owner_uid == request.auth.uid &&
+          request.resource.data.owner_uid == resource.data.owner_uid;
+      }
+    }
+
     match /rol/{roleId} {
-      allow read: if request.auth != null;
+      allow read: if isSignedIn();
     }
-    
-    // Menus: Authenticated users can read menu options
+
     match /menus/{menuId} {
-      allow read: if request.auth != null;
+      allow read: if isSignedIn();
     }
-    
-    // Default: Deny all other access
+
     match /{document=**} {
       allow read, write: if false;
     }

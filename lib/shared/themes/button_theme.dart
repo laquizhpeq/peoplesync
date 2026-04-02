@@ -1,25 +1,23 @@
 import 'package:flutter/material.dart';
 
 class AppButtonTheme {
-  static const double _borderRadius = 16.0;
+  static const double _borderRadius = 18.0;
 
-  // Estilo común para todos los botones (Layout)
   static ButtonStyle _getCommonStyle() {
     return ElevatedButton.styleFrom(
       elevation: 0,
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(_borderRadius),
       ),
       textStyle: const TextStyle(
-        fontSize: 16,
+        fontSize: 15,
         fontWeight: FontWeight.w600,
-        fontFamily: 'Inter',
+        fontFamily: 'Roboto',
       ),
     );
   }
 
-  // 1. ELEVATED BUTTON THEME
   static ElevatedButtonThemeData getElevatedButtonTheme(
     ColorScheme colorScheme,
   ) {
@@ -37,33 +35,55 @@ class AppButtonTheme {
           }
           return colorScheme.onPrimary;
         }),
+        overlayColor: WidgetStatePropertyAll(
+          colorScheme.onPrimary.withValues(alpha: 0.08),
+        ),
+        shadowColor: WidgetStatePropertyAll(
+          colorScheme.primary.withValues(alpha: 0.24),
+        ),
+        elevation: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.pressed)) return 0;
+          return 6;
+        }),
       ),
     );
   }
 
-  // 2. OUTLINED BUTTON THEME
   static OutlinedButtonThemeData getOutlinedButtonTheme(
     ColorScheme colorScheme,
   ) {
     return OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        side: BorderSide(color: colorScheme.primary, width: 1.5),
+        side: BorderSide(
+          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.28),
+          width: 1.2,
+        ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(_borderRadius),
         ),
-        foregroundColor: colorScheme.primary,
+        foregroundColor: colorScheme.onSurface,
+        textStyle: const TextStyle(
+          fontFamily: 'Roboto',
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+        ),
+        backgroundColor: colorScheme.surface.withValues(alpha: 0.9),
       ),
     );
   }
 
-  // 3. TEXT BUTTON THEME
   static TextButtonThemeData getTextButtonTheme(ColorScheme colorScheme) {
     return TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: colorScheme.primary,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(_borderRadius),
+        ),
+        textStyle: const TextStyle(
+          fontFamily: 'Roboto',
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );

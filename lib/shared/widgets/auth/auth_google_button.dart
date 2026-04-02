@@ -8,14 +8,23 @@ class AuthGoogleButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: OutlinedButton.icon(
         style: OutlinedButton.styleFrom(
-          minimumSize: const Size(double.infinity, 50),
-          side: BorderSide(color: Colors.grey[300]!),
+          minimumSize: const Size(double.infinity, 54),
+          side: BorderSide(
+            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.18),
+          ),
+          backgroundColor: theme.colorScheme.surface.withValues(alpha: 0.84),
         ),
-        icon: const Icon(Icons.g_mobiledata, size: 30),
+        icon: Icon(
+          Icons.g_mobiledata,
+          size: 34,
+          color: theme.colorScheme.primary,
+        ),
         label: const Text(AppStrings.signInWithGoogle),
         onPressed: onPressed ?? () {},
       ),

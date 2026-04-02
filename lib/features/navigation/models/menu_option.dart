@@ -31,6 +31,12 @@ class MenuOption {
         return Icons.home_rounded;
       case 'people_alt_outlined':
         return Icons.people_alt_outlined;
+      case 'hub_outlined':
+        return Icons.hub_outlined;
+      case 'diversity_3_rounded':
+        return Icons.diversity_3_rounded;
+      case 'groups_rounded':
+        return Icons.groups_rounded;
       case 'person_outline':
         return Icons.person_outline;
       case 'settings_outlined':
@@ -41,6 +47,9 @@ class MenuOption {
         if (iconName.contains('home')) return Icons.home;
         if (iconName.contains('person') || iconName.contains('user')) {
           return Icons.person;
+        }
+        if (iconName.contains('group') || iconName.contains('people')) {
+          return Icons.groups_rounded;
         }
         return Icons.help_outline;
     }

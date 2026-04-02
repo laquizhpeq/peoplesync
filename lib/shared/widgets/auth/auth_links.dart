@@ -10,13 +10,18 @@ class AuthPasswordResetLink extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerRight,
-      child: Padding(
-        padding: const EdgeInsets.only(right: 12),
-        child: TextButton(
-          onPressed: onPressed ?? () {},
-          child: const Text(AppStrings.passwordReset),
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: TextButton(
+        onPressed: onPressed ?? () {},
+        child: Text(
+          AppStrings.passwordReset,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.primary,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
     );
@@ -30,15 +35,20 @@ class AuthSignUpLink extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text(AppStrings.noAccount),
+        Text(AppStrings.noAccount, style: theme.textTheme.bodyMedium),
         TextButton(
           onPressed: onPressed ?? () => context.go(Routes.register),
-          child: const Text(
+          child: Text(
             AppStrings.signUp,
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.primary,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
       ],
@@ -51,14 +61,29 @@ class AuthSeparator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Row(
       children: [
-        const Expanded(child: Divider()),
+        Expanded(
+          child: Divider(
+            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.26),
+          ),
+        ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(AppStrings.or, style: TextStyle(color: Colors.grey[600])),
+          child: Text(
+            AppStrings.or,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
         ),
-        const Expanded(child: Divider()),
+        Expanded(
+          child: Divider(
+            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.26),
+          ),
+        ),
       ],
     );
   }
@@ -71,12 +96,28 @@ class AuthErrorBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 24, left: 24, right: 24),
-      child: Text(
-        message,
-        textAlign: TextAlign.center,
-        style: TextStyle(color: Theme.of(context).colorScheme.error),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.error.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: theme.colorScheme.error.withValues(alpha: 0.18),
+          ),
+        ),
+        child: Text(
+          message,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.error,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
     );
   }

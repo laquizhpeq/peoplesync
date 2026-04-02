@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:peoplesync/core/di/service_locator.dart';
 import 'package:peoplesync/features/auth/auth_service.dart';
+import 'package:peoplesync/core/utils/route_utils.dart';
 import 'package:peoplesync/shared/widgets/design/layout/app_bar.dart';
 import 'package:peoplesync/shared/widgets/design/layout/bottom_nav_bar.dart';
 import 'package:provider/provider.dart';
@@ -45,15 +46,21 @@ class _AppLayoutState extends State<AppLayout> {
   @override
   Widget build(BuildContext context) {
     final navProvider = Provider.of<NavigationProvider>(context);
-    final currentRoute = GoRouterState.of(context).uri.path;
+    final currentRoute = normalizeAppRoute(GoRouterState.of(context).uri.path);
 
-    // Find if the current route matches any menu
     String pageTitle = 'PeopleSync';
     for (var m in navProvider.menus) {
-      if (m.route == currentRoute) {
+      if (isSameAppRoute(m.route, currentRoute)) {
         pageTitle = m.title;
         break;
       }
+    }
+
+    if (currentRoute == '/contacts/new') {
+      pageTitle = 'Nuevo contacto';
+    }
+    if (currentRoute == '/connections') {
+      pageTitle = 'Conexiones';
     }
 
     // Fallback if loading
@@ -62,8 +69,26 @@ class _AppLayoutState extends State<AppLayout> {
     }
 
     return Scaffold(
+      extendBody: true,
       appBar: TopNavBar(title: pageTitle),
-      body: widget.child,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Theme.of(
+                context,
+              ).colorScheme.primaryContainer.withValues(alpha: 0.32),
+              Theme.of(context).colorScheme.surface,
+              Theme.of(
+                context,
+              ).colorScheme.secondaryContainer.withValues(alpha: 0.18),
+            ],
+          ),
+        ),
+        child: SafeArea(top: false, child: widget.child),
+      ),
       bottomNavigationBar: const BottomNavBar(),
     );
   }

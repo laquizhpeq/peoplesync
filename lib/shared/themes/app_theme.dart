@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'button_theme.dart';
 import 'color_scheme.dart';
 import 'text_theme.dart';
-import 'button_theme.dart';
 
 class AppTheme {
-  static const double _borderRadius = 16.0;
+  static const double _borderRadius = 22.0;
 
   static InputDecorationTheme _getInputTheme(
     ColorScheme colors,
@@ -12,8 +12,8 @@ class AppTheme {
   ) {
     return InputDecorationTheme(
       filled: true,
-      fillColor: colors.surfaceContainerHighest.withValues(alpha: 0.3),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      fillColor: colors.surface,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(_borderRadius),
         borderSide: BorderSide.none,
@@ -21,22 +21,31 @@ class AppTheme {
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(_borderRadius),
         borderSide: BorderSide(
-          color: colors.onSurfaceVariant.withValues(alpha: 0.2),
+          color: colors.onSurfaceVariant.withValues(alpha: 0.18),
         ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(_borderRadius),
-        borderSide: BorderSide(color: colors.primary, width: 2),
+        borderSide: BorderSide(color: colors.primary, width: 1.6),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(_borderRadius),
         borderSide: BorderSide(color: colors.error, width: 1),
       ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(_borderRadius),
+        borderSide: BorderSide(color: colors.error, width: 1.2),
+      ),
+      hintStyle: text.bodyMedium?.copyWith(
+        color: colors.onSurfaceVariant.withValues(alpha: 0.8),
+      ),
       labelStyle: text.bodyMedium?.copyWith(color: colors.onSurfaceVariant),
       floatingLabelStyle: text.bodyMedium?.copyWith(
         color: colors.primary,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w700,
       ),
+      prefixIconColor: colors.onSurfaceVariant,
+      suffixIconColor: colors.onSurfaceVariant,
     );
   }
 
@@ -44,6 +53,7 @@ class AppTheme {
     useMaterial3: true,
     colorScheme: AppColorScheme.light,
     textTheme: AppTextTheme.light,
+    scaffoldBackgroundColor: const Color(0xFFFFF6F1),
     inputDecorationTheme: _getInputTheme(
       AppColorScheme.light,
       AppTextTheme.light,
@@ -55,12 +65,21 @@ class AppTheme {
       AppColorScheme.light,
     ),
     textButtonTheme: AppButtonTheme.getTextButtonTheme(AppColorScheme.light),
+    snackBarTheme: SnackBarThemeData(
+      backgroundColor: AppColorScheme.light.onSurface,
+      contentTextStyle: AppTextTheme.light.bodyMedium?.copyWith(
+        color: AppColorScheme.light.surface,
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      behavior: SnackBarBehavior.floating,
+    ),
   );
 
   static ThemeData darkTheme = ThemeData(
     useMaterial3: true,
     colorScheme: AppColorScheme.dark,
     textTheme: AppTextTheme.dark,
+    scaffoldBackgroundColor: const Color(0xFF201513),
     inputDecorationTheme: _getInputTheme(
       AppColorScheme.dark,
       AppTextTheme.dark,
@@ -72,5 +91,13 @@ class AppTheme {
       AppColorScheme.dark,
     ),
     textButtonTheme: AppButtonTheme.getTextButtonTheme(AppColorScheme.dark),
+    snackBarTheme: SnackBarThemeData(
+      backgroundColor: AppColorScheme.dark.surfaceContainerHighest,
+      contentTextStyle: AppTextTheme.dark.bodyMedium?.copyWith(
+        color: AppColorScheme.dark.onSurface,
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      behavior: SnackBarBehavior.floating,
+    ),
   );
 }

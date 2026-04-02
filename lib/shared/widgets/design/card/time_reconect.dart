@@ -6,16 +6,10 @@ class TimeReconectCard extends StatelessWidget {
   final String title;
   final String description;
   final String? footerText;
-
-  // Botón Secundario (Texto)
   final String secondaryActionLabel;
   final VoidCallback onSecondaryAction;
-
-  // Botón Principal (Relleno)
   final String primaryActionLabel;
   final VoidCallback onPrimaryAction;
-
-  // Personalización de color opcional
   final Color? backgroundColor;
 
   const TimeReconectCard({
@@ -34,75 +28,85 @@ class TimeReconectCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      color: backgroundColor ?? const Color(0xFFF0F4F8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Encabezado
-            Row(
-              children: [
-                Icon(leadingIcon, color: iconColor ?? Colors.blue),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
+    final theme = Theme.of(context);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color:
+            backgroundColor ??
+            theme.colorScheme.surface.withValues(alpha: 0.96),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(
+          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: theme.colorScheme.primary.withValues(alpha: 0.08),
+            blurRadius: 24,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      theme.colorScheme.primary,
+                      theme.colorScheme.secondary,
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Icon(leadingIcon, color: iconColor ?? Colors.white),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  title,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            // Cuerpo
-            Text(
-              description,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey[700], height: 1.4),
-            ),
-
-            // Texto de pie de página (opcional)
-            if (footerText != null) ...[
-              const SizedBox(height: 12),
-              Text(
-                footerText!,
-                style: const TextStyle(fontWeight: FontWeight.w600),
               ),
             ],
-
-            const SizedBox(height: 20),
-
-            // Botones de acción
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TextButton(
-                  onPressed: onSecondaryAction,
-                  child: Text(secondaryActionLabel),
-                ),
-                const SizedBox(width: 12),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    shape: const StadiumBorder(),
-                  ),
-                  onPressed: onPrimaryAction,
-                  child: Text(primaryActionLabel),
-                ),
-              ],
+          ),
+          const SizedBox(height: 16),
+          Text(description, style: theme.textTheme.bodyMedium),
+          if (footerText != null) ...[
+            const SizedBox(height: 12),
+            Text(
+              footerText!,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ],
-        ),
+          const SizedBox(height: 20),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              OutlinedButton(
+                onPressed: onSecondaryAction,
+                child: Text(secondaryActionLabel),
+              ),
+              ElevatedButton(
+                onPressed: onPrimaryAction,
+                child: Text(primaryActionLabel),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
