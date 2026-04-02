@@ -32,9 +32,9 @@ class ContactService {
 
   Future<List<ContactRecord>> fetchContacts() async {
     final uid = _currentUid;
-    final snapshot = await _contactsCollection(uid)
-        .orderBy('updated_at', descending: true)
-        .get();
+    final snapshot = await _contactsCollection(
+      uid,
+    ).orderBy('updated_at', descending: true).get();
 
     return snapshot.docs
         .map((doc) => ContactRecord.fromMap(doc.data(), doc.id))

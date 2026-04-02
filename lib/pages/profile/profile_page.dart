@@ -51,7 +51,9 @@ class ProfilePage extends StatelessWidget {
                   onEditPhoto: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('La edicion de foto llegara en otro paso'),
+                        content: Text(
+                          'La edicion de foto llegara en otro paso',
+                        ),
                       ),
                     );
                   },
@@ -79,7 +81,9 @@ class ProfilePage extends StatelessWidget {
                       }
 
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Perfil guardado con exito')),
+                        const SnackBar(
+                          content: Text('Perfil guardado con exito'),
+                        ),
                       );
                     },
                   ),
@@ -273,7 +277,11 @@ class _BulletLine extends StatelessWidget {
       children: [
         const Padding(
           padding: EdgeInsets.only(top: 4),
-          child: Icon(Icons.favorite_rounded, size: 16, color: Color(0xFFFF5A5F)),
+          child: Icon(
+            Icons.favorite_rounded,
+            size: 16,
+            color: Color(0xFFFF5A5F),
+          ),
         ),
         const SizedBox(width: 10),
         Expanded(child: Text(text)),

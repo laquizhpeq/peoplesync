@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider<NavigationProvider>.value(
           value: getIt<NavigationProvider>(),
-        ),  
+        ),
       ],
       child: MaterialApp.router(
         title: 'PeopleSync',

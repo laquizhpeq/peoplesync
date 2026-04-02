@@ -38,7 +38,11 @@ class ProfileAvatar extends StatelessWidget {
             backgroundColor: colors.surface,
             backgroundImage: photoUrl != null ? NetworkImage(photoUrl!) : null,
             child: photoUrl == null
-                ? Icon(Icons.person_rounded, size: radius, color: colors.primary)
+                ? Icon(
+                    Icons.person_rounded,
+                    size: radius,
+                    color: colors.primary,
+                  )
                 : null,
           ),
         ),
