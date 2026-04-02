@@ -7,10 +7,12 @@ class ProfileViewModel extends ChangeNotifier {
 
   UserProfile? _profile;
   bool _isLoading = true;
+  bool _isSaving = false;
   String? _errorMessage;
 
   UserProfile? get profile => _profile;
   bool get isLoading => _isLoading;
+  bool get isSaving => _isSaving;
   String? get errorMessage => _errorMessage;
 
   ProfileViewModel({required this.profileService}) {
@@ -19,6 +21,7 @@ class ProfileViewModel extends ChangeNotifier {
 
   Future<void> _loadProfile() async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
     try {
       _profile = await profileService.getProfile();
@@ -31,15 +34,16 @@ class ProfileViewModel extends ChangeNotifier {
   }
 
   Future<void> updateProfile({String? fullName}) async {
-    _isLoading = true;
+    _isSaving = true;
+    _errorMessage = null;
     notifyListeners();
     try {
       await profileService.updateProfile(fullName: fullName);
-      await _loadProfile(); // refresh
+      _profile = await profileService.getProfile();
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
-      _isLoading = false;
+      _isSaving = false;
       notifyListeners();
     }
   }
