@@ -102,7 +102,7 @@ class ProfileService {
     List<ContactSocialProfile> socialProfiles = const [],
     bool? onboardingCompleted,
   }) async {
-    await _userDoc.set({
+    final data = <String, dynamic>{
       'full_name': fullName,
       'photo_url': photoUrl,
       'city': city,
@@ -110,10 +110,14 @@ class ProfileService {
       'social_profiles': socialProfiles
           .map((profile) => profile.toMap())
           .toList(),
-      if (onboardingCompleted != null)
-        'onboarding_completed': onboardingCompleted,
       'updated_at': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    };
+
+    if (onboardingCompleted != null) {
+      data['onboarding_completed'] = onboardingCompleted;
+    }
+
+    await _userDoc.set(data, SetOptions(merge: true));
     _cachedProfile = null;
   }
 
