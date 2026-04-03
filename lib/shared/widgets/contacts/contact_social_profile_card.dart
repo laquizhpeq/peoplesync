@@ -31,7 +31,7 @@ class ContactSocialProfileCard extends StatelessWidget {
             children: [
               Expanded(
                 child: DropdownButtonFormField<SocialPlatform>(
-                  value: draft.platform,
+                  initialValue: draft.platform,
                   decoration: const InputDecoration(
                     labelText: 'Red social',
                     prefixIcon: Icon(Icons.public_rounded),

@@ -137,7 +137,8 @@ class _ContactPhoto extends StatelessWidget {
                 width: double.infinity,
                 height: double.infinity,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const _PhotoFallback(),
+                errorBuilder: (context, error, stackTrace) =>
+                    const _PhotoFallback(),
               )
             : const _PhotoFallback(),
       ),
