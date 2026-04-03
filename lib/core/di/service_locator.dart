@@ -4,6 +4,7 @@ import 'package:peoplesync/features/contacts/contact_form_viewmodel.dart';
 import 'package:peoplesync/features/contacts/connections_viewmodel.dart';
 import 'package:peoplesync/features/auth/auth_service.dart';
 import 'package:peoplesync/features/profile/profile_service.dart';
+import 'package:peoplesync/features/profile/profile_editor_viewmodel.dart';
 import 'package:peoplesync/features/navigation/navigation_service.dart';
 import 'package:peoplesync/features/auth/auth_viewmodel.dart';
 import 'package:peoplesync/features/profile/profile_viewmodel.dart';
@@ -32,6 +33,12 @@ void setupServiceLocator() {
   );
   getIt.registerFactory<ProfileViewModel>(
     () => ProfileViewModel(profileService: getIt<ProfileService>()),
+  );
+  getIt.registerFactoryParam<ProfileEditorViewModel, bool, void>(
+    (markOnboardingCompleteOnSave, _) => ProfileEditorViewModel(
+      profileService: getIt<ProfileService>(),
+      markOnboardingCompleteOnSave: markOnboardingCompleteOnSave,
+    ),
   );
   getIt.registerFactory<ContactFormViewModel>(
     () => ContactFormViewModel(contactService: getIt<ContactService>()),

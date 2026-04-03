@@ -6,21 +6,21 @@ class ContactFormViewModel extends ChangeNotifier {
   final ContactService contactService;
 
   final formKey = GlobalKey<FormState>();
-  final displayNameController = TextEditingController();
-  final ageController = TextEditingController();
-  final cityController = TextEditingController();
-  final companyController = TextEditingController();
-  final jobTitleController = TextEditingController();
-  final bioController = TextEditingController();
-  final aboutController = TextEditingController();
-  final favoriteSongController = TextEditingController();
-  final emailController = TextEditingController();
-  final phoneController = TextEditingController();
-  final interestsController = TextEditingController();
-  final lookingForController = TextEditingController();
-  final personalityTagsController = TextEditingController();
-  final relationshipContextController = TextEditingController();
-  final lastInteractionNoteController = TextEditingController();
+  final identityDisplayNameController = TextEditingController();
+  final identityAgeController = TextEditingController();
+  final identityCityController = TextEditingController();
+  final identityCompanyController = TextEditingController();
+  final identityJobTitleController = TextEditingController();
+  final identityBioController = TextEditingController();
+  final identityAboutController = TextEditingController();
+  final identityFavoriteSongController = TextEditingController();
+  final identityEmailController = TextEditingController();
+  final identityPhoneController = TextEditingController();
+  final relationshipInterestsController = TextEditingController();
+  final relationshipLookingForController = TextEditingController();
+  final relationshipPersonalityTagsController = TextEditingController();
+  final relationshipContextNoteController = TextEditingController();
+  final relationshipLastInteractionNoteController = TextEditingController();
 
   final List<ContactSocialProfileDraft> socialProfiles = [
     ContactSocialProfileDraft(),
@@ -68,36 +68,8 @@ class ContactFormViewModel extends ChangeNotifier {
 
     try {
       await contactService.createManualContact(
-        displayName: displayNameController.text.trim(),
-        age: int.tryParse(ageController.text.trim()),
-        city: _normalizedText(cityController),
-        company: _normalizedText(companyController),
-        jobTitle: _normalizedText(jobTitleController),
-        bio: _normalizedText(bioController),
-        about: _normalizedText(aboutController),
-        favoriteSong: _normalizedText(favoriteSongController),
-        email: _normalizedText(emailController),
-        phone: _normalizedText(phoneController),
-        interests: _splitTags(interestsController.text),
-        lookingFor: _splitTags(lookingForController.text),
-        personalityTags: _splitTags(personalityTagsController.text),
-        relationshipContext: _normalizedText(relationshipContextController),
-        lastInteractionNote: _normalizedText(lastInteractionNoteController),
-        socialProfiles: socialProfiles
-            .where((profile) => profile.valueController.text.trim().isNotEmpty)
-            .map(
-              (profile) => ContactSocialProfile(
-                platform: profile.platform,
-                value: profile.valueController.text.trim(),
-                label: profile.labelController.text.trim().isEmpty
-                    ? null
-                    : profile.labelController.text.trim(),
-                url: profile.urlController.text.trim().isEmpty
-                    ? null
-                    : profile.urlController.text.trim(),
-              ),
-            )
-            .toList(),
+        identity: _buildIdentity(),
+        relationship: _buildRelationship(),
       );
 
       return null;
@@ -122,23 +94,65 @@ class ContactFormViewModel extends ChangeNotifier {
     return value.isEmpty ? null : value;
   }
 
+  ContactIdentity _buildIdentity() {
+    return ContactIdentity(
+      displayName: identityDisplayNameController.text.trim(),
+      age: int.tryParse(identityAgeController.text.trim()),
+      city: _normalizedText(identityCityController),
+      company: _normalizedText(identityCompanyController),
+      jobTitle: _normalizedText(identityJobTitleController),
+      bio: _normalizedText(identityBioController),
+      about: _normalizedText(identityAboutController),
+      favoriteSong: _normalizedText(identityFavoriteSongController),
+      email: _normalizedText(identityEmailController),
+      phone: _normalizedText(identityPhoneController),
+      socialProfiles: socialProfiles
+          .where((profile) => profile.valueController.text.trim().isNotEmpty)
+          .map(
+            (profile) => ContactSocialProfile(
+              platform: profile.platform,
+              value: profile.valueController.text.trim(),
+              label: profile.labelController.text.trim().isEmpty
+                  ? null
+                  : profile.labelController.text.trim(),
+              url: profile.urlController.text.trim().isEmpty
+                  ? null
+                  : profile.urlController.text.trim(),
+            ),
+          )
+          .toList(),
+    );
+  }
+
+  ContactRelationship _buildRelationship() {
+    return ContactRelationship(
+      contextNote: _normalizedText(relationshipContextNoteController),
+      interests: _splitTags(relationshipInterestsController.text),
+      lookingFor: _splitTags(relationshipLookingForController.text),
+      personalityTags: _splitTags(relationshipPersonalityTagsController.text),
+      lastInteractionNote: _normalizedText(
+        relationshipLastInteractionNoteController,
+      ),
+    );
+  }
+
   @override
   void dispose() {
-    displayNameController.dispose();
-    ageController.dispose();
-    cityController.dispose();
-    companyController.dispose();
-    jobTitleController.dispose();
-    bioController.dispose();
-    aboutController.dispose();
-    favoriteSongController.dispose();
-    emailController.dispose();
-    phoneController.dispose();
-    interestsController.dispose();
-    lookingForController.dispose();
-    personalityTagsController.dispose();
-    relationshipContextController.dispose();
-    lastInteractionNoteController.dispose();
+    identityDisplayNameController.dispose();
+    identityAgeController.dispose();
+    identityCityController.dispose();
+    identityCompanyController.dispose();
+    identityJobTitleController.dispose();
+    identityBioController.dispose();
+    identityAboutController.dispose();
+    identityFavoriteSongController.dispose();
+    identityEmailController.dispose();
+    identityPhoneController.dispose();
+    relationshipInterestsController.dispose();
+    relationshipLookingForController.dispose();
+    relationshipPersonalityTagsController.dispose();
+    relationshipContextNoteController.dispose();
+    relationshipLastInteractionNoteController.dispose();
     for (final social in socialProfiles) {
       social.dispose();
     }

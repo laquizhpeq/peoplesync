@@ -5,5 +5,7 @@ class Routes {
   static const String register = '/register';
   static const String connections = '/connections';
   static const String profile = '/profile';
+  static const String profileEdit = '/profile/edit';
+  static const String onboardingProfile = '/onboarding/profile';
   static const String contactNew = '/contacts/new';
 }

@@ -1,107 +1,130 @@
 import 'package:flutter/material.dart';
-import 'package:peoplesync/features/profile/models/user_profile.dart';
+import 'package:provider/provider.dart';
+import 'package:peoplesync/features/profile/profile_editor_viewmodel.dart';
+import 'package:peoplesync/shared/widgets/contacts/contact_form_section_card.dart';
+import 'package:peoplesync/shared/widgets/contacts/contact_multiline_field.dart';
 import 'package:peoplesync/shared/widgets/design/buttons/app_primary_button.dart';
 import 'package:peoplesync/shared/widgets/design/inputs/app_text_field.dart';
+import 'package:peoplesync/shared/widgets/profile/profile_social_profile_card.dart';
 
-class ProfileForm extends StatefulWidget {
-  final UserProfile? profile;
-  final Future<void> Function(String name) onSave;
-  final bool isSaving;
+class ProfileForm extends StatelessWidget {
+  final bool isOnboarding;
+  final Future<void> Function() onSave;
+  final String primaryLabel;
+  final String? secondaryLabel;
+  final VoidCallback? onSecondaryAction;
 
   const ProfileForm({
     super.key,
-    required this.profile,
+    required this.isOnboarding,
     required this.onSave,
-    this.isSaving = false,
+    required this.primaryLabel,
+    this.secondaryLabel,
+    this.onSecondaryAction,
   });
 
   @override
-  State<ProfileForm> createState() => _ProfileFormState();
-}
-
-class _ProfileFormState extends State<ProfileForm> {
-  final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _nameController;
-  late final TextEditingController _emailController;
-  late final TextEditingController _roleController;
-
-  @override
-  void initState() {
-    super.initState();
-    _nameController = TextEditingController(
-      text: widget.profile?.fullName ?? '',
-    );
-    _emailController = TextEditingController(text: widget.profile?.email ?? '');
-    _roleController = TextEditingController(text: widget.profile?.rolId ?? '');
-  }
-
-  @override
-  void didUpdateWidget(covariant ProfileForm oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.profile != widget.profile) {
-      _nameController.text = widget.profile?.fullName ?? '';
-      _emailController.text = widget.profile?.email ?? '';
-      _roleController.text = widget.profile?.rolId ?? '';
-    }
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _roleController.dispose();
-    super.dispose();
-  }
-
-  String? _validateName(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Introduce tu nombre';
-    }
-    if (value.trim().length < 2) {
-      return 'El nombre es demasiado corto';
-    }
-    return null;
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final viewModel = context.watch<ProfileEditorViewModel>();
+    final profile = viewModel.profile;
+
     return Form(
-      key: _formKey,
+      key: viewModel.formKey,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          AppTextField(
-            controller: _nameController,
-            label: 'Nombre visible',
-            validator: _validateName,
-            prefixIcon: const Icon(Icons.person_outline_rounded),
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _emailController,
-            readOnly: true,
-            decoration: const InputDecoration(
-              labelText: 'Email',
-              prefixIcon: Icon(Icons.mail_outline_rounded),
+          ContactFormSectionCard(
+            title: 'Identidad basica',
+            subtitle:
+                'Esta informacion construye tu ficha principal dentro de PeopleSync.',
+            child: Column(
+              children: [
+                AppTextField(
+                  controller: viewModel.fullNameController,
+                  label: 'Nombre visible',
+                  validator: viewModel.validateRequiredName,
+                  prefixIcon: const Icon(Icons.person_outline_rounded),
+                ),
+                const SizedBox(height: 16),
+                AppTextField(
+                  controller: viewModel.cityController,
+                  label: 'Ciudad',
+                  prefixIcon: const Icon(Icons.location_on_outlined),
+                ),
+                const SizedBox(height: 16),
+                ContactMultilineField(
+                  controller: viewModel.bioController,
+                  label: 'Bio breve',
+                  icon: Icons.auto_awesome_outlined,
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _roleController,
-            readOnly: true,
-            decoration: const InputDecoration(
-              labelText: 'Rol',
-              prefixIcon: Icon(Icons.verified_user_outlined),
+          const SizedBox(height: 18),
+          ContactFormSectionCard(
+            title: 'Imagen y presencia',
+            subtitle:
+                'Puedes usar una URL de foto por ahora y anadir las redes que quieras mostrar.',
+            child: Column(
+              children: [
+                AppTextField(
+                  controller: viewModel.photoUrlController,
+                  label: 'URL de la foto',
+                  keyboardType: TextInputType.url,
+                  prefixIcon: const Icon(Icons.image_outlined),
+                ),
+                const SizedBox(height: 16),
+                if (profile?.email != null && profile!.email!.trim().isNotEmpty)
+                  TextFormField(
+                    initialValue: profile.email,
+                    readOnly: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Email',
+                      prefixIcon: Icon(Icons.mail_outline_rounded),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+          ContactFormSectionCard(
+            title: 'Redes sociales',
+            subtitle:
+                'Comparte solo las redes que tengan sentido para tu perfil publico.',
+            child: Column(
+              children: [
+                ...List.generate(viewModel.socialProfiles.length, (index) {
+                  final draft = viewModel.socialProfiles[index];
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      bottom: index == viewModel.socialProfiles.length - 1
+                          ? 0
+                          : 16,
+                    ),
+                    child: ProfileSocialProfileCard(
+                      draft: draft,
+                      onPlatformChanged: (platform) =>
+                          viewModel.updateSocialPlatform(index, platform),
+                      onRemove: () => viewModel.removeSocialProfile(index),
+                    ),
+                  );
+                }),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: viewModel.addSocialProfile,
+                    icon: const Icon(Icons.add_rounded),
+                    label: const Text('Anadir red social'),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 24),
           AppPrimaryButton(
-            onPressed: widget.isSaving
-                ? null
-                : () async {
-                    if (!_formKey.currentState!.validate()) return;
-                    await widget.onSave(_nameController.text.trim());
-                  },
-            child: widget.isSaving
+            onPressed: viewModel.isSaving ? null : onSave,
+            child: viewModel.isSaving
                 ? const SizedBox(
                     width: 18,
                     height: 18,
@@ -110,8 +133,27 @@ class _ProfileFormState extends State<ProfileForm> {
                       valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
                   )
-                : const Text('Guardar perfil'),
+                : Text(primaryLabel),
           ),
+          if (secondaryLabel != null && onSecondaryAction != null) ...[
+            const SizedBox(height: 12),
+            Center(
+              child: TextButton(
+                onPressed: viewModel.isSaving ? null : onSecondaryAction,
+                child: Text(secondaryLabel!),
+              ),
+            ),
+          ],
+          if (isOnboarding) ...[
+            const SizedBox(height: 12),
+            Center(
+              child: Text(
+                'Podras cambiar estos datos cuando quieras desde la pestana de perfil.',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+          ],
         ],
       ),
     );
