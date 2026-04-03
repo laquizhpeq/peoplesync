@@ -2,7 +2,7 @@
 
 ## Estado actual
 
-En esta sesión se ha avanzado en cuatro bloques principales:
+En esta sesión se ha avanzado en cuatro bloques principales:                                                                                                              
 
 1. Se ha renovado la estética compartida de la app.
    - Login y registro usan ya una identidad visual más cálida.
