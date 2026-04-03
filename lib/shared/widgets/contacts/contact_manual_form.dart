@@ -32,11 +32,11 @@ class ContactManualForm extends StatelessWidget {
           ContactFormSectionCard(
             title: 'Identidad',
             subtitle:
-                'Solo el nombre es obligatorio. El resto puede completarse después.',
+                'Solo el nombre es obligatorio. El resto puede completarse despues o llegar desde una importacion.',
             child: Column(
               children: [
                 AppTextField(
-                  controller: viewModel.displayNameController,
+                  controller: viewModel.identityDisplayNameController,
                   label: 'Nombre visible',
                   validator: viewModel.validateRequiredName,
                   prefixIcon: const Icon(Icons.person_outline_rounded),
@@ -46,7 +46,7 @@ class ContactManualForm extends StatelessWidget {
                   children: [
                     Expanded(
                       child: AppTextField(
-                        controller: viewModel.ageController,
+                        controller: viewModel.identityAgeController,
                         label: 'Edad',
                         keyboardType: TextInputType.number,
                         prefixIcon: const Icon(Icons.cake_outlined),
@@ -55,7 +55,7 @@ class ContactManualForm extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: AppTextField(
-                        controller: viewModel.cityController,
+                        controller: viewModel.identityCityController,
                         label: 'Ciudad',
                         prefixIcon: const Icon(Icons.location_on_outlined),
                       ),
@@ -64,7 +64,7 @@ class ContactManualForm extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 ContactMultilineField(
-                  controller: viewModel.bioController,
+                  controller: viewModel.identityBioController,
                   label: 'Bio breve',
                   icon: Icons.auto_awesome_outlined,
                 ),
@@ -73,16 +73,16 @@ class ContactManualForm extends StatelessWidget {
           ),
           const SizedBox(height: 18),
           ContactFormSectionCard(
-            title: 'Contexto',
+            title: 'Identidad extendida',
             subtitle:
-                'Información social y relacional útil para recordar mejor a esta persona.',
+                'Datos base del contacto que puedes conocer, importar o editar sin tocar tu capa privada.',
             child: Column(
               children: [
                 Row(
                   children: [
                     Expanded(
                       child: AppTextField(
-                        controller: viewModel.companyController,
+                        controller: viewModel.identityCompanyController,
                         label: 'Empresa',
                         prefixIcon: const Icon(Icons.apartment_rounded),
                       ),
@@ -90,7 +90,7 @@ class ContactManualForm extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: AppTextField(
-                        controller: viewModel.jobTitleController,
+                        controller: viewModel.identityJobTitleController,
                         label: 'Cargo',
                         prefixIcon: const Icon(Icons.work_outline_rounded),
                       ),
@@ -99,57 +99,58 @@ class ContactManualForm extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 ContactMultilineField(
-                  controller: viewModel.aboutController,
-                  label: 'Cómo es esta persona',
+                  controller: viewModel.identityAboutController,
+                  label: 'Como es esta persona',
                   icon: Icons.favorite_border_rounded,
                 ),
                 const SizedBox(height: 16),
-                ContactMultilineField(
-                  controller: viewModel.relationshipContextController,
-                  label: 'Cómo os conocisteis',
-                  icon: Icons.handshake_outlined,
-                ),
-                const SizedBox(height: 16),
-                ContactMultilineField(
-                  controller: viewModel.lastInteractionNoteController,
-                  label: 'Última nota o recuerdo',
-                  icon: Icons.history_edu_rounded,
+                AppTextField(
+                  controller: viewModel.identityFavoriteSongController,
+                  label: 'Cancion favorita',
+                  prefixIcon: const Icon(Icons.music_note_rounded),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 18),
           ContactFormSectionCard(
-            title: 'Afinidades',
+            title: 'Relacion privada',
             subtitle:
-                'Inspirado en fichas sociales ricas: intereses, tono y señales memorables.',
+                'Todo lo que solo tu sabes o quieres recordar sobre esta conexion.',
             child: Column(
               children: [
                 AppTextField(
-                  controller: viewModel.favoriteSongController,
-                  label: 'Canción favorita',
-                  prefixIcon: const Icon(Icons.music_note_rounded),
-                ),
-                const SizedBox(height: 16),
-                AppTextField(
-                  controller: viewModel.interestsController,
+                  controller: viewModel.relationshipInterestsController,
                   label: 'Intereses',
-                  hintText: 'cine, viajes, café',
+                  hintText: 'cine, viajes, cafe',
                   prefixIcon: const Icon(Icons.interests_outlined),
                 ),
                 const SizedBox(height: 16),
                 AppTextField(
-                  controller: viewModel.lookingForController,
-                  label: 'Qué representa esta relación',
-                  hintText: 'amistad, networking, colaboración',
+                  controller: viewModel.relationshipLookingForController,
+                  label: 'Que representa esta relacion',
+                  hintText: 'amistad, networking, colaboracion',
                   prefixIcon: const Icon(Icons.explore_outlined),
                 ),
                 const SizedBox(height: 16),
                 AppTextField(
-                  controller: viewModel.personalityTagsController,
+                  controller: viewModel.relationshipPersonalityTagsController,
                   label: 'Tags de personalidad',
                   hintText: 'cercana, creativa, curiosa',
                   prefixIcon: const Icon(Icons.sell_outlined),
+                ),
+                const SizedBox(height: 16),
+                ContactMultilineField(
+                  controller: viewModel.relationshipContextNoteController,
+                  label: 'Como os conocisteis',
+                  icon: Icons.handshake_outlined,
+                ),
+                const SizedBox(height: 16),
+                ContactMultilineField(
+                  controller:
+                      viewModel.relationshipLastInteractionNoteController,
+                  label: 'Ultima nota o recuerdo',
+                  icon: Icons.history_edu_rounded,
                 ),
               ],
             ),
@@ -158,19 +159,19 @@ class ContactManualForm extends StatelessWidget {
           ContactFormSectionCard(
             title: 'Contacto directo',
             subtitle:
-                'Campos opcionales para enriquecer la ficha sin obligar a completarla entera.',
+                'Campos opcionales para enriquecer la identidad sin obligar a completar la ficha entera.',
             child: Column(
               children: [
                 AppTextField(
-                  controller: viewModel.emailController,
+                  controller: viewModel.identityEmailController,
                   label: 'Email',
                   keyboardType: TextInputType.emailAddress,
                   prefixIcon: const Icon(Icons.alternate_email_rounded),
                 ),
                 const SizedBox(height: 16),
                 AppTextField(
-                  controller: viewModel.phoneController,
-                  label: 'Teléfono',
+                  controller: viewModel.identityPhoneController,
+                  label: 'Telefono',
                   keyboardType: TextInputType.phone,
                   prefixIcon: const Icon(Icons.phone_outlined),
                 ),
@@ -180,7 +181,8 @@ class ContactManualForm extends StatelessWidget {
           const SizedBox(height: 18),
           ContactFormSectionCard(
             title: 'Redes sociales',
-            subtitle: 'Añade una a una las redes que conozcas de ese contacto.',
+            subtitle:
+                'Anade una a una las redes que conozcas de este contacto.',
             child: Column(
               children: [
                 ...List.generate(viewModel.socialProfiles.length, (index) {
@@ -205,7 +207,7 @@ class ContactManualForm extends StatelessWidget {
                   child: OutlinedButton.icon(
                     onPressed: viewModel.addSocialProfile,
                     icon: const Icon(Icons.add_rounded),
-                    label: const Text('Añadir red social'),
+                    label: const Text('Anadir red social'),
                   ),
                 ),
               ],

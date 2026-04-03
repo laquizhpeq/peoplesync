@@ -40,24 +40,8 @@ class ContactService {
   }
 
   Future<void> createManualContact({
-    required String displayName,
-    String? photoUrl,
-    int? age,
-    DateTime? birthday,
-    String? city,
-    String? company,
-    String? jobTitle,
-    String? bio,
-    String? about,
-    String? favoriteSong,
-    String? email,
-    String? phone,
-    List<String> interests = const [],
-    List<String> lookingFor = const [],
-    List<String> personalityTags = const [],
-    String? relationshipContext,
-    String? lastInteractionNote,
-    List<ContactSocialProfile> socialProfiles = const [],
+    required ContactIdentity identity,
+    ContactRelationship relationship = const ContactRelationship(),
   }) async {
     final uid = _currentUid;
     final doc = _contactsCollection(uid).doc();
@@ -66,24 +50,8 @@ class ContactService {
       id: doc.id,
       ownerUid: uid,
       source: ContactSource.manual,
-      displayName: displayName,
-      photoUrl: photoUrl,
-      age: age,
-      birthday: birthday,
-      city: city,
-      company: company,
-      jobTitle: jobTitle,
-      bio: bio,
-      about: about,
-      favoriteSong: favoriteSong,
-      email: email,
-      phone: phone,
-      interests: interests,
-      lookingFor: lookingFor,
-      personalityTags: personalityTags,
-      relationshipContext: relationshipContext,
-      lastInteractionNote: lastInteractionNote,
-      socialProfiles: socialProfiles,
+      identity: identity,
+      relationship: relationship,
     );
 
     await doc.set(contact.toMap());
@@ -110,18 +78,22 @@ class ContactService {
       id: doc.id,
       ownerUid: uid,
       source: ContactSource.linkedUser,
-      displayName: displayName,
       linkedUserUid: linkedUserUid,
-      photoUrl: photoUrl,
-      favoriteSong: favoriteSong,
-      email: email,
-      bio: bio,
-      interests: interests,
-      lookingFor: lookingFor,
-      personalityTags: personalityTags,
-      relationshipContext: relationshipContext,
-      socialProfiles: socialProfiles,
       importedFromQrId: importedFromQrId,
+      identity: ContactIdentity(
+        displayName: displayName,
+        photoUrl: photoUrl,
+        favoriteSong: favoriteSong,
+        email: email,
+        bio: bio,
+        socialProfiles: socialProfiles,
+      ),
+      relationship: ContactRelationship(
+        contextNote: relationshipContext,
+        interests: interests,
+        lookingFor: lookingFor,
+        personalityTags: personalityTags,
+      ),
     );
 
     await doc.set(contact.toMap(), SetOptions(merge: true));
@@ -154,36 +126,47 @@ class ContactService {
       'updated_at': FieldValue.serverTimestamp(),
     };
 
-    if (displayName != null) updates['display_name'] = displayName;
-    if (photoUrl != null) updates['photo_url'] = photoUrl;
-    if (age != null) updates['age'] = age;
-    if (birthday != null) updates['birthday'] = Timestamp.fromDate(birthday);
-    if (city != null) updates['city'] = city;
-    if (company != null) updates['company'] = company;
-    if (jobTitle != null) updates['job_title'] = jobTitle;
-    if (bio != null) updates['bio'] = bio;
-    if (about != null) updates['about'] = about;
-    if (favoriteSong != null) updates['favorite_song'] = favoriteSong;
-    if (email != null) updates['email'] = email;
-    if (phone != null) updates['phone'] = phone;
-    if (interests != null) updates['interests'] = interests;
-    if (lookingFor != null) updates['looking_for'] = lookingFor;
-    if (personalityTags != null) {
-      updates['personality_tags'] = personalityTags;
+    if (displayName != null) {
+      updates['identity.display_name'] = displayName;
     }
-    if (relationshipContext != null) {
-      updates['relationship_context'] = relationshipContext;
+    if (photoUrl != null) updates['identity.photo_url'] = photoUrl;
+    if (age != null) updates['identity.age'] = age;
+    if (birthday != null) {
+      updates['identity.birthday'] = Timestamp.fromDate(birthday);
     }
-    if (lastInteractionNote != null) {
-      updates['last_interaction_note'] = lastInteractionNote;
+    if (city != null) updates['identity.city'] = city;
+    if (company != null) updates['identity.company'] = company;
+    if (jobTitle != null) updates['identity.job_title'] = jobTitle;
+    if (bio != null) updates['identity.bio'] = bio;
+    if (about != null) updates['identity.about'] = about;
+    if (favoriteSong != null) {
+      updates['identity.favorite_song'] = favoriteSong;
     }
+    if (email != null) updates['identity.email'] = email;
+    if (phone != null) updates['identity.phone'] = phone;
     if (socialProfiles != null) {
-      updates['social_profiles'] = socialProfiles
+      updates['identity.social_profiles'] = socialProfiles
           .map((profile) => profile.toMap())
           .toList();
     }
+
+    if (interests != null) updates['relationship.interests'] = interests;
+    if (lookingFor != null) {
+      updates['relationship.looking_for'] = lookingFor;
+    }
+    if (personalityTags != null) {
+      updates['relationship.personality_tags'] = personalityTags;
+    }
+    if (relationshipContext != null) {
+      updates['relationship.context_note'] = relationshipContext;
+    }
+    if (lastInteractionNote != null) {
+      updates['relationship.last_interaction_note'] = lastInteractionNote;
+    }
     if (lastInteractionAt != null) {
-      updates['last_interaction_at'] = Timestamp.fromDate(lastInteractionAt);
+      updates['relationship.last_interaction_at'] = Timestamp.fromDate(
+        lastInteractionAt,
+      );
     }
 
     await _contactsCollection(uid).doc(contactId).update(updates);

@@ -35,6 +35,8 @@ class AuthViewModel extends ChangeNotifier {
       // Attempt to load menus as soon as login succeeds
       final uid = authService.currentUser?.uid;
       if (uid != null) {
+        await profileService.ensureCurrentUserProfile();
+        await profileService.touchLastLogin();
         await navigationProvider.loadMenus(uid);
       }
 

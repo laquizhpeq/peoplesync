@@ -5,8 +5,8 @@ import 'package:peoplesync/core/constants/routes.dart';
 import 'package:peoplesync/core/di/service_locator.dart';
 import 'package:peoplesync/features/auth/auth_service.dart';
 import 'package:peoplesync/features/navigation/navigation_provider.dart';
+import 'package:peoplesync/features/profile/models/user_profile.dart';
 import 'package:peoplesync/features/profile/profile_viewmodel.dart';
-import 'package:peoplesync/shared/widgets/profile/profile_form.dart';
 import 'package:peoplesync/shared/widgets/profile/profile_section_card.dart';
 import 'package:peoplesync/shared/widgets/profile/profile_summary_card.dart';
 
@@ -61,33 +61,7 @@ class ProfilePage extends StatelessWidget {
                 const SizedBox(height: 24),
                 const _AffinityHighlights(),
                 const SizedBox(height: 24),
-                ProfileSectionCard(
-                  title: 'Tu identidad en PeopleSync',
-                  subtitle:
-                      'Una ficha rica en contexto ayuda a que los demas te entiendan rapido y recuerden el tono de vuestra relacion.',
-                  child: ProfileForm(
-                    profile: profile,
-                    isSaving: viewModel.isSaving,
-                    onSave: (name) async {
-                      await viewModel.updateProfile(fullName: name);
-
-                      if (!context.mounted) return;
-
-                      if (viewModel.errorMessage != null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(viewModel.errorMessage!)),
-                        );
-                        return;
-                      }
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Perfil guardado con exito'),
-                        ),
-                      );
-                    },
-                  ),
-                ),
+                _IdentitySnapshot(profile: profile),
                 const SizedBox(height: 24),
                 const ProfileSectionCard(
                   title: 'Modelo de contacto',
@@ -109,6 +83,15 @@ class ProfilePage extends StatelessWidget {
                       const SizedBox(height: 16),
                       SizedBox(
                         width: double.infinity,
+                        child: FilledButton.icon(
+                          onPressed: () => context.push(Routes.profileEdit),
+                          icon: const Icon(Icons.edit_rounded),
+                          label: const Text('Editar perfil'),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
                         child: OutlinedButton.icon(
                           onPressed: () => _logout(context),
                           icon: const Icon(Icons.logout_rounded),
@@ -122,6 +105,47 @@ class ProfilePage extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _IdentitySnapshot extends StatelessWidget {
+  final UserProfile profile;
+
+  const _IdentitySnapshot({required this.profile});
+
+  @override
+  Widget build(BuildContext context) {
+    final socialCount = profile.socialProfiles.length;
+
+    return ProfileSectionCard(
+      title: 'Tu identidad en PeopleSync',
+      subtitle:
+          'Tu perfil publico se separa de tus conexiones privadas y puedes editarlo cuando quieras.',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _AccountRow(
+            icon: Icons.person_pin_circle_outlined,
+            title: profile.city?.trim().isNotEmpty == true
+                ? profile.city!
+                : 'Ciudad pendiente',
+            subtitle: profile.bio?.trim().isNotEmpty == true
+                ? profile.bio!
+                : 'Anade una bio breve para que los demas entiendan mejor tu perfil.',
+          ),
+          const SizedBox(height: 16),
+          _AccountRow(
+            icon: Icons.public_rounded,
+            title: socialCount > 0
+                ? '$socialCount redes visibles'
+                : 'Sin redes visibles',
+            subtitle: socialCount > 0
+                ? 'Tu ficha ya muestra presencia social estructurada.'
+                : 'Puedes anadir redes sociales a tu perfil desde editar perfil.',
+          ),
+        ],
       ),
     );
   }

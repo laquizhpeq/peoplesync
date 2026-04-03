@@ -24,7 +24,7 @@ class ProfileViewModel extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
     try {
-      _profile = await profileService.getProfile();
+      _profile = await profileService.getProfile(forceRefresh: true);
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
@@ -33,13 +33,13 @@ class ProfileViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> updateProfile({String? fullName}) async {
+  Future<void> updateProfile({required String fullName}) async {
     _isSaving = true;
     _errorMessage = null;
     notifyListeners();
     try {
       await profileService.updateProfile(fullName: fullName);
-      _profile = await profileService.getProfile();
+      _profile = await profileService.getProfile(forceRefresh: true);
     } catch (e) {
       _errorMessage = e.toString();
     } finally {

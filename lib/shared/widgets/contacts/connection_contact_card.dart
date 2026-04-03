@@ -10,6 +10,10 @@ class ConnectionContactCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final subtitle = _buildSubtitle(contact);
+    final displayName =
+        contact.relationship.customDisplayName?.trim().isNotEmpty == true
+        ? contact.relationship.customDisplayName!
+        : contact.identity.displayName;
 
     return Container(
       width: double.infinity,
@@ -33,8 +37,8 @@ class ConnectionContactCard extends StatelessWidget {
         child: Row(
           children: [
             _ContactPhoto(
-              photoUrl: contact.photoUrl,
-              name: contact.displayName,
+              photoUrl: contact.identity.photoUrl,
+              name: displayName,
             ),
             Expanded(
               child: Padding(
@@ -46,14 +50,14 @@ class ConnectionContactCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            contact.displayName,
+                            displayName,
                             style: theme.textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.w800,
                             ),
                           ),
                         ),
-                        if ((contact.age ?? 0) > 0)
-                          _MiniBadge(label: '${contact.age} años'),
+                        if ((contact.identity.age ?? 0) > 0)
+                          _MiniBadge(label: '${contact.identity.age} años'),
                       ],
                     ),
                     if (subtitle != null) ...[
@@ -70,24 +74,26 @@ class ConnectionContactCard extends StatelessWidget {
                       spacing: 8,
                       runSpacing: 8,
                       children: [
-                        if (_hasText(contact.city))
-                          _MiniBadge(label: contact.city!),
-                        if (_hasText(contact.company))
-                          _MiniBadge(label: contact.company!),
-                        if (contact.socialProfiles.isNotEmpty)
+                        if (_hasText(contact.identity.city))
+                          _MiniBadge(label: contact.identity.city!),
+                        if (_hasText(contact.identity.company))
+                          _MiniBadge(label: contact.identity.company!),
+                        if (contact.identity.socialProfiles.isNotEmpty)
                           _MiniBadge(
-                            label: '${contact.socialProfiles.length} redes',
+                            label:
+                                '${contact.identity.socialProfiles.length} redes',
                           ),
-                        if (contact.interests.isNotEmpty)
+                        if (contact.relationship.interests.isNotEmpty)
                           _MiniBadge(
-                            label: '${contact.interests.length} intereses',
+                            label:
+                                '${contact.relationship.interests.length} intereses',
                           ),
                       ],
                     ),
-                    if (_hasText(contact.bio)) ...[
+                    if (_hasText(contact.identity.bio)) ...[
                       const SizedBox(height: 14),
                       Text(
-                        contact.bio!,
+                        contact.identity.bio!,
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodySmall?.copyWith(
@@ -210,12 +216,15 @@ class _MiniBadge extends StatelessWidget {
 }
 
 String? _buildSubtitle(ContactRecord contact) {
-  if (_hasText(contact.jobTitle) && _hasText(contact.company)) {
-    return '${contact.jobTitle} · ${contact.company}';
+  if (_hasText(contact.identity.jobTitle) &&
+      _hasText(contact.identity.company)) {
+    return '${contact.identity.jobTitle} · ${contact.identity.company}';
   }
-  if (_hasText(contact.jobTitle)) return contact.jobTitle;
-  if (_hasText(contact.company)) return contact.company;
-  if (_hasText(contact.relationshipContext)) return contact.relationshipContext;
+  if (_hasText(contact.identity.jobTitle)) return contact.identity.jobTitle;
+  if (_hasText(contact.identity.company)) return contact.identity.company;
+  if (_hasText(contact.relationship.contextNote)) {
+    return contact.relationship.contextNote;
+  }
   return null;
 }
 

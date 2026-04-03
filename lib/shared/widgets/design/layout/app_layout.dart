@@ -62,6 +62,9 @@ class _AppLayoutState extends State<AppLayout> {
     if (currentRoute == '/connections') {
       pageTitle = 'Conexiones';
     }
+    if (currentRoute == '/profile/edit') {
+      pageTitle = 'Editar perfil';
+    }
 
     // Fallback if loading
     if (navProvider.isLoading) {
