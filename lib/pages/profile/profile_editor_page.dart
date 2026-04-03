@@ -17,14 +17,14 @@ class ProfileEditorPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => getIt<ProfileEditorViewModel>(
-        param1: isOnboarding,
-      ),
+      create: (_) => getIt<ProfileEditorViewModel>(param1: isOnboarding),
       child: Consumer<ProfileEditorViewModel>(
         builder: (context, viewModel, _) {
           if (viewModel.isLoading) {
             return isOnboarding
-                ? const Scaffold(body: Center(child: CircularProgressIndicator()))
+                ? const Scaffold(
+                    body: Center(child: CircularProgressIndicator()),
+                  )
                 : const Center(child: CircularProgressIndicator());
           }
 
@@ -94,11 +94,7 @@ class ProfileEditorPage extends StatelessWidget {
           );
 
           if (isOnboarding) {
-            return AppPage(
-              title: '',
-              centerBody: true,
-              body: content,
-            );
+            return AppPage(title: '', centerBody: true, body: content);
           }
 
           return content;

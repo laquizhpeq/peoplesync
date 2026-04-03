@@ -181,7 +181,8 @@ class ContactManualForm extends StatelessWidget {
           const SizedBox(height: 18),
           ContactFormSectionCard(
             title: 'Redes sociales',
-            subtitle: 'Anade una a una las redes que conozcas de este contacto.',
+            subtitle:
+                'Anade una a una las redes que conozcas de este contacto.',
             child: Column(
               children: [
                 ...List.generate(viewModel.socialProfiles.length, (index) {

@@ -61,7 +61,9 @@ class UserProfile {
       'photo_url': photoUrl,
       'city': city,
       'bio': bio,
-      'social_profiles': socialProfiles.map((profile) => profile.toMap()).toList(),
+      'social_profiles': socialProfiles
+          .map((profile) => profile.toMap())
+          .toList(),
       'onboarding_completed': onboardingCompleted,
       'created_at': createdAt ?? FieldValue.serverTimestamp(),
       'updated_at': updatedAt ?? FieldValue.serverTimestamp(),

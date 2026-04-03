@@ -127,9 +127,7 @@ class ProfileEditorViewModel extends ChangeNotifier {
     }
 
     socialProfiles.addAll(
-      profiles.map(
-        (profile) => ProfileSocialProfileDraft.fromProfile(profile),
-      ),
+      profiles.map((profile) => ProfileSocialProfileDraft.fromProfile(profile)),
     );
   }
 

@@ -107,7 +107,9 @@ class ProfileService {
       'photo_url': photoUrl,
       'city': city,
       'bio': bio,
-      'social_profiles': socialProfiles.map((profile) => profile.toMap()).toList(),
+      'social_profiles': socialProfiles
+          .map((profile) => profile.toMap())
+          .toList(),
       if (onboardingCompleted != null)
         'onboarding_completed': onboardingCompleted,
       'updated_at': FieldValue.serverTimestamp(),

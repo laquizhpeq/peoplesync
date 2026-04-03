@@ -82,7 +82,8 @@ class AppRoutes {
       ),
       GoRoute(
         path: Routes.onboardingProfile,
-        builder: (context, state) => const ProfileEditorPage(isOnboarding: true),
+        builder: (context, state) =>
+            const ProfileEditorPage(isOnboarding: true),
       ),
       ShellRoute(
         navigatorKey: _shellNavigatorKey,

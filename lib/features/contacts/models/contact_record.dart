@@ -164,7 +164,9 @@ class ContactIdentity {
       'favorite_song': favoriteSong,
       'email': email,
       'phone': phone,
-      'social_profiles': socialProfiles.map((profile) => profile.toMap()).toList(),
+      'social_profiles': socialProfiles
+          .map((profile) => profile.toMap())
+          .toList(),
     };
   }
 }

@@ -164,8 +164,9 @@ class ContactService {
       updates['relationship.last_interaction_note'] = lastInteractionNote;
     }
     if (lastInteractionAt != null) {
-      updates['relationship.last_interaction_at'] =
-          Timestamp.fromDate(lastInteractionAt);
+      updates['relationship.last_interaction_at'] = Timestamp.fromDate(
+        lastInteractionAt,
+      );
     }
 
     await _contactsCollection(uid).doc(contactId).update(updates);

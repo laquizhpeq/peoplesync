@@ -80,7 +80,8 @@ class ConnectionContactCard extends StatelessWidget {
                           _MiniBadge(label: contact.identity.company!),
                         if (contact.identity.socialProfiles.isNotEmpty)
                           _MiniBadge(
-                            label: '${contact.identity.socialProfiles.length} redes',
+                            label:
+                                '${contact.identity.socialProfiles.length} redes',
                           ),
                         if (contact.relationship.interests.isNotEmpty)
                           _MiniBadge(
@@ -215,7 +216,8 @@ class _MiniBadge extends StatelessWidget {
 }
 
 String? _buildSubtitle(ContactRecord contact) {
-  if (_hasText(contact.identity.jobTitle) && _hasText(contact.identity.company)) {
+  if (_hasText(contact.identity.jobTitle) &&
+      _hasText(contact.identity.company)) {
     return '${contact.identity.jobTitle} · ${contact.identity.company}';
   }
   if (_hasText(contact.identity.jobTitle)) return contact.identity.jobTitle;
