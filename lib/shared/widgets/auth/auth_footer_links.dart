@@ -13,9 +13,10 @@ class AuthFooterLinks extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = Theme.of(
-      context,
-    ).textTheme.bodySmall?.copyWith(color: Colors.grey);
+    final theme = Theme.of(context);
+    final style = theme.textTheme.bodySmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
 
     return Column(
       children: [
@@ -26,7 +27,7 @@ class AuthFooterLinks extends StatelessWidget {
               onPressed: onTermsPressed ?? () {},
               child: Text(AppStrings.termsAndConditions, style: style),
             ),
-            const Text("|", style: TextStyle(color: Colors.grey)),
+            Text('|', style: style),
             TextButton(
               onPressed: onPrivacyPressed ?? () {},
               child: Text(AppStrings.privacyPolicy, style: style),

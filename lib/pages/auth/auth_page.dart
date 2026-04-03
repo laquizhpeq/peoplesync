@@ -55,6 +55,8 @@ class _AuthPageState extends State<AuthPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Consumer<AuthViewModel>(
       builder: (context, viewModel, child) => AppPage(
         title: AppStrings.blank,
@@ -63,46 +65,67 @@ class _AuthPageState extends State<AuthPage> {
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(vertical: 40),
             child: Container(
-              constraints: const BoxConstraints(maxWidth: 400),
+              constraints: const BoxConstraints(maxWidth: 460),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(36),
+                gradient: LinearGradient(
+                  colors: [
+                    theme.colorScheme.surface.withValues(alpha: 0.82),
+                    theme.colorScheme.surface.withValues(alpha: 0.58),
+                  ],
+                ),
+                border: Border.all(
+                  color: theme.colorScheme.surface.withValues(alpha: 0.35),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                    blurRadius: 40,
+                    offset: const Offset(0, 24),
+                  ),
+                ],
+              ),
               child: Form(
                 key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const AuthLogo(),
-                    const SizedBox(height: 24),
-                    const AuthTextWelcome(),
-                    const SizedBox(height: 32),
-
-                    if (viewModel.errorMessage != null)
-                      AuthErrorBanner(message: viewModel.errorMessage!),
-
-                    AuthFormFields(
-                      emailController: _emailController,
-                      passwordController: _passwordController,
-                    ),
-
-                    const AuthPasswordResetLink(),
-                    const SizedBox(height: 24),
-
-                    AuthMainActionButton(
-                      isLoading: viewModel.isLoading,
-                      label: AppStrings.signIn,
-                      onPressed: _login,
-                    ),
-
-                    const SizedBox(height: 24),
-                    const AuthSeparator(),
-                    const SizedBox(height: 24),
-
-                    const AuthGoogleButton(),
-                    const SizedBox(height: 24),
-
-                    const AuthSignUpLink(),
-                    const SizedBox(height: 40),
-
-                    const AuthFooterLinks(),
-                  ],
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface.withValues(alpha: 0.88),
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 28),
+                      const AuthLogo(),
+                      const SizedBox(height: 28),
+                      const AuthTextWelcome(),
+                      const SizedBox(height: 32),
+                      if (viewModel.errorMessage != null)
+                        AuthErrorBanner(message: viewModel.errorMessage!),
+                      AuthFormFields(
+                        emailController: _emailController,
+                        passwordController: _passwordController,
+                      ),
+                      const AuthPasswordResetLink(),
+                      const SizedBox(height: 24),
+                      AuthMainActionButton(
+                        isLoading: viewModel.isLoading,
+                        label: AppStrings.signIn,
+                        onPressed: _login,
+                      ),
+                      const SizedBox(height: 24),
+                      const AuthSeparator(),
+                      const SizedBox(height: 24),
+                      const AuthGoogleButton(),
+                      const SizedBox(height: 24),
+                      const AuthSignUpLink(),
+                      const SizedBox(height: 24),
+                      const AuthFooterLinks(),
+                      const SizedBox(height: 28),
+                    ],
+                  ),
                 ),
               ),
             ),

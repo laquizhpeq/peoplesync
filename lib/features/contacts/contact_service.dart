@@ -20,39 +20,44 @@ class ContactService {
 
   Stream<List<ContactRecord>> watchContacts() {
     final uid = _currentUid;
-    return _contactsCollection(uid)
-        .orderBy('updated_at', descending: true)
-        .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
+    return _contactsCollection(uid).snapshots().map(
+      (snapshot) =>
+          snapshot.docs
               .map((doc) => ContactRecord.fromMap(doc.data(), doc.id))
-              .toList(),
-        );
+              .toList()
+            ..sort(_sortContacts),
+    );
   }
 
   Future<List<ContactRecord>> fetchContacts() async {
     final uid = _currentUid;
-    final snapshot = await _contactsCollection(
-      uid,
-    ).orderBy('updated_at', descending: true).get();
+    final snapshot = await _contactsCollection(uid).get();
 
     return snapshot.docs
         .map((doc) => ContactRecord.fromMap(doc.data(), doc.id))
-        .toList();
+        .toList()
+      ..sort(_sortContacts);
   }
 
   Future<void> createManualContact({
     required String displayName,
-    String? email,
-    String? phone,
+    String? photoUrl,
+    int? age,
+    DateTime? birthday,
     String? city,
     String? company,
     String? jobTitle,
     String? bio,
+    String? about,
     String? favoriteSong,
+    String? email,
+    String? phone,
     List<String> interests = const [],
-    List<String> tags = const [],
-    String? contextNote,
+    List<String> lookingFor = const [],
+    List<String> personalityTags = const [],
+    String? relationshipContext,
+    String? lastInteractionNote,
+    List<ContactSocialProfile> socialProfiles = const [],
   }) async {
     final uid = _currentUid;
     final doc = _contactsCollection(uid).doc();
@@ -62,16 +67,23 @@ class ContactService {
       ownerUid: uid,
       source: ContactSource.manual,
       displayName: displayName,
-      email: email,
-      phone: phone,
+      photoUrl: photoUrl,
+      age: age,
+      birthday: birthday,
       city: city,
       company: company,
       jobTitle: jobTitle,
       bio: bio,
+      about: about,
       favoriteSong: favoriteSong,
+      email: email,
+      phone: phone,
       interests: interests,
-      tags: tags,
-      contextNote: contextNote,
+      lookingFor: lookingFor,
+      personalityTags: personalityTags,
+      relationshipContext: relationshipContext,
+      lastInteractionNote: lastInteractionNote,
+      socialProfiles: socialProfiles,
     );
 
     await doc.set(contact.toMap());
@@ -81,11 +93,15 @@ class ContactService {
     required String linkedUserUid,
     required String displayName,
     String? photoUrl,
-    String? email,
     String? favoriteSong,
+    String? email,
+    String? bio,
     List<String> interests = const [],
-    List<String> tags = const [],
-    String? contextNote,
+    List<String> lookingFor = const [],
+    List<String> personalityTags = const [],
+    String? relationshipContext,
+    List<ContactSocialProfile> socialProfiles = const [],
+    String? importedFromQrId,
   }) async {
     final uid = _currentUid;
     final doc = _contactsCollection(uid).doc(linkedUserUid);
@@ -97,11 +113,15 @@ class ContactService {
       displayName: displayName,
       linkedUserUid: linkedUserUid,
       photoUrl: photoUrl,
-      email: email,
       favoriteSong: favoriteSong,
+      email: email,
+      bio: bio,
       interests: interests,
-      tags: tags,
-      contextNote: contextNote,
+      lookingFor: lookingFor,
+      personalityTags: personalityTags,
+      relationshipContext: relationshipContext,
+      socialProfiles: socialProfiles,
+      importedFromQrId: importedFromQrId,
     );
 
     await doc.set(contact.toMap(), SetOptions(merge: true));
@@ -110,16 +130,23 @@ class ContactService {
   Future<void> updateContact({
     required String contactId,
     String? displayName,
-    String? email,
-    String? phone,
+    String? photoUrl,
+    int? age,
+    DateTime? birthday,
     String? city,
     String? company,
     String? jobTitle,
     String? bio,
+    String? about,
     String? favoriteSong,
+    String? email,
+    String? phone,
     List<String>? interests,
-    List<String>? tags,
-    String? contextNote,
+    List<String>? lookingFor,
+    List<String>? personalityTags,
+    String? relationshipContext,
+    String? lastInteractionNote,
+    List<ContactSocialProfile>? socialProfiles,
     DateTime? lastInteractionAt,
   }) async {
     final uid = _currentUid;
@@ -128,16 +155,33 @@ class ContactService {
     };
 
     if (displayName != null) updates['display_name'] = displayName;
-    if (email != null) updates['email'] = email;
-    if (phone != null) updates['phone'] = phone;
+    if (photoUrl != null) updates['photo_url'] = photoUrl;
+    if (age != null) updates['age'] = age;
+    if (birthday != null) updates['birthday'] = Timestamp.fromDate(birthday);
     if (city != null) updates['city'] = city;
     if (company != null) updates['company'] = company;
     if (jobTitle != null) updates['job_title'] = jobTitle;
     if (bio != null) updates['bio'] = bio;
+    if (about != null) updates['about'] = about;
     if (favoriteSong != null) updates['favorite_song'] = favoriteSong;
+    if (email != null) updates['email'] = email;
+    if (phone != null) updates['phone'] = phone;
     if (interests != null) updates['interests'] = interests;
-    if (tags != null) updates['tags'] = tags;
-    if (contextNote != null) updates['context_note'] = contextNote;
+    if (lookingFor != null) updates['looking_for'] = lookingFor;
+    if (personalityTags != null) {
+      updates['personality_tags'] = personalityTags;
+    }
+    if (relationshipContext != null) {
+      updates['relationship_context'] = relationshipContext;
+    }
+    if (lastInteractionNote != null) {
+      updates['last_interaction_note'] = lastInteractionNote;
+    }
+    if (socialProfiles != null) {
+      updates['social_profiles'] = socialProfiles
+          .map((profile) => profile.toMap())
+          .toList();
+    }
     if (lastInteractionAt != null) {
       updates['last_interaction_at'] = Timestamp.fromDate(lastInteractionAt);
     }
@@ -149,4 +193,12 @@ class ContactService {
     final uid = _currentUid;
     await _contactsCollection(uid).doc(contactId).delete();
   }
+}
+
+int _sortContacts(ContactRecord a, ContactRecord b) {
+  final aDate =
+      a.updatedAt ?? a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+  final bDate =
+      b.updatedAt ?? b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+  return bDate.compareTo(aDate);
 }

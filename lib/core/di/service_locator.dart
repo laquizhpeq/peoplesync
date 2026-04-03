@@ -1,5 +1,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:peoplesync/features/contacts/contact_service.dart';
+import 'package:peoplesync/features/contacts/contact_form_viewmodel.dart';
+import 'package:peoplesync/features/contacts/connections_viewmodel.dart';
 import 'package:peoplesync/features/auth/auth_service.dart';
 import 'package:peoplesync/features/profile/profile_service.dart';
 import 'package:peoplesync/features/navigation/navigation_service.dart';
@@ -30,5 +32,11 @@ void setupServiceLocator() {
   );
   getIt.registerFactory<ProfileViewModel>(
     () => ProfileViewModel(profileService: getIt<ProfileService>()),
+  );
+  getIt.registerFactory<ContactFormViewModel>(
+    () => ContactFormViewModel(contactService: getIt<ContactService>()),
+  );
+  getIt.registerFactory<ConnectionsViewModel>(
+    () => ConnectionsViewModel(contactService: getIt<ContactService>()),
   );
 }

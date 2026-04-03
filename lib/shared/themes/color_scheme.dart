@@ -1,59 +1,43 @@
 import 'package:flutter/material.dart';
 
 class AppColorScheme {
-  // Seed Color: Sapphire Blue (#3B82F6) - El ADN de la marca
-
   static const light = ColorScheme(
     brightness: Brightness.light,
-    // Primary: Sapphire Blue
-    primary: Color(0xFF2563EB),
+    primary: Color(0xFFE85D5D),
     onPrimary: Colors.white,
-    primaryContainer: Color(0xFFDBEAFE),
-    onPrimaryContainer: Color(0xFF1E40AF),
-
-    // Secondary: Cyan Glacial
-    secondary: Color(0xFF06B6D4),
-    onSecondary: Colors.white,
-    secondaryContainer: Color(0xFFCFFAFE),
-    onSecondaryContainer: Color(0xFF0891B2),
-
-    // Tertiary: Soft Indigo
-    tertiary: Color(0xFF818CF8),
-    onTertiary: Colors.white,
-
-    // Neutral / Background
+    primaryContainer: Color(0xFFFFD7CC),
+    onPrimaryContainer: Color(0xFF6A1F1B),
+    secondary: Color(0xFFFF8A65),
+    onSecondary: Color(0xFF4A160C),
+    secondaryContainer: Color(0xFFFFD8C4),
+    onSecondaryContainer: Color(0xFF6A2815),
+    tertiary: Color(0xFFF4B860),
+    onTertiary: Color(0xFF4B2D00),
     error: Color(0xFFBA1A1A),
     onError: Colors.white,
-    surface: Color(0xFFF1F5F9), // Slate White
-    onSurface: Color(0xFF1A1A1A), // Deep Charcoal
-    surfaceContainerHighest: Color(0xFFE2E8F0),
-    onSurfaceVariant: Color(0xFF475569),
+    surface: Color(0xFFFFF6F1),
+    onSurface: Color(0xFF2E1B17),
+    surfaceContainerHighest: Color(0xFFFCE4DA),
+    onSurfaceVariant: Color(0xFF7B5B55),
   );
 
   static const dark = ColorScheme(
     brightness: Brightness.dark,
-    // Primary: Sky Blue (Suavizado para Dark Mode)
-    primary: Color(0xFF60A5FA),
-    onPrimary: Color(0xFF00318C),
-    primaryContainer: Color(0xFF1E40AF),
-    onPrimaryContainer: Color(0xFFDBEAFE),
-
-    // Secondary: Electric Cyan
-    secondary: Color(0xFF22D3EE),
-    onSecondary: Color(0xFF00363D),
-    secondaryContainer: Color(0xFF0891B2),
-    onSecondaryContainer: Color(0xFFCFFAFE),
-
-    // Tertiary: Lavender Mist
-    tertiary: Color(0xFFA5B4FC),
-    onTertiary: Color(0xFF2D3282),
-
-    // Neutral / Background
+    primary: Color(0xFFFF8A80),
+    onPrimary: Color(0xFF5C1414),
+    primaryContainer: Color(0xFF8B3632),
+    onPrimaryContainer: Color(0xFFFFDAD6),
+    secondary: Color(0xFFFFB38A),
+    onSecondary: Color(0xFF52200A),
+    secondaryContainer: Color(0xFF6A341A),
+    onSecondaryContainer: Color(0xFFFFDBC9),
+    tertiary: Color(0xFFF5C877),
+    onTertiary: Color(0xFF442C00),
     error: Color(0xFFFFB4AB),
     onError: Color(0xFF690005),
-    surface: Color(0xFF0F172A), // Midnight Slate
-    onSurface: Color(0xFFF8FAFC), // White Blue
-    surfaceContainerHighest: Color(0xFF1E293B), // Para las tarjetas
-    onSurfaceVariant: Color(0xFF94A3B8),
+    surface: Color(0xFF201513),
+    onSurface: Color(0xFFF7E9E5),
+    surfaceContainerHighest: Color(0xFF362320),
+    onSurfaceVariant: Color(0xFFD7BBB4),
   );
 }

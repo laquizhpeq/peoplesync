@@ -18,39 +18,48 @@ class QuickActionsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2, // Sombra suave
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(
-          24,
-        ), // Bordes muy redondeados como en la imagen
-      ),
+    final theme = Theme.of(context);
+
+    return Material(
+      color: Colors.transparent,
       child: InkWell(
-        // Para que sea pulsable con efecto visual
         onTap: onTap,
-        borderRadius: BorderRadius.circular(24),
-        child: Container(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              // El círculo con el icono
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: circleColor, // Color de fondo del círculo
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: iconColor, size: 20),
+        borderRadius: BorderRadius.circular(26),
+        child: Ink(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface.withValues(alpha: 0.96),
+            borderRadius: BorderRadius.circular(26),
+            border: Border.all(
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: theme.colorScheme.primary.withValues(alpha: 0.08),
+                blurRadius: 22,
+                offset: const Offset(0, 12),
               ),
-              const SizedBox(
-                height: 10,
-              ), // Espacio vertical entre icono y texto
-              // El texto descriptivo
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: circleColor,
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Icon(icon, color: iconColor, size: 24),
+              ),
+              const Spacer(),
               Text(
                 label,
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 10),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurface,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ],
           ),
