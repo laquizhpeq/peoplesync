@@ -9,6 +9,7 @@ import 'package:peoplesync/shared/widgets/design/actions/quick_actions.dart';
 import 'package:peoplesync/shared/widgets/design/card/time_reconect.dart';
 import 'package:peoplesync/shared/widgets/design/header/welcome.dart';
 import 'package:peoplesync/shared/widgets/design/listtile/contact_item.dart';
+import 'package:peoplesync/features/qr_code/widgets/scanner_dialog.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -58,7 +59,7 @@ class _HomePageState extends State<HomePage> {
                     label: AppStrings.scanQR,
                     iconColor: Colors.white,
                     circleColor: theme.colorScheme.primary,
-                    onTap: () => debugPrint(AppStrings.scanQR),
+                    onTap: () => ScannerDialog.show(context),
                   ),
                   QuickActionsCard(
                     icon: Icons.near_me_rounded,

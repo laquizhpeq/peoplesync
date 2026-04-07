@@ -7,8 +7,10 @@ import 'package:peoplesync/features/auth/auth_service.dart';
 import 'package:peoplesync/features/navigation/navigation_provider.dart';
 import 'package:peoplesync/features/profile/models/user_profile.dart';
 import 'package:peoplesync/features/profile/profile_viewmodel.dart';
+import 'package:peoplesync/features/qr_code/qr_service.dart';
 import 'package:peoplesync/shared/widgets/profile/profile_section_card.dart';
 import 'package:peoplesync/shared/widgets/profile/profile_summary_card.dart';
+import 'package:pretty_qr_code/pretty_qr_code.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -58,6 +60,8 @@ class ProfilePage extends StatelessWidget {
                     );
                   },
                 ),
+                const SizedBox(height: 24),
+                _QrIdentityCard(profile: profile),
                 const SizedBox(height: 24),
                 const _AffinityHighlights(),
                 const SizedBox(height: 24),
@@ -310,6 +314,61 @@ class _BulletLine extends StatelessWidget {
         const SizedBox(width: 10),
         Expanded(child: Text(text)),
       ],
+    );
+  }
+}
+
+class _QrIdentityCard extends StatelessWidget {
+  final UserProfile profile;
+
+  const _QrIdentityCard({required this.profile});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final qrData = getIt<QrService>().generateProfileQrData(profile.uid);
+
+    return ProfileSectionCard(
+      title: 'Tu Código QR',
+      subtitle: 'Muestra este código para que otros te añadan al instante.',
+      child: Center(
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: theme.colorScheme.onSurfaceVariant.withValues(
+                    alpha: 0.1,
+                  ),
+                ),
+              ),
+              child: SizedBox(
+                width: 160,
+                height: 160,
+                child: PrettyQrView.data(
+                  data: qrData,
+                  decoration: PrettyQrDecoration(
+                    shape: PrettyQrSmoothSymbol(
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Escanea para conectar',
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

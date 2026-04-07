@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:peoplesync/features/contacts/connections_viewmodel.dart';
 import 'package:peoplesync/features/contacts/models/contact_record.dart';
+import 'package:provider/provider.dart';
 
 class ConnectionContactCard extends StatelessWidget {
   final ContactRecord contact;
@@ -18,7 +20,6 @@ class ConnectionContactCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 16),
-      constraints: const BoxConstraints(minHeight: 164),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface.withValues(alpha: 0.97),
         borderRadius: BorderRadius.circular(30),
@@ -33,80 +34,80 @@ class ConnectionContactCard extends StatelessWidget {
           ),
         ],
       ),
-      child: IntrinsicHeight(
-        child: Row(
-          children: [
-            _ContactPhoto(
-              photoUrl: contact.identity.photoUrl,
-              name: displayName,
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(18),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            displayName,
-                            style: theme.textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w800,
-                            ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment
+            .start, // Alineación al inicio para permitir crecimiento
+        children: [
+          _ContactPhoto(photoUrl: contact.identity.photoUrl, name: displayName),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize:
+                    MainAxisSize.min, // Importante para que no pida infinito
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          displayName,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w800,
                           ),
-                        ),
-                        if ((contact.identity.age ?? 0) > 0)
-                          _MiniBadge(label: '${contact.identity.age} años'),
-                      ],
-                    ),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        subtitle,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
+                      if ((contact.identity.age ?? 0) > 0)
+                        _MiniBadge(label: '${contact.identity.age} años'),
+                      _ContactActionsMenu(contact: contact),
                     ],
-                    const SizedBox(height: 14),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        if (_hasText(contact.identity.city))
-                          _MiniBadge(label: contact.identity.city!),
-                        if (_hasText(contact.identity.company))
-                          _MiniBadge(label: contact.identity.company!),
-                        if (contact.identity.socialProfiles.isNotEmpty)
-                          _MiniBadge(
-                            label:
-                                '${contact.identity.socialProfiles.length} redes',
-                          ),
-                        if (contact.relationship.interests.isNotEmpty)
-                          _MiniBadge(
-                            label:
-                                '${contact.relationship.interests.length} intereses',
-                          ),
-                      ],
-                    ),
-                    if (_hasText(contact.identity.bio)) ...[
-                      const SizedBox(height: 14),
-                      Text(
-                        contact.identity.bio!,
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
+                  ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      subtitle,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
-                    ],
+                    ),
                   ],
-                ),
+                  const SizedBox(height: 14),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      if (_hasText(contact.identity.city))
+                        _MiniBadge(label: contact.identity.city!),
+                      if (_hasText(contact.identity.company))
+                        _MiniBadge(label: contact.identity.company!),
+                      if (contact.identity.socialProfiles.isNotEmpty)
+                        _MiniBadge(
+                          label:
+                              '${contact.identity.socialProfiles.length} redes',
+                        ),
+                      if (contact.relationship.interests.isNotEmpty)
+                        _MiniBadge(
+                          label:
+                              '${contact.relationship.interests.length} intereses',
+                        ),
+                    ],
+                  ),
+                  if (_hasText(contact.identity.bio)) ...[
+                    const SizedBox(height: 14),
+                    Text(
+                      contact.identity.bio!,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -120,33 +121,58 @@ class _ContactPhoto extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final hasPhoto = photoUrl != null && photoUrl!.trim().isNotEmpty;
 
-    return ClipRRect(
-      borderRadius: const BorderRadius.only(
-        topLeft: Radius.circular(30),
-        bottomLeft: Radius.circular(30),
-      ),
-      child: Container(
-        width: 132,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFFF8A65), Color(0xFFE85D5D)],
-          ),
+    return Container(
+      width: 120,
+      height: 164,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(30),
+          bottomLeft: Radius.circular(30),
         ),
-        alignment: Alignment.center,
-        child: hasPhoto
-            ? Image.network(
-                photoUrl!,
-                width: double.infinity,
-                height: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) =>
-                    const _PhotoFallback(),
-              )
-            : const _PhotoFallback(),
+      ),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Fondo con degradado por si la imagen falla o es transparente
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFFFF8A65), Color(0xFFE85D5D)],
+              ),
+            ),
+          ),
+
+          if (hasPhoto)
+            Image.network(
+              photoUrl!,
+              fit: BoxFit.cover,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Center(
+                  child: CircularProgressIndicator(
+                    value: loadingProgress.expectedTotalBytes != null
+                        ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                        : null,
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                );
+              },
+              errorBuilder: (context, error, stackTrace) {
+                // Si falla por CORS o cualquier cosa, mostramos el fallback
+                return const _PhotoFallback();
+              },
+            )
+          else
+            const _PhotoFallback(),
+        ],
       ),
     );
   }
@@ -210,6 +236,98 @@ class _MiniBadge extends StatelessWidget {
           color: theme.colorScheme.onSurface,
           fontWeight: FontWeight.w700,
         ),
+      ),
+    );
+  }
+}
+
+class _ContactActionsMenu extends StatelessWidget {
+  final ContactRecord contact;
+
+  const _ContactActionsMenu({required this.contact});
+
+  @override
+  Widget build(BuildContext context) {
+    final viewModel = Provider.of<ConnectionsViewModel>(context, listen: false);
+    final theme = Theme.of(context);
+    final isLinked = contact.linkedUserUid != null;
+
+    return PopupMenuButton<String>(
+      icon: Icon(
+        Icons.more_vert_rounded,
+        color: theme.colorScheme.onSurfaceVariant,
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      onSelected: (value) async {
+        if (value == 'sync') {
+          await viewModel.syncContact(contact.linkedUserUid!);
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Identidad sincronizada')),
+            );
+          }
+        } else if (value == 'notes') {
+          _showEditNotesDialog(context, viewModel, contact);
+        }
+      },
+      itemBuilder: (context) => [
+        if (isLinked)
+          const PopupMenuItem(
+            value: 'sync',
+            child: ListTile(
+              leading: Icon(Icons.sync_rounded),
+              title: Text('Sincronizar perfil'),
+              contentPadding: EdgeInsets.zero,
+              dense: true,
+            ),
+          ),
+        const PopupMenuItem(
+          value: 'notes',
+          child: ListTile(
+            leading: Icon(Icons.note_alt_rounded),
+            title: Text('Notas privadas'),
+            contentPadding: EdgeInsets.zero,
+            dense: true,
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showEditNotesDialog(
+    BuildContext context,
+    ConnectionsViewModel viewModel,
+    ContactRecord contact,
+  ) {
+    final controller = TextEditingController(
+      text: contact.relationship.privateNotes,
+    );
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Notas privadas'),
+        content: TextField(
+          controller: controller,
+          maxLines: 5,
+          decoration: const InputDecoration(
+            hintText: 'Añade contexto sobre esta persona...',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              viewModel.updateNotes(contact.id, controller.text);
+              Navigator.pop(context);
+            },
+            child: const Text('Guardar'),
+          ),
+        ],
       ),
     );
   }

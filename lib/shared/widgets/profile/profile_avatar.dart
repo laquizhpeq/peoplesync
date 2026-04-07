@@ -33,17 +33,41 @@ class ProfileAvatar extends StatelessWidget {
               end: Alignment.bottomRight,
             ),
           ),
-          child: CircleAvatar(
-            radius: radius,
-            backgroundColor: colors.surface,
-            backgroundImage: photoUrl != null ? NetworkImage(photoUrl!) : null,
-            child: photoUrl == null
-                ? Icon(
-                    Icons.person_rounded,
-                    size: radius,
-                    color: colors.primary,
-                  )
-                : null,
+          child: ClipOval(
+            child: SizedBox(
+              width: radius * 2,
+              height: radius * 2,
+              child: photoUrl != null
+                  ? Image.network(
+                      photoUrl!,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Center(
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: colors.primary,
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        color: colors.surfaceContainerHighest,
+                        child: Icon(
+                          Icons.person_rounded,
+                          size: radius,
+                          color: colors.primary.withValues(alpha: 0.5),
+                        ),
+                      ),
+                    )
+                  : Container(
+                      color: colors.surface,
+                      child: Icon(
+                        Icons.person_rounded,
+                        size: radius,
+                        color: colors.primary,
+                      ),
+                    ),
+            ),
           ),
         ),
         Positioned(
