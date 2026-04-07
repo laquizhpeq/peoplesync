@@ -48,6 +48,16 @@ class ProfileService {
     return profile;
   }
 
+  // Get external profile (for importing via QR)
+  Future<UserProfile?> getUserProfile(String uid) async {
+    final doc = await _firestore.collection('users').doc(uid).get();
+    if (!doc.exists) {
+      return null;
+    }
+    final data = doc.data() as Map<String, dynamic>;
+    return UserProfile.fromMap(data, doc.id);
+  }
+
   Future<void> createInitialProfile({
     required String uid,
     required String email,

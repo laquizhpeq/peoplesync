@@ -9,6 +9,8 @@ import 'package:peoplesync/features/navigation/navigation_service.dart';
 import 'package:peoplesync/features/auth/auth_viewmodel.dart';
 import 'package:peoplesync/features/profile/profile_viewmodel.dart';
 import 'package:peoplesync/features/navigation/navigation_provider.dart';
+import 'package:peoplesync/features/qr_code/qr_service.dart';
+import 'package:peoplesync/pages/scanner/scanner_viewmodel.dart';
 
 final getIt = GetIt.instance;
 
@@ -18,6 +20,7 @@ void setupServiceLocator() {
   getIt.registerLazySingleton<AuthService>(() => AuthService());
   getIt.registerLazySingleton<ProfileService>(() => ProfileService());
   getIt.registerLazySingleton<NavigationService>(() => NavigationService());
+  getIt.registerLazySingleton<QrService>(() => QrService());
 
   // ViewModels / Providers
   getIt.registerLazySingleton<NavigationProvider>(
@@ -44,6 +47,17 @@ void setupServiceLocator() {
     () => ContactFormViewModel(contactService: getIt<ContactService>()),
   );
   getIt.registerFactory<ConnectionsViewModel>(
-    () => ConnectionsViewModel(contactService: getIt<ContactService>()),
+    () => ConnectionsViewModel(
+      contactService: getIt<ContactService>(),
+      authService: getIt<AuthService>(),
+    ),
+  );
+  getIt.registerFactory<ScannerViewModel>(
+    () => ScannerViewModel(
+      contactService: getIt<ContactService>(),
+      profileService: getIt<ProfileService>(),
+      authService: getIt<AuthService>(),
+      qrService: getIt<QrService>(),
+    ),
   );
 }

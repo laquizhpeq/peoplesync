@@ -9,6 +9,7 @@ import 'package:peoplesync/pages/contacts/contact_form_page.dart';
 import 'package:peoplesync/pages/contacts/connections_page.dart';
 import 'package:peoplesync/pages/profile/profile_page.dart';
 import 'package:peoplesync/pages/profile/profile_editor_page.dart';
+import 'package:peoplesync/pages/scanner/scanner_page.dart';
 import 'package:peoplesync/features/auth/auth_service.dart';
 import 'package:peoplesync/features/auth/auth_viewmodel.dart';
 import 'package:peoplesync/features/navigation/navigation_provider.dart';
@@ -114,6 +115,10 @@ class AppRoutes {
           GoRoute(
             path: Routes.contactNew,
             builder: (context, state) => const ContactFormPage(),
+          ),
+          GoRoute(
+            path: Routes.scanner,
+            builder: (context, state) => const ScannerPage(),
           ),
         ],
       ),

@@ -2,6 +2,18 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:peoplesync/features/contacts/models/contact_record.dart';
 
+/// Excepción tipada para operaciones del [ContactService].
+class ContactServiceException implements Exception {
+  final String message;
+  final Object? cause;
+
+  const ContactServiceException(this.message, {this.cause});
+
+  @override
+  String toString() =>
+      'ContactServiceException: $message${cause != null ? ' (causa: $cause)' : ''}';
+}
+
 class ContactService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -175,6 +187,148 @@ class ContactService {
   Future<void> deleteContact(String contactId) async {
     final uid = _currentUid;
     await _contactsCollection(uid).doc(contactId).delete();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Networking — métodos de la funcionalidad de contactos por QR
+  // ---------------------------------------------------------------------------
+
+  /// Guarda un contacto escaneado via QR en la subcolección del usuario.
+  ///
+  /// Obtiene el perfil público de [contactoUid] desde la colección maestra
+  /// `users`, construye un [ContactRecord] con [ContactSource.qrImport] y lo
+  /// persiste en `/users/[miUid]/contacts/[contactoUid]`.
+  Future<void> saveScannedContact({
+    required String miUid,
+    required String contactoUid,
+    String? notaContexto,
+  }) async {
+    try {
+      // a. Obtener perfil público desde la colección maestra.
+      final userDoc = await _firestore
+          .collection('users')
+          .doc(contactoUid)
+          .get();
+
+      if (!userDoc.exists || userDoc.data() == null) {
+        throw ContactServiceException(
+          'El perfil del usuario $contactoUid no existe en la colección maestra.',
+        );
+      }
+
+      // b. Mapear datos públicos a ContactIdentity.
+      final identity = ContactIdentity.fromMap(
+        Map<String, dynamic>.from(userDoc.data()!),
+      );
+
+      // c. Construir el ContactRecord completo.
+      final nuevoContacto = ContactRecord(
+        id: contactoUid,
+        ownerUid: miUid,
+        source: ContactSource.qrImport,
+        linkedUserUid: contactoUid,
+        identity: identity,
+        relationship: ContactRelationship(contextNote: notaContexto),
+      );
+
+      // d. Persistir en la subcolección del usuario.
+      await _contactsCollection(
+        miUid,
+      ).doc(contactoUid).set(nuevoContacto.toMap());
+    } on ContactServiceException {
+      rethrow;
+    } catch (e) {
+      throw ContactServiceException(
+        'Error al guardar el contacto escaneado.',
+        cause: e,
+      );
+    }
+  }
+
+  /// Retorna un [Stream] reactivo de todos los contactos de [miUid],
+  /// ordenados por `updated_at` descendente.
+  ///
+  /// Usa la query nativa de Firestore para el `orderBy` en lugar de
+  /// ordenar en cliente, reduciendo el procesamiento innecesario.
+  Stream<List<ContactRecord>> streamMyContacts(String miUid) {
+    try {
+      return _contactsCollection(miUid)
+          .orderBy('updated_at', descending: true)
+          .snapshots()
+          .map(
+            (snapshot) => snapshot.docs
+                .map((doc) => ContactRecord.fromMap(doc.data(), doc.id))
+                .toList(),
+          );
+    } catch (e) {
+      throw ContactServiceException(
+        'Error al inicializar el stream de contactos para $miUid.',
+        cause: e,
+      );
+    }
+  }
+
+  /// Sincroniza el campo `identity` de un contacto guardado con los datos
+  /// más recientes del perfil público en la colección maestra `users`.
+  ///
+  /// Solo toca el sub-mapa `identity` — las `private_notes` y el resto del
+  /// `relationship` quedan intactos.
+  Future<void> syncContactIdentity({
+    required String miUid,
+    required String contactoUid,
+  }) async {
+    try {
+      // Obtener el perfil público actualizado.
+      final userDoc = await _firestore
+          .collection('users')
+          .doc(contactoUid)
+          .get();
+
+      if (!userDoc.exists || userDoc.data() == null) {
+        throw ContactServiceException(
+          'No se encontró el perfil de $contactoUid para sincronizar.',
+        );
+      }
+
+      final identity = ContactIdentity.fromMap(
+        Map<String, dynamic>.from(userDoc.data()!),
+      );
+
+      // Actualizar solo el campo `identity` y el timestamp de actualización.
+      await _contactsCollection(miUid).doc(contactoUid).update({
+        'identity': identity.toMap(),
+        'updated_at': FieldValue.serverTimestamp(),
+      });
+    } on ContactServiceException {
+      rethrow;
+    } catch (e) {
+      throw ContactServiceException(
+        'Error al sincronizar la identidad del contacto $contactoUid.',
+        cause: e,
+      );
+    }
+  }
+
+  /// Actualiza solo el campo `relationship.private_notes` de un contacto.
+  ///
+  /// Usa dot-notation de Firestore para un update quirúrgico sin tocar
+  /// ningún otro campo del documento.
+  Future<void> updatePrivateNotes({
+    required String contactId,
+    required String? privateNotes,
+  }) async {
+    try {
+      final uid = _currentUid;
+      await _contactsCollection(uid).doc(contactId).update({
+        'relationship.private_notes': privateNotes,
+        'updated_at': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      throw ContactServiceException(
+        'Error al actualizar las notas privadas del contacto $contactId.',
+        cause: e,
+      );
+    }
   }
 }
 

@@ -8,4 +8,5 @@ class Routes {
   static const String profileEdit = '/profile/edit';
   static const String onboardingProfile = '/onboarding/profile';
   static const String contactNew = '/contacts/new';
+  static const String scanner = '/scanner';
 }
