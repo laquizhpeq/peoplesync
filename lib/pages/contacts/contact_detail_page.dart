@@ -303,7 +303,7 @@ class _HeroCard extends StatelessWidget {
         children: [
           if (hasPhoto)
             Image.network(
-              photoUrl!,
+              photoUrl,
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
                 return const _HeroFallback();
