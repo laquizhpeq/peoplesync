@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:peoplesync/core/di/service_locator.dart';
 import 'package:peoplesync/features/auth/auth_service.dart';
-import 'package:peoplesync/core/utils/route_utils.dart';
-import 'package:peoplesync/shared/widgets/design/layout/app_bar.dart';
 import 'package:peoplesync/shared/widgets/design/layout/bottom_nav_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:peoplesync/features/navigation/navigation_provider.dart';
-import 'package:go_router/go_router.dart';
 
 class AppLayout extends StatefulWidget {
   final Widget child;
@@ -45,35 +42,10 @@ class _AppLayoutState extends State<AppLayout> {
 
   @override
   Widget build(BuildContext context) {
-    final navProvider = Provider.of<NavigationProvider>(context);
-    final currentRoute = normalizeAppRoute(GoRouterState.of(context).uri.path);
-
-    String pageTitle = 'PeopleSync';
-    for (var m in navProvider.menus) {
-      if (isSameAppRoute(m.route, currentRoute)) {
-        pageTitle = m.title;
-        break;
-      }
-    }
-
-    if (currentRoute == '/contacts/new') {
-      pageTitle = 'Nuevo contacto';
-    }
-    if (currentRoute == '/connections') {
-      pageTitle = 'Conexiones';
-    }
-    if (currentRoute == '/profile/edit') {
-      pageTitle = 'Editar perfil';
-    }
-
-    // Fallback if loading
-    if (navProvider.isLoading) {
-      pageTitle = 'Cargando...';
-    }
+    Provider.of<NavigationProvider>(context);
 
     return Scaffold(
       extendBody: true,
-      appBar: TopNavBar(title: pageTitle),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(

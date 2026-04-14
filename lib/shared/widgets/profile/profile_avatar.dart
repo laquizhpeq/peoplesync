@@ -26,8 +26,8 @@ class ProfileAvatar extends StatelessWidget {
             gradient: LinearGradient(
               colors: [
                 colors.primary,
-                const Color(0xFFFF5A5F),
-                const Color(0xFFFFB347),
+                const Color(0xFFE83E6C),
+                const Color(0xFFFFD36E),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,

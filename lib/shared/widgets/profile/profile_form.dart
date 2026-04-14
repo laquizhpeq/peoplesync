@@ -27,6 +27,7 @@ class ProfileForm extends StatelessWidget {
   Widget build(BuildContext context) {
     final viewModel = context.watch<ProfileEditorViewModel>();
     final profile = viewModel.profile;
+    final theme = Theme.of(context);
 
     return Form(
       key: viewModel.formKey,
@@ -64,14 +65,90 @@ class ProfileForm extends StatelessWidget {
           ContactFormSectionCard(
             title: 'Imagen y presencia',
             subtitle:
-                'Puedes usar una URL de foto por ahora y anadir las redes que quieras mostrar.',
+                'Sube una foto de perfil y anade las redes que quieras mostrar.',
             child: Column(
               children: [
-                AppTextField(
-                  controller: viewModel.photoUrlController,
-                  label: 'URL de la foto',
-                  keyboardType: TextInputType.url,
-                  prefixIcon: const Icon(Icons.image_outlined),
+                // ---------- Photo picker ----------
+                Center(
+                  child: Column(
+                    children: [
+                      GestureDetector(
+                        onTap: viewModel.isSaving ? null : viewModel.pickPhoto,
+                        child: Stack(
+                          alignment: Alignment.bottomRight,
+                          children: [
+                            CircleAvatar(
+                              radius: 52,
+                              backgroundColor:
+                                  theme.colorScheme.surfaceContainerHighest,
+                              backgroundImage: _resolveAvatarImage(viewModel),
+                              child: viewModel.hasPhoto
+                                  ? null
+                                  : Icon(
+                                      Icons.person_rounded,
+                                      size: 48,
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.primary,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: theme.colorScheme.surface,
+                                  width: 2,
+                                ),
+                              ),
+                              child: Icon(
+                                Icons.camera_alt_rounded,
+                                size: 16,
+                                color: theme.colorScheme.onPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          TextButton.icon(
+                            onPressed: viewModel.isSaving
+                                ? null
+                                : viewModel.pickPhoto,
+                            icon: const Icon(Icons.upload_rounded, size: 18),
+                            label: const Text('Cambiar foto'),
+                          ),
+                          if (viewModel.hasPhoto)
+                            TextButton.icon(
+                              onPressed: viewModel.isSaving
+                                  ? null
+                                  : viewModel.removePhoto,
+                              icon: const Icon(
+                                Icons.delete_outline_rounded,
+                                size: 18,
+                              ),
+                              label: const Text('Eliminar'),
+                              style: TextButton.styleFrom(
+                                foregroundColor: theme.colorScheme.error,
+                              ),
+                            ),
+                        ],
+                      ),
+                      if (viewModel.photoPickerError != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: Text(
+                            viewModel.photoPickerError!,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.error,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 16),
                 if (profile?.email != null && profile!.email!.trim().isNotEmpty)
@@ -157,5 +234,16 @@ class ProfileForm extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  ImageProvider? _resolveAvatarImage(ProfileEditorViewModel viewModel) {
+    if (viewModel.selectedPhotoBytes != null) {
+      return MemoryImage(viewModel.selectedPhotoBytes!);
+    }
+    final url = viewModel.photoUrl;
+    if (url != null && url.isNotEmpty) {
+      return NetworkImage(url);
+    }
+    return null;
   }
 }

@@ -5,14 +5,17 @@ import 'package:peoplesync/core/constants/routes.dart';
 import 'package:peoplesync/pages/home/home_page.dart';
 import 'package:peoplesync/pages/auth/auth_page.dart';
 import 'package:peoplesync/pages/auth/register_page.dart';
+import 'package:peoplesync/pages/contacts/contact_detail_page.dart';
 import 'package:peoplesync/pages/contacts/contact_form_page.dart';
 import 'package:peoplesync/pages/contacts/connections_page.dart';
 import 'package:peoplesync/pages/profile/profile_page.dart';
 import 'package:peoplesync/pages/profile/profile_editor_page.dart';
 import 'package:peoplesync/pages/scanner/scanner_page.dart';
+import 'package:peoplesync/pages/settings/settings_page.dart';
 import 'package:peoplesync/features/auth/auth_service.dart';
 import 'package:peoplesync/features/auth/auth_viewmodel.dart';
 import 'package:peoplesync/features/navigation/navigation_provider.dart';
+import 'package:peoplesync/features/contacts/models/contact_record.dart';
 import 'package:peoplesync/features/profile/profile_service.dart';
 import 'package:peoplesync/core/di/service_locator.dart';
 import 'package:peoplesync/core/utils/route_utils.dart';
@@ -103,6 +106,17 @@ class AppRoutes {
           GoRoute(
             path: Routes.connections,
             builder: (context, state) => const ConnectionsPage(),
+            routes: [
+              GoRoute(
+                path: 'contact/:contactId',
+                builder: (context, state) => ContactDetailPage(
+                  contactId: state.pathParameters['contactId'],
+                  initialContact: state.extra is ContactRecord
+                      ? state.extra as ContactRecord
+                      : null,
+                ),
+              ),
+            ],
           ),
           GoRoute(
             path: Routes.profile,
@@ -113,12 +127,24 @@ class AppRoutes {
             builder: (context, state) => const ProfileEditorPage(),
           ),
           GoRoute(
+            path: '/contacts/:contactId/edit',
+            builder: (context, state) => ContactFormPage(
+              initialContact: state.extra is ContactRecord
+                  ? state.extra as ContactRecord
+                  : null,
+            ),
+          ),
+          GoRoute(
             path: Routes.contactNew,
             builder: (context, state) => const ContactFormPage(),
           ),
           GoRoute(
             path: Routes.scanner,
             builder: (context, state) => const ScannerPage(),
+          ),
+          GoRoute(
+            path: Routes.settings,
+            builder: (context, state) => const SettingsPage(),
           ),
         ],
       ),

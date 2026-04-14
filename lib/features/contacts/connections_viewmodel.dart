@@ -81,6 +81,29 @@ class ConnectionsViewModel extends ChangeNotifier {
     }
   }
 
+  Future<void> toggleFavorite(String contactId, bool isFavorite) async {
+    try {
+      await contactService.updateFavoriteStatus(
+        contactId: contactId,
+        isFavorite: isFavorite,
+      );
+    } catch (e) {
+      _errorMessage = 'Error al actualizar favorito: $e';
+      notifyListeners();
+    }
+  }
+
+  Future<String?> deleteContact(String contactId) async {
+    try {
+      await contactService.deleteContact(contactId);
+      return null;
+    } catch (e) {
+      _errorMessage = 'Error al eliminar contacto: $e';
+      notifyListeners();
+      return _errorMessage;
+    }
+  }
+
   @override
   void dispose() {
     _subscription?.cancel();

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:peoplesync/core/constants/routes.dart';
 import 'package:peoplesync/features/contacts/connections_viewmodel.dart';
 import 'package:peoplesync/features/contacts/models/contact_record.dart';
 import 'package:provider/provider.dart';
@@ -11,103 +13,95 @@ class ConnectionContactCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final subtitle = _buildSubtitle(contact);
     final displayName =
         contact.relationship.customDisplayName?.trim().isNotEmpty == true
         ? contact.relationship.customDisplayName!
         : contact.identity.displayName;
+    final subtitle = _buildSubtitle(contact);
+    final metaLine = _buildMetaLine(contact);
 
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withValues(alpha: 0.97),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(
-          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(24),
+        onTap: () => context.push(
+          '${Routes.connections}/contact/${contact.id}',
+          extra: contact,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.primary.withValues(alpha: 0.08),
-            blurRadius: 24,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment
-            .start, // Alineación al inicio para permitir crecimiento
-        children: [
-          _ContactPhoto(photoUrl: contact.identity.photoUrl, name: displayName),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize:
-                    MainAxisSize.min, // Importante para que no pida infinito
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          displayName,
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                      if ((contact.identity.age ?? 0) > 0)
-                        _MiniBadge(label: '${contact.identity.age} años'),
-                      _ContactActionsMenu(contact: contact),
-                    ],
-                  ),
-                  if (subtitle != null) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      subtitle,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 14),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      if (_hasText(contact.identity.city))
-                        _MiniBadge(label: contact.identity.city!),
-                      if (_hasText(contact.identity.company))
-                        _MiniBadge(label: contact.identity.company!),
-                      if (contact.identity.socialProfiles.isNotEmpty)
-                        _MiniBadge(
-                          label:
-                              '${contact.identity.socialProfiles.length} redes',
-                        ),
-                      if (contact.relationship.interests.isNotEmpty)
-                        _MiniBadge(
-                          label:
-                              '${contact.relationship.interests.length} intereses',
-                        ),
-                    ],
-                  ),
-                  if (_hasText(contact.identity.bio)) ...[
-                    const SizedBox(height: 14),
-                    Text(
-                      contact.identity.bio!,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
+        child: Container(
+          width: double.infinity,
+          margin: const EdgeInsets.only(bottom: 10),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface.withValues(alpha: 0.97),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.08),
             ),
           ),
-        ],
+          child: Row(
+            children: [
+              _ContactPhoto(photoUrl: contact.identity.photoUrl),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 6, 10),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              displayName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                          if (contact.relationship.isFavorite)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 4),
+                              child: Icon(
+                                Icons.favorite_rounded,
+                                size: 16,
+                                color: theme.colorScheme.primary,
+                              ),
+                            ),
+                          _ContactActionsMenu(contact: contact),
+                        ],
+                      ),
+                      if (subtitle != null) ...[
+                        const SizedBox(height: 3),
+                        Text(
+                          subtitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                      if (metaLine != null) ...[
+                        const SizedBox(height: 5),
+                        Text(
+                          metaLine,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -115,64 +109,41 @@ class ConnectionContactCard extends StatelessWidget {
 
 class _ContactPhoto extends StatelessWidget {
   final String? photoUrl;
-  final String name;
 
-  const _ContactPhoto({required this.photoUrl, required this.name});
+  const _ContactPhoto({required this.photoUrl});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final hasPhoto = photoUrl != null && photoUrl!.trim().isNotEmpty;
 
     return Container(
-      width: 120,
-      height: 164,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(30),
-          bottomLeft: Radius.circular(30),
+      width: 64,
+      height: 82,
+      decoration: const BoxDecoration(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(24),
+          bottomLeft: Radius.circular(24),
+        ),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFFF8A65), Color(0xFFE85D5D)],
         ),
       ),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Fondo con degradado por si la imagen falla o es transparente
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFFFF8A65), Color(0xFFE85D5D)],
-              ),
-            ),
-          ),
-
-          if (hasPhoto)
-            Image.network(
-              photoUrl!,
-              fit: BoxFit.cover,
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return Center(
-                  child: CircularProgressIndicator(
-                    value: loadingProgress.expectedTotalBytes != null
-                        ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
-                        : null,
-                    color: Colors.white,
-                    strokeWidth: 2,
-                  ),
-                );
-              },
-              errorBuilder: (context, error, stackTrace) {
-                // Si falla por CORS o cualquier cosa, mostramos el fallback
-                return const _PhotoFallback();
-              },
-            )
-          else
-            const _PhotoFallback(),
-        ],
+      child: ClipRRect(
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(24),
+          bottomLeft: Radius.circular(24),
+        ),
+        child: hasPhoto
+            ? Image.network(
+                photoUrl!,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return const _PhotoFallback();
+                },
+              )
+            : const _PhotoFallback(),
       ),
     );
   }
@@ -184,58 +155,10 @@ class _PhotoFallback extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              shape: BoxShape.circle,
-            ),
-            alignment: Alignment.center,
-            child: const Icon(
-              Icons.person_rounded,
-              color: Colors.white,
-              size: 34,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Sin foto',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.white.withValues(alpha: 0.9),
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MiniBadge extends StatelessWidget {
-  final String label;
-
-  const _MiniBadge({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.primaryContainer.withValues(alpha: 0.75),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        label,
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.onSurface,
-          fontWeight: FontWeight.w700,
-        ),
+      child: Icon(
+        Icons.person_rounded,
+        color: Colors.white.withValues(alpha: 0.88),
+        size: 24,
       ),
     );
   }
@@ -254,12 +177,18 @@ class _ContactActionsMenu extends StatelessWidget {
 
     return PopupMenuButton<String>(
       icon: Icon(
-        Icons.more_vert_rounded,
+        Icons.more_horiz_rounded,
+        size: 18,
         color: theme.colorScheme.onSurfaceVariant,
       ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       onSelected: (value) async {
-        if (value == 'sync') {
+        if (value == 'favorite') {
+          await viewModel.toggleFavorite(
+            contact.id,
+            !contact.relationship.isFavorite,
+          );
+        } else if (value == 'sync') {
           await viewModel.syncContact(contact.linkedUserUid!);
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -267,10 +196,27 @@ class _ContactActionsMenu extends StatelessWidget {
             );
           }
         } else if (value == 'notes') {
-          _showEditNotesDialog(context, viewModel, contact);
+          showEditNotesDialog(context, viewModel, contact);
         }
       },
       itemBuilder: (context) => [
+        PopupMenuItem(
+          value: 'favorite',
+          child: ListTile(
+            leading: Icon(
+              contact.relationship.isFavorite
+                  ? Icons.favorite_rounded
+                  : Icons.favorite_border_rounded,
+            ),
+            title: Text(
+              contact.relationship.isFavorite
+                  ? 'Quitar favorito'
+                  : 'Marcar favorito',
+            ),
+            contentPadding: EdgeInsets.zero,
+            dense: true,
+          ),
+        ),
         if (isLinked)
           const PopupMenuItem(
             value: 'sync',
@@ -294,7 +240,7 @@ class _ContactActionsMenu extends StatelessWidget {
     );
   }
 
-  void _showEditNotesDialog(
+  static void showEditNotesDialog(
     BuildContext context,
     ConnectionsViewModel viewModel,
     ContactRecord contact,
@@ -311,7 +257,7 @@ class _ContactActionsMenu extends StatelessWidget {
           controller: controller,
           maxLines: 5,
           decoration: const InputDecoration(
-            hintText: 'Añade contexto sobre esta persona...',
+            hintText: 'Anade contexto sobre esta persona...',
             border: OutlineInputBorder(),
           ),
         ),
@@ -336,14 +282,28 @@ class _ContactActionsMenu extends StatelessWidget {
 String? _buildSubtitle(ContactRecord contact) {
   if (_hasText(contact.identity.jobTitle) &&
       _hasText(contact.identity.company)) {
-    return '${contact.identity.jobTitle} · ${contact.identity.company}';
+    return '${contact.identity.jobTitle} - ${contact.identity.company}';
   }
   if (_hasText(contact.identity.jobTitle)) return contact.identity.jobTitle;
   if (_hasText(contact.identity.company)) return contact.identity.company;
-  if (_hasText(contact.relationship.contextNote)) {
-    return contact.relationship.contextNote;
-  }
   return null;
+}
+
+String? _buildMetaLine(ContactRecord contact) {
+  final parts = <String>[];
+
+  if (_hasText(contact.identity.city)) {
+    parts.add(contact.identity.city!);
+  }
+  if ((contact.identity.age ?? 0) > 0) {
+    parts.add('${contact.identity.age} anos');
+  }
+  if (_hasText(contact.relationship.contextNote)) {
+    parts.add(contact.relationship.contextNote!);
+  }
+
+  if (parts.isEmpty) return null;
+  return parts.take(2).join(' | ');
 }
 
 bool _hasText(String? value) => value != null && value.trim().isNotEmpty;

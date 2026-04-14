@@ -4,6 +4,7 @@ import 'package:peoplesync/shared/themes/app_theme.dart';
 import 'package:provider/provider.dart';
 import 'package:peoplesync/core/di/service_locator.dart';
 import 'package:peoplesync/features/navigation/navigation_provider.dart';
+import 'package:peoplesync/features/settings/theme_provider.dart';
 
 import 'routes/app_routes.dart';
 
@@ -17,13 +18,20 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<NavigationProvider>.value(
           value: getIt<NavigationProvider>(),
         ),
+        ChangeNotifierProvider<ThemeProvider>.value(
+          value: getIt<ThemeProvider>(),
+        ),
       ],
-      child: MaterialApp.router(
-        title: 'PeopleSync',
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.system,
-        routerConfig: AppRoutes.router,
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, _) {
+          return MaterialApp.router(
+            title: 'PeopleSync',
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: themeProvider.themeMode,
+            routerConfig: AppRoutes.router,
+          );
+        },
       ),
     );
   }

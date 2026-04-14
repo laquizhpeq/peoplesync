@@ -53,7 +53,7 @@ class AppTheme {
     useMaterial3: true,
     colorScheme: AppColorScheme.light,
     textTheme: AppTextTheme.light,
-    scaffoldBackgroundColor: const Color(0xFFFFF6F1),
+    scaffoldBackgroundColor: const Color(0xFFFFF5F0),
     inputDecorationTheme: _getInputTheme(
       AppColorScheme.light,
       AppTextTheme.light,
@@ -79,7 +79,7 @@ class AppTheme {
     useMaterial3: true,
     colorScheme: AppColorScheme.dark,
     textTheme: AppTextTheme.dark,
-    scaffoldBackgroundColor: const Color(0xFF201513),
+    scaffoldBackgroundColor: const Color(0xFF140E10),
     inputDecorationTheme: _getInputTheme(
       AppColorScheme.dark,
       AppTextTheme.dark,

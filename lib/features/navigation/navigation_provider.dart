@@ -57,6 +57,8 @@ class NavigationProvider extends ChangeNotifier {
     if (normalizedPath == '/login') return true;
     if (normalizedPath == '/contacts/new') return true;
     if (normalizedPath == '/profile/edit') return true;
+    if (path.toLowerCase().startsWith('/connections/')) return true;
+    if (path.toLowerCase().startsWith('/contacts/')) return true;
     for (var m in _menus) {
       if (isSameAppRoute(m.route, normalizedPath)) return true;
     }
