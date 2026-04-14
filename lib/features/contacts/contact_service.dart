@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:typed_data';
+import 'package:peoplesync/core/config/env_config.dart';
 import 'package:peoplesync/features/contacts/models/contact_record.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Excepción tipada para operaciones del [ContactService].
 class ContactServiceException implements Exception {
@@ -51,12 +54,53 @@ class ContactService {
       ..sort(_sortContacts);
   }
 
-  Future<void> createManualContact({
-    required ContactIdentity identity,
-    ContactRelationship relationship = const ContactRelationship(),
+  String generateContactId() {
+    final uid = _currentUid;
+    return _contactsCollection(uid).doc().id;
+  }
+
+  Future<String> uploadContactPhoto({
+    required String contactId,
+    required Uint8List bytes,
   }) async {
     final uid = _currentUid;
-    final doc = _contactsCollection(uid).doc();
+    final bucket = EnvConfig.supabaseContactPhotosBucket;
+    final folder = EnvConfig.supabaseContactPhotosFolder;
+
+    if (EnvConfig.supabaseUrl.isEmpty || EnvConfig.supabaseAnonKey.isEmpty) {
+      throw const ContactServiceException(
+        'Supabase no esta configurado en .env.',
+      );
+    }
+
+    if (bucket.isEmpty) {
+      throw const ContactServiceException(
+        'Falta SUPABASE_CONTACT_PHOTOS_BUCKET en .env.',
+      );
+    }
+
+    final storage = Supabase.instance.client.storage.from(bucket);
+    final filePath =
+        '$folder/$uid/$contactId/${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+    await storage.uploadBinary(
+      filePath,
+      bytes,
+      fileOptions: const FileOptions(upsert: true, contentType: 'image/jpeg'),
+    );
+
+    return storage.getPublicUrl(filePath);
+  }
+
+  Future<String> createManualContact({
+    required ContactIdentity identity,
+    ContactRelationship relationship = const ContactRelationship(),
+    String? contactId,
+  }) async {
+    final uid = _currentUid;
+    final doc = contactId == null
+        ? _contactsCollection(uid).doc()
+        : _contactsCollection(uid).doc(contactId);
 
     final contact = ContactRecord(
       id: doc.id,
@@ -67,6 +111,7 @@ class ContactService {
     );
 
     await doc.set(contact.toMap());
+    return doc.id;
   }
 
   Future<void> createLinkedContact({
@@ -326,6 +371,24 @@ class ContactService {
     } catch (e) {
       throw ContactServiceException(
         'Error al actualizar las notas privadas del contacto $contactId.',
+        cause: e,
+      );
+    }
+  }
+
+  Future<void> updateFavoriteStatus({
+    required String contactId,
+    required bool isFavorite,
+  }) async {
+    try {
+      final uid = _currentUid;
+      await _contactsCollection(uid).doc(contactId).update({
+        'relationship.is_favorite': isFavorite,
+        'updated_at': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      throw ContactServiceException(
+        'Error al actualizar favorito del contacto $contactId.',
         cause: e,
       );
     }

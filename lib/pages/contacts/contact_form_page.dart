@@ -4,10 +4,13 @@ import 'package:provider/provider.dart';
 import 'package:peoplesync/core/constants/routes.dart';
 import 'package:peoplesync/core/di/service_locator.dart';
 import 'package:peoplesync/features/contacts/contact_form_viewmodel.dart';
+import 'package:peoplesync/features/contacts/models/contact_record.dart';
 import 'package:peoplesync/shared/widgets/contacts/contact_manual_form.dart';
 
 class ContactFormPage extends StatelessWidget {
-  const ContactFormPage({super.key});
+  final ContactRecord? initialContact;
+
+  const ContactFormPage({super.key, this.initialContact});
 
   Future<void> _submit(BuildContext context) async {
     final viewModel = context.read<ContactFormViewModel>();
@@ -23,21 +26,33 @@ class ContactFormPage extends StatelessWidget {
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Contacto guardado correctamente')),
+      SnackBar(
+        content: Text(
+          viewModel.isEditMode
+              ? 'Contacto actualizado correctamente'
+              : 'Contacto guardado correctamente',
+        ),
+      ),
     );
-    context.go(Routes.home);
+    context.go(Routes.connections);
   }
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<ContactFormViewModel>(
-      create: (_) => getIt<ContactFormViewModel>(),
+      create: (_) => getIt<ContactFormViewModel>(param1: initialContact),
       child: Builder(
         builder: (context) {
           return SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
             child: ContactManualForm(
-              onCancel: () => context.go(Routes.home),
+              onCancel: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go(Routes.connections);
+                }
+              },
               onSubmit: () => _submit(context),
             ),
           );

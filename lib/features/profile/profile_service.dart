@@ -1,6 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:peoplesync/core/config/env_config.dart';
 import 'package:peoplesync/features/contacts/models/contact_record.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'models/user_profile.dart';
 
 class ProfileService {
@@ -102,6 +105,44 @@ class ProfileService {
     if (profile == null) return true;
     if (!profile.onboardingCompleted) return true;
     return profile.fullName.trim().isEmpty;
+  }
+
+  /// Sube una foto de perfil a Supabase Storage y devuelve la URL publica.
+  Future<String> uploadProfilePhoto({required Uint8List bytes}) async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null || uid.isEmpty) {
+      throw Exception('No hay un usuario autenticado');
+    }
+
+    final bucket = EnvConfig.supabaseContactPhotosBucket;
+    final folder = EnvConfig.supabaseProfilePhotosFolder;
+
+    debugPrint(
+      '[ProfileService] uploadProfilePhoto: bucket=$bucket, folder=$folder, uid=$uid, bytes=${bytes.length}',
+    );
+
+    if (EnvConfig.supabaseUrl.isEmpty || EnvConfig.supabaseAnonKey.isEmpty) {
+      throw Exception('Supabase no esta configurado en .env.');
+    }
+    if (bucket.isEmpty) {
+      throw Exception('Falta SUPABASE_CONTACT_PHOTOS_BUCKET en .env.');
+    }
+
+    final storage = Supabase.instance.client.storage.from(bucket);
+    final filePath =
+        '$folder/$uid/${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+    debugPrint('[ProfileService] uploading to: $filePath');
+
+    await storage.uploadBinary(
+      filePath,
+      bytes,
+      fileOptions: const FileOptions(upsert: true, contentType: 'image/jpeg'),
+    );
+
+    final publicUrl = storage.getPublicUrl(filePath);
+    debugPrint('[ProfileService] upload OK — publicUrl=$publicUrl');
+    return publicUrl;
   }
 
   Future<void> saveProfile({

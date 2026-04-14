@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class ContactFormHeader extends StatelessWidget {
-  const ContactFormHeader({super.key});
+  final bool isEditMode;
+
+  const ContactFormHeader({super.key, required this.isEditMode});
 
   @override
   Widget build(BuildContext context) {
@@ -24,14 +26,16 @@ class ContactFormHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Nuevo contacto',
+            isEditMode ? 'Editar contacto' : 'Nuevo contacto',
             style: theme.textTheme.headlineMedium?.copyWith(
               color: Colors.white,
             ),
           ),
           const SizedBox(height: 10),
           Text(
-            'Crea una ficha flexible. El modelo admite datos parciales y está preparado para futuras importaciones por QR.',
+            isEditMode
+                ? 'Ajusta la ficha completa sin salir de tu flujo. Si un dato sobra, vacialo y se actualizara.'
+                : 'Crea una ficha flexible. El modelo admite datos parciales y esta preparado para futuras importaciones por QR.',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: Colors.white.withValues(alpha: 0.92),
             ),

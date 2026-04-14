@@ -27,8 +27,53 @@ class ContactManualForm extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const ContactFormHeader(),
+          ContactFormHeader(isEditMode: viewModel.isEditMode),
           const SizedBox(height: 20),
+          ContactFormSectionCard(
+            title: 'Foto',
+            subtitle:
+                'La foto ayuda a reconocer rapido a la persona en conexiones y en su ficha.',
+            child: Column(
+              children: [
+                _ContactPhotoPicker(viewModel: viewModel),
+                const SizedBox(height: 16),
+                if (viewModel.photoPickerError != null) ...[
+                  Text(
+                    viewModel.photoPickerError!,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: viewModel.isSaving
+                            ? null
+                            : viewModel.pickPhoto,
+                        icon: const Icon(Icons.photo_library_rounded),
+                        label: Text(
+                          viewModel.hasPhoto ? 'Cambiar foto' : 'Anadir foto',
+                        ),
+                      ),
+                    ),
+                    if (viewModel.hasPhoto) ...[
+                      const SizedBox(width: 12),
+                      IconButton.outlined(
+                        onPressed: viewModel.isSaving
+                            ? null
+                            : viewModel.removePhoto,
+                        icon: const Icon(Icons.delete_outline_rounded),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
           ContactFormSectionCard(
             title: 'Identidad',
             subtitle:
@@ -225,13 +270,87 @@ class ContactManualForm extends StatelessWidget {
                       valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
                   )
-                : const Text('Guardar contacto'),
+                : Text(viewModel.submitLabel),
           ),
           const SizedBox(height: 12),
           Center(
             child: TextButton(
               onPressed: viewModel.isSaving ? null : onCancel,
               child: const Text('Cancelar'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ContactPhotoPicker extends StatelessWidget {
+  final ContactFormViewModel viewModel;
+
+  const _ContactPhotoPicker({required this.viewModel});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final photoContent = Container(
+      width: double.infinity,
+      height: 180,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFFF8A65), Color(0xFFE85D5D)],
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: viewModel.selectedPhotoBytes != null
+          ? Image.memory(viewModel.selectedPhotoBytes!, fit: BoxFit.cover)
+          : (viewModel.photoUrl != null &&
+                viewModel.photoUrl!.trim().isNotEmpty)
+          ? Image.network(
+              viewModel.photoUrl!,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) =>
+                  _PhotoPlaceholder(theme: theme),
+            )
+          : _PhotoPlaceholder(theme: theme),
+    );
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: viewModel.isSaving ? null : viewModel.pickPhoto,
+        borderRadius: BorderRadius.circular(24),
+        child: photoContent,
+      ),
+    );
+  }
+}
+
+class _PhotoPlaceholder extends StatelessWidget {
+  final ThemeData theme;
+
+  const _PhotoPlaceholder({required this.theme});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.person_rounded,
+            size: 52,
+            color: Colors.white.withValues(alpha: 0.92),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Sin foto todavia',
+            style: theme.textTheme.titleSmall?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],

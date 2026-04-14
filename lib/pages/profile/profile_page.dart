@@ -48,17 +48,28 @@ class ProfilePage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: IconButton(
+                    onPressed: () => context.push(Routes.settings),
+                    icon: const Icon(Icons.settings_rounded),
+                    tooltip: 'Configuracion',
+                  ),
+                ),
                 ProfileSummaryCard(
                   profile: profile,
                   onEditPhoto: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'La edicion de foto llegara en otro paso',
-                        ),
-                      ),
-                    );
+                    context.push(Routes.profileEdit);
                   },
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: () => context.push(Routes.profileEdit),
+                    icon: const Icon(Icons.edit_rounded),
+                    label: const Text('Editar mi perfil'),
+                  ),
                 ),
                 const SizedBox(height: 24),
                 _QrIdentityCard(profile: profile),
@@ -83,15 +94,6 @@ class ProfilePage extends StatelessWidget {
                         title: 'Autenticacion separada del perfil',
                         subtitle:
                             'Tu cuenta sigue dependiendo de Firebase Auth y el perfil solo representa la informacion visible y contextual.',
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: FilledButton.icon(
-                          onPressed: () => context.push(Routes.profileEdit),
-                          icon: const Icon(Icons.edit_rounded),
-                          label: const Text('Editar perfil'),
-                        ),
                       ),
                       const SizedBox(height: 16),
                       SizedBox(
@@ -241,7 +243,7 @@ class _HighlightCard extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(14),
               gradient: const LinearGradient(
-                colors: [Color(0xFFFF5A5F), Color(0xFFFF7A59)],
+                colors: [Color(0xFFE83E6C), Color(0xFFF2994A)],
               ),
             ),
             child: Icon(icon, color: Colors.white),
@@ -308,7 +310,7 @@ class _BulletLine extends StatelessWidget {
           child: Icon(
             Icons.favorite_rounded,
             size: 16,
-            color: Color(0xFFFF5A5F),
+            color: Color(0xFFE83E6C),
           ),
         ),
         const SizedBox(width: 10),

@@ -3,6 +3,8 @@ String normalizeAppRoute(String? route) {
 
   final normalized = route.trim().toLowerCase();
   if (normalized == '/home') return '/';
+  if (normalized.startsWith('/connections/')) return '/connections';
+  if (normalized.startsWith('/contacts/')) return '/contacts/new';
   return normalized;
 }
 

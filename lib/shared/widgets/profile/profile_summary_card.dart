@@ -40,8 +40,8 @@ class ProfileSummaryCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(32),
         gradient: LinearGradient(
           colors: [
-            const Color(0xFFFF5A5F),
-            const Color(0xFFFF7A59),
+            const Color(0xFFE83E6C),
+            const Color(0xFFF2994A),
             colors.primary,
           ],
           begin: Alignment.topLeft,
@@ -49,7 +49,7 @@ class ProfileSummaryCard extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFFF5A5F).withValues(alpha: 0.28),
+            color: const Color(0xFFE83E6C).withValues(alpha: 0.28),
             blurRadius: 24,
             offset: const Offset(0, 12),
           ),

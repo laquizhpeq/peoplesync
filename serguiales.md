@@ -294,39 +294,155 @@ La idea aplicada es:
 
 Esto permite leer contactos viejos sin romper la app mientras se termina la migracion.
 
-## Onboarding y edicion de perfil
+## Subida de fotos a Supabase Storage
 
-El flujo nuevo funciona asi:
+La app ya sube fotos tanto de contactos como de perfil a Supabase Storage.
 
-1. El usuario se registra o hace login.
-2. La app comprueba `users/{uid}`.
-3. Si falta el documento o `onboarding_completed != true`, redirige a `/onboarding/profile`.
-4. El usuario rellena:
-   - nombre visible
-   - ciudad
-   - bio
-   - foto por URL
-   - redes sociales
-5. Al guardar, se marca `onboarding_completed = true`.
-6. Desde la pestana `Perfil`, el usuario puede volver a entrar en `Editar perfil` y cambiar esos datos cuando quiera.
+### Configuracion en `.env`
 
-Rutas nuevas relevantes:
+```
+SUPABASE_URL=https://eipfkavrbfdiczzmzfiw.supabase.co
+SUPABASE_ANON_KEY=sb_publishable_...
+SUPABASE_CONTACT_PHOTOS_BUCKET=contacts_images
+SUPABASE_CONTACT_PHOTOS_FOLDER=contacts
+SUPABASE_PROFILE_PHOTOS_FOLDER=profiles
+```
 
-- `/onboarding/profile`
-- `/profile/edit`
+### Fotos de contactos
 
-Archivos principales de este flujo:
+- `ContactService.uploadContactPhoto()` sube a `contacts_images/contacts/{uid}/{contactId}/{timestamp}.jpg`
+- `ContactFormViewModel` tiene image picker con `ImagePicker` (movil) + `FilePicker` (desktop)
+- Al guardar un contacto, si hay foto seleccionada se sube antes de persistir en Firestore
 
-- `lib/routes/app_routes.dart`
-- `lib/features/profile/profile_service.dart`
-- `lib/features/profile/profile_editor_viewmodel.dart`
+### Fotos de perfil
+
+- `ProfileService.uploadProfilePhoto()` sube a `contacts_images/profiles/{uid}/{timestamp}.jpg`
+- `ProfileEditorViewModel` tiene la misma logica de image picker
+- El campo de texto de URL manual se ha reemplazado por un avatar circular con picker
+- En `ProfileForm` se muestra el avatar con preview (de bytes o URL de red), boton "Cambiar foto" y "Eliminar"
+
+### Supabase Storage — Policies necesarias
+
+El bucket `contacts_images` debe tener estas policies en Supabase:
+
+```sql
+CREATE POLICY "Allow public uploads"
+ON storage.objects FOR INSERT TO anon
+WITH CHECK (bucket_id = 'contacts_images');
+
+CREATE POLICY "Allow public reads"
+ON storage.objects FOR SELECT TO anon
+USING (bucket_id = 'contacts_images');
+
+CREATE POLICY "Allow public updates"
+ON storage.objects FOR UPDATE TO anon
+USING (bucket_id = 'contacts_images');
+```
+
+El bucket debe estar marcado como **publico** en el dashboard de Supabase.
+
+### Archivos clave
+
+- `lib/core/config/env_config.dart` — getters para bucket, carpetas de contactos y perfil
+- `lib/features/contacts/contact_service.dart` — `uploadContactPhoto()`
+- `lib/features/contacts/contact_form_viewmodel.dart` — image picker + upload para contactos
+- `lib/features/profile/profile_service.dart` — `uploadProfilePhoto()`
+- `lib/features/profile/profile_editor_viewmodel.dart` — image picker + upload para perfil
+- `lib/shared/widgets/profile/profile_form.dart` — avatar picker UI
+
+## Paleta de colores Sunset
+
+Se ha aplicado la paleta **Sunset** a toda la app. Transmite energia juvenil, optimismo y conexion humana.
+
+### Colores principales
+
+| Rol | Light | Dark |
+|---|---|---|
+| Primary | `#E83E6C` (hot pink) | `#FFB0C4` |
+| Secondary | `#F2994A` (golden coral) | `#FFCB8E` |
+| Tertiary | `#FF8A65` (peach glow) | `#FFAB91` |
+| Surface | `#FFFAF8` | `#1A1215` |
+| Scaffold BG | `#FFF5F0` | `#140E10` |
+
+### Gradiente hero
+
+```
+#E83E6C → #F2994A → #FFD36E (rosa → dorado → amarillo sol)
+```
+
+### Archivos modificados
+
+- `lib/shared/themes/color_scheme.dart`
+- `lib/shared/themes/text_theme.dart`
+- `lib/shared/themes/app_theme.dart`
+- Gradientes hardcodeados actualizados en: `profile_summary_card.dart`, `profile_avatar.dart`, `profile_page.dart`
+
+## Pagina de configuracion y tema
+
+Se ha creado una pagina de configuracion accesible desde la pestana de Perfil.
+
+### Funcionalidad
+
+- Icono de ruedita (⚙️) en la esquina superior derecha del perfil
+- Navega a `/settings`
+- Tres opciones de tema: Automatico, Modo claro, Modo oscuro
+- Cambio reactivo e instantaneo mediante `ThemeProvider`
+
+### Archivos nuevos
+
+- `lib/features/settings/theme_provider.dart` — `ChangeNotifier` con `ThemeMode`
+- `lib/pages/settings/settings_page.dart` — UI con 3 opciones animadas
+
+### Archivos modificados
+
+- `lib/app.dart` — `Consumer<ThemeProvider>` para tema reactivo
+- `lib/core/di/service_locator.dart` — registro de `ThemeProvider`
+- `lib/core/constants/routes.dart` — ruta `/settings`
+- `lib/routes/app_routes.dart` — `GoRoute` para `SettingsPage`
+- `lib/pages/profile/profile_page.dart` — icono ⚙️ + `onEditPhoto` navega a editor
+
+## Estructura actualizada
+
+### Pages
+
+- `lib/pages/contacts/contact_form_page.dart`
+- `lib/pages/contacts/connections_page.dart`
+- `lib/pages/contacts/contact_detail_page.dart`
+- `lib/pages/profile/profile_page.dart`
 - `lib/pages/profile/profile_editor_page.dart`
-- `lib/shared/widgets/profile/profile_form.dart`
+- `lib/pages/settings/settings_page.dart`
+
+### Features
+
+- `lib/features/contacts/contact_service.dart`
+- `lib/features/contacts/contact_form_viewmodel.dart`
+- `lib/features/contacts/connections_viewmodel.dart`
+- `lib/features/contacts/models/contact_record.dart`
+- `lib/features/profile/profile_service.dart`
+- `lib/features/profile/profile_viewmodel.dart`
+- `lib/features/profile/profile_editor_viewmodel.dart`
+- `lib/features/profile/models/user_profile.dart`
+- `lib/features/settings/theme_provider.dart`
+
+### Rutas
+
+| Ruta | Pagina |
+|---|---|
+| `/` | Home |
+| `/login` | Login |
+| `/register` | Registro |
+| `/onboarding/profile` | Onboarding perfil |
+| `/connections` | Conexiones |
+| `/connections/contact/:contactId` | Detalle contacto |
+| `/contacts/new` | Nuevo contacto |
+| `/contacts/:contactId/edit` | Editar contacto |
+| `/profile` | Perfil |
+| `/profile/edit` | Editar perfil |
+| `/settings` | Configuracion |
+| `/scanner` | Escaner QR |
 
 ## Siguiente paso recomendado
 
-El siguiente trabajo logico seria uno de estos dos:
+1. Persistir la preferencia de tema (SharedPreferences) para que sobreviva al reinicio de la app.
+2. Preparar el flujo de importacion por QR reutilizando `identity` y manteniendo `relationship` intacto.
 
-1. Crear vista detalle y edicion de conexion usando ya el modelo anidado.
-2. Preparar el flujo de importacion desde el movil o por QR reutilizando `identity` y manteniendo `relationship` intacto.
-3. Si el onboarding queda estable, refinar subida real de foto en vez de URL manual.
