@@ -83,7 +83,11 @@ class ContactSyncPage extends StatelessWidget {
                         ),
                       ),
                     ] else if (viewModel.isSuccess) ...[
-                      const Icon(Icons.check_circle_rounded, color: Colors.green, size: 48),
+                      const Icon(
+                        Icons.check_circle_rounded,
+                        color: Colors.green,
+                        size: 48,
+                      ),
                       const SizedBox(height: 16),
                       Text(
                         viewModel.statusMessage ?? 'Completado',

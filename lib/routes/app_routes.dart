@@ -146,10 +146,11 @@ class AppRoutes {
           ),
           GoRoute(
             path: Routes.contactSync,
-            builder: (context, state) => ChangeNotifierProvider<ContactSyncViewModel>(
-              create: (_) => getIt<ContactSyncViewModel>(),
-              child: const ContactSyncPage(),
-            ),
+            builder: (context, state) =>
+                ChangeNotifierProvider<ContactSyncViewModel>(
+                  create: (_) => getIt<ContactSyncViewModel>(),
+                  child: const ContactSyncPage(),
+                ),
           ),
           GoRoute(
             path: Routes.settings,

@@ -46,7 +46,7 @@ class ContactSyncViewModel extends ChangeNotifier {
       if (myUid == null) throw 'La sesion de usuario ha expirado.';
 
       final deviceContacts = await importService.getDeviceContacts();
-      
+
       if (deviceContacts.isEmpty) {
         _statusMessage = 'La agenda del movil esta vacia.';
         _isLoading = false;

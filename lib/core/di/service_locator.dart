@@ -25,7 +25,9 @@ void setupServiceLocator() {
   getIt.registerLazySingleton<ProfileService>(() => ProfileService());
   getIt.registerLazySingleton<NavigationService>(() => NavigationService());
   getIt.registerLazySingleton<QrService>(() => QrService());
-  getIt.registerLazySingleton<ContactImportService>(() => ContactImportService());
+  getIt.registerLazySingleton<ContactImportService>(
+    () => ContactImportService(),
+  );
   getIt.registerLazySingleton<ThemeProvider>(() => ThemeProvider());
 
   // ViewModels / Providers

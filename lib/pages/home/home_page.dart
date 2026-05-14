@@ -342,7 +342,8 @@ class _QuickActionsCluster extends StatelessWidget {
           child: _QuickActionPill(
             icon: Icons.cloud_download_rounded,
             label: 'Importar contactos',
-            size: _QuickActionSize.large, // Match the style of connections button
+            size:
+                _QuickActionSize.large, // Match the style of connections button
             onTap: () => context.go(Routes.contactSync),
           ),
         ),

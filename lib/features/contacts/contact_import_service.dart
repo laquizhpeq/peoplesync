@@ -20,14 +20,17 @@ class ContactImportService {
       final status = await Permission.contacts.request();
       return status.isGranted;
     } catch (e) {
-      throw ContactImportServiceException('Fallo al solicitar permisos', cause: e);
+      throw ContactImportServiceException(
+        'Fallo al solicitar permisos',
+        cause: e,
+      );
     }
   }
 
   /// Get contacts from the device natively
   Future<List<native_contacts.Contact>> getDeviceContacts() async {
     try {
-      // In flutter_contacts 2.0, permissions can be checked via permission_handler 
+      // In flutter_contacts 2.0, permissions can be checked via permission_handler
       // which we already do in requestPermission().
       // To fetch fields beyond ID and name, we explicitly define the properties.
       return await native_contacts.FlutterContacts.getAll(
@@ -39,35 +42,44 @@ class ContactImportService {
         },
       );
     } catch (e) {
-      throw ContactImportServiceException('Error al leer contactos del movil', cause: e);
+      throw ContactImportServiceException(
+        'Error al leer contactos del movil',
+        cause: e,
+      );
     }
   }
 
-  /// Convert a native contact into our ContactRecord model 
+  /// Convert a native contact into our ContactRecord model
   /// (Doesn't have an ownerUid yet until it's sent to ContactService)
-  ContactRecord mapToRecord(String ownerUid, native_contacts.Contact deviceContact) {
+  ContactRecord mapToRecord(
+    String ownerUid,
+    native_contacts.Contact deviceContact,
+  ) {
     // Basic fields
-    final displayName = deviceContact.displayName?.trim().isEmpty ?? true 
-        ? 'Sin Nombre' 
+    final displayName = deviceContact.displayName?.trim().isEmpty ?? true
+        ? 'Sin Nombre'
         : deviceContact.displayName!;
-    
-    final phone = deviceContact.phones.isNotEmpty 
-        ? (deviceContact.phones.first.normalizedNumber?.isNotEmpty == true 
-            ? deviceContact.phones.first.normalizedNumber 
-            : deviceContact.phones.first.number)
-        : null;
-        
-    final email = deviceContact.emails.isNotEmpty ? deviceContact.emails.first.address : null;
-    
-    final jobTitle = deviceContact.organizations.isNotEmpty 
-        ? deviceContact.organizations.first.jobTitle 
-        : null;
-        
-    final company = deviceContact.organizations.isNotEmpty 
-        ? deviceContact.organizations.first.name 
+
+    final phone = deviceContact.phones.isNotEmpty
+        ? (deviceContact.phones.first.normalizedNumber?.isNotEmpty == true
+              ? deviceContact.phones.first.normalizedNumber
+              : deviceContact.phones.first.number)
         : null;
 
-    final baseId = deviceContact.id ?? DateTime.now().millisecondsSinceEpoch.toString();
+    final email = deviceContact.emails.isNotEmpty
+        ? deviceContact.emails.first.address
+        : null;
+
+    final jobTitle = deviceContact.organizations.isNotEmpty
+        ? deviceContact.organizations.first.jobTitle
+        : null;
+
+    final company = deviceContact.organizations.isNotEmpty
+        ? deviceContact.organizations.first.name
+        : null;
+
+    final baseId =
+        deviceContact.id ?? DateTime.now().millisecondsSinceEpoch.toString();
     final generatedDeviceContactId = 'device_$baseId';
 
     return ContactRecord(
