@@ -49,5 +49,7 @@
 	<string>Necesitamos acceso a la cámara para escanear los códigos QR de tus contactos.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Necesitamos acceso a tu galeria para asignar fotos a tus contactos.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>Necesitamos acceso a tus contactos para poder sincronizarlos con PeopleSync y crear sus fichas personalizadas.</string>
 </dict>
 </plist>

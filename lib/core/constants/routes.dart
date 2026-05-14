@@ -11,5 +11,6 @@ class Routes {
   static const String contactNew = '/contacts/new';
   static String contactEdit(String contactId) => '/contacts/$contactId/edit';
   static const String scanner = '/scanner';
+  static const String contactSync = '/contact-sync';
   static const String settings = '/settings';
 }

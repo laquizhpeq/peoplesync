@@ -114,6 +114,28 @@ class ContactService {
     return doc.id;
   }
 
+  Future<void> createImportedContact(ContactRecord contact) async {
+    final uid = _currentUid;
+    // We use the ID returned by mapToRecord to prevent duplicates
+    // when syncing multiple times.
+    final docId = contact.id.isEmpty
+        ? _contactsCollection(uid).doc().id
+        : contact.id;
+    final doc = _contactsCollection(uid).doc(docId);
+
+    // Ensure the record is linked to this uid just in case
+    final finalContact = ContactRecord(
+      id: doc.id,
+      ownerUid: uid,
+      source: contact.source,
+      deviceContactId: contact.deviceContactId,
+      identity: contact.identity,
+      relationship: contact.relationship,
+    );
+
+    await doc.set(finalContact.toMap(), SetOptions(merge: true));
+  }
+
   Future<void> createLinkedContact({
     required String linkedUserUid,
     required String displayName,
