@@ -11,6 +11,8 @@ import 'package:peoplesync/pages/contacts/connections_page.dart';
 import 'package:peoplesync/pages/profile/profile_page.dart';
 import 'package:peoplesync/pages/profile/profile_editor_page.dart';
 import 'package:peoplesync/pages/scanner/scanner_page.dart';
+import 'package:peoplesync/pages/contacts/contact_sync_page.dart';
+import 'package:peoplesync/features/contacts/contact_sync_viewmodel.dart';
 import 'package:peoplesync/pages/settings/settings_page.dart';
 import 'package:peoplesync/features/auth/auth_service.dart';
 import 'package:peoplesync/features/auth/auth_viewmodel.dart';
@@ -141,6 +143,13 @@ class AppRoutes {
           GoRoute(
             path: Routes.scanner,
             builder: (context, state) => const ScannerPage(),
+          ),
+          GoRoute(
+            path: Routes.contactSync,
+            builder: (context, state) => ChangeNotifierProvider<ContactSyncViewModel>(
+              create: (_) => getIt<ContactSyncViewModel>(),
+              child: const ContactSyncPage(),
+            ),
           ),
           GoRoute(
             path: Routes.settings,
