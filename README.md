@@ -1,85 +1,54 @@
-# peoplesync
+# PeopleSync
 
-A new Flutter project.
+PeopleSync es una aplicación multiplataforma construida con Flutter para gestionar contactos y relaciones personales de forma más rica que una agenda tradicional.
 
-## Getting Started
+La idea central no es solo guardar nombres y teléfonos, sino conservar contexto: quién es cada persona, cómo la conociste, qué relación tienes con ella y cuándo conviene retomar el contacto.
 
-This project is a starting point for a Flutter application.
+## Qué hace
 
-A few resources to get you started if this is your first Flutter project:
+- gestiona una agenda privada por usuario
+- separa los datos públicos de una persona de las notas privadas de la relación
+- permite crear contactos manuales, importarlos y vincularlos
+- soporta intercambio rápido mediante códigos QR
+- ofrece perfil de usuario con onboarding inicial
+- usa navegación dinámica basada en roles y menús cargados desde Firestore
+- permite subir imágenes de perfil y de contactos
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Enfoque del producto
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+PeopleSync está pensado como una capa de organización personal y networking. El modelo principal distingue entre:
 
-docker build -t peoplesync-web .
-docker run -d -p 8080:80 --name peoplesync-app peoplesync-web
+- `identity`: información base del contacto
+- `relationship`: información privada y contextual del usuario sobre ese contacto
 
-# Producction
+Esa separación evita mezclar datos públicos con interpretación personal y hace que el sistema sea más mantenible al crecer.
 
-```bash
-docker-compose up --build -d
-```
+## Stack técnico
 
-# Development build
+- Flutter
+- Firebase Auth
+- Cloud Firestore
+- Supabase Storage
+- Provider
+- get_it
+- go_router
 
-```bash
-docker-compose -f docker-compose-dev.yml up --build -d
-```
+## Arquitectura
 
-# Development
+El proyecto sigue una organización por capas y responsabilidades:
 
-```bash
-docker-compose -f docker-compose-dev.yml attach peoplesync-dev
-```
+- `core`: configuración, constantes, utilidades e infraestructura compartida
+- `features`: lógica funcional agrupada por dominio
+- `pages`: pantallas completas
+- `shared`: tema y widgets reutilizables
+- `routes`: navegación centralizada
 
-# Remove obsolet docker
+La guía interna completa de arquitectura y trabajo del repositorio está en [AGENTS.md](./AGENTS.md).
 
-```bash
-docker compose -f docker-compose-dev.yml down --remove-orphans
-```
+## Estado actual
 
-# Flutter analize code Command
+La base funcional principal ya existe: autenticación, perfil, contactos, QR, tema y navegación dinámica. Aun así, el proyecto todavía tiene margen claro de mejora en documentación pública, tests y endurecimiento de convenciones arquitectónicas.
 
-```bash
-flutter analyze
-```
+## Propósito del repositorio
 
-# Dart format code Command
-
-```bash
-dart format lib/
-```
-
-## Estructura del proyecto
-
-```bash
-tree
-```
-
-## fix dart
-
-```bash
-dart fix --dry-n
-```
-
-## preview widget
-
-```bash
-flutter widget-preview start
-```
-
-## test
-
-```bash
-flutter test /app/test/widget_test.dart
-```
-
-## Generar los ficheros de simulación:
-
-```bash
-flutter pub run build_runner build --delete-conflicting-outputs
-```
+Este repositorio no debe crecer como una suma desordenada de pantallas. La prioridad es consolidar una app mantenible, modular y preparada para evolucionar sin convertir cada cambio en deuda técnica.
