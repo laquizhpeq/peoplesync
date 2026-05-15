@@ -415,6 +415,25 @@ class ContactService {
       );
     }
   }
+
+  Future<void> updateStrengthenRelationshipStatus({
+    required String contactId,
+    required bool wantsToStrengthenRelationship,
+  }) async {
+    try {
+      final uid = _currentUid;
+      await _contactsCollection(uid).doc(contactId).update({
+        'relationship.wants_to_strengthen_relationship':
+            wantsToStrengthenRelationship,
+        'updated_at': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      throw ContactServiceException(
+        'Error al actualizar relacion a cuidar del contacto $contactId.',
+        cause: e,
+      );
+    }
+  }
 }
 
 int _sortContacts(ContactRecord a, ContactRecord b) {

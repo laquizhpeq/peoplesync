@@ -181,6 +181,7 @@ class ContactRelationship {
   final String? lastInteractionNote;
   final DateTime? lastInteractionAt;
   final bool isFavorite;
+  final bool wantsToStrengthenRelationship;
   final bool isArchived;
   final String? customDisplayName;
 
@@ -194,6 +195,7 @@ class ContactRelationship {
     this.lastInteractionNote,
     this.lastInteractionAt,
     this.isFavorite = false,
+    this.wantsToStrengthenRelationship = false,
     this.isArchived = false,
     this.customDisplayName,
   });
@@ -209,6 +211,8 @@ class ContactRelationship {
       lastInteractionNote: map['last_interaction_note'] as String?,
       lastInteractionAt: (map['last_interaction_at'] as Timestamp?)?.toDate(),
       isFavorite: map['is_favorite'] as bool? ?? false,
+      wantsToStrengthenRelationship:
+          map['wants_to_strengthen_relationship'] as bool? ?? false,
       isArchived: map['is_archived'] as bool? ?? false,
       customDisplayName: map['custom_display_name'] as String?,
     );
@@ -227,6 +231,7 @@ class ContactRelationship {
           ? null
           : Timestamp.fromDate(lastInteractionAt!),
       'is_favorite': isFavorite,
+      'wants_to_strengthen_relationship': wantsToStrengthenRelationship,
       'is_archived': isArchived,
       'custom_display_name': customDisplayName,
     };
@@ -347,6 +352,7 @@ Map<String, dynamic> _legacyRelationshipFromRoot(Map<String, dynamic> map) {
     'last_interaction_note': map['last_interaction_note'],
     'last_interaction_at': map['last_interaction_at'],
     'is_favorite': false,
+    'wants_to_strengthen_relationship': false,
     'is_archived': false,
     'custom_display_name': null,
   };

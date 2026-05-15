@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:peoplesync/core/constants/routes.dart';
 import 'package:peoplesync/features/contacts/connections_viewmodel.dart';
 import 'package:peoplesync/features/contacts/models/contact_record.dart';
+import 'package:peoplesync/shared/widgets/contacts/contact_avatar_placeholder.dart';
 import 'package:provider/provider.dart';
 
 class ConnectionContactCard extends StatelessWidget {
@@ -40,7 +41,11 @@ class ConnectionContactCard extends StatelessWidget {
           ),
           child: Row(
             children: [
-              _ContactPhoto(photoUrl: contact.identity.photoUrl),
+              _ContactPhoto(
+                photoUrl: contact.identity.photoUrl,
+                seed: contact.id,
+                displayName: displayName,
+              ),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(12, 10, 6, 10),
@@ -67,6 +72,17 @@ class ConnectionContactCard extends StatelessWidget {
                                 Icons.favorite_rounded,
                                 size: 16,
                                 color: theme.colorScheme.primary,
+                              ),
+                            ),
+                          if (contact
+                              .relationship
+                              .wantsToStrengthenRelationship)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 4),
+                              child: Icon(
+                                Icons.auto_awesome_rounded,
+                                size: 16,
+                                color: theme.colorScheme.secondary,
                               ),
                             ),
                           _ContactActionsMenu(contact: contact),
@@ -109,8 +125,14 @@ class ConnectionContactCard extends StatelessWidget {
 
 class _ContactPhoto extends StatelessWidget {
   final String? photoUrl;
+  final String seed;
+  final String displayName;
 
-  const _ContactPhoto({required this.photoUrl});
+  const _ContactPhoto({
+    required this.photoUrl,
+    required this.seed,
+    required this.displayName,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -140,26 +162,32 @@ class _ContactPhoto extends StatelessWidget {
                 photoUrl!,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
-                  return const _PhotoFallback();
+                  return _PhotoFallback(seed: seed, displayName: displayName);
                 },
               )
-            : const _PhotoFallback(),
+            : _PhotoFallback(seed: seed, displayName: displayName),
       ),
     );
   }
 }
 
 class _PhotoFallback extends StatelessWidget {
-  const _PhotoFallback();
+  final String seed;
+  final String displayName;
+
+  const _PhotoFallback({required this.seed, required this.displayName});
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Icon(
-        Icons.person_rounded,
-        color: Colors.white.withValues(alpha: 0.88),
-        size: 24,
+    return ContactAvatarPlaceholder(
+      seed: seed,
+      displayName: displayName,
+      shape: BoxShape.rectangle,
+      borderRadius: const BorderRadius.only(
+        topLeft: Radius.circular(24),
+        bottomLeft: Radius.circular(24),
       ),
+      fontSize: 18,
     );
   }
 }
@@ -188,6 +216,11 @@ class _ContactActionsMenu extends StatelessWidget {
             contact.id,
             !contact.relationship.isFavorite,
           );
+        } else if (value == 'care') {
+          await viewModel.toggleStrengthenRelationship(
+            contact.id,
+            !contact.relationship.wantsToStrengthenRelationship,
+          );
         } else if (value == 'sync') {
           await viewModel.syncContact(contact.linkedUserUid!);
           if (context.mounted) {
@@ -212,6 +245,23 @@ class _ContactActionsMenu extends StatelessWidget {
               contact.relationship.isFavorite
                   ? 'Quitar favorito'
                   : 'Marcar favorito',
+            ),
+            contentPadding: EdgeInsets.zero,
+            dense: true,
+          ),
+        ),
+        PopupMenuItem(
+          value: 'care',
+          child: ListTile(
+            leading: Icon(
+              contact.relationship.wantsToStrengthenRelationship
+                  ? Icons.heart_broken_rounded
+                  : Icons.auto_awesome_rounded,
+            ),
+            title: Text(
+              contact.relationship.wantsToStrengthenRelationship
+                  ? 'Quitar de relaciones a cuidar'
+                  : 'Mejorar relacion',
             ),
             contentPadding: EdgeInsets.zero,
             dense: true,
@@ -292,6 +342,9 @@ String? _buildSubtitle(ContactRecord contact) {
 String? _buildMetaLine(ContactRecord contact) {
   final parts = <String>[];
 
+  if (contact.relationship.wantsToStrengthenRelationship) {
+    parts.add('Relacion a cuidar');
+  }
   if (_hasText(contact.identity.city)) {
     parts.add(contact.identity.city!);
   }

@@ -13,6 +13,7 @@ class ConnectionsViewModel extends ChangeNotifier {
   bool _isLoading = true;
   String? _errorMessage;
   StreamSubscription<List<ContactRecord>>? _subscription;
+  String? _initializedUid;
 
   List<ContactRecord> get contacts => _contacts;
   bool get isLoading => _isLoading;
@@ -21,22 +22,27 @@ class ConnectionsViewModel extends ChangeNotifier {
   ConnectionsViewModel({
     required this.contactService,
     required this.authService,
-  }) {
-    _subscribe();
-  }
+  });
 
-  void _subscribe() {
-    final uid = authService.currentUser?.uid;
-    if (uid == null) {
-      _errorMessage = 'No hay sesión de usuario activa.';
-      _isLoading = false;
-      notifyListeners();
+  void initialize() {
+    final currentUid = authService.currentUser?.uid;
+    if (currentUid == null || currentUid.isEmpty) {
+      clear();
       return;
     }
 
-    // Usamos streamMyContacts para que Firestore se encargue del ordenamiento por 'updated_at'.
+    if (_initializedUid == currentUid && _subscription != null) {
+      return;
+    }
+
+    _subscription?.cancel();
+    _initializedUid = currentUid;
+    _isLoading = _contacts.isEmpty;
+    _errorMessage = null;
+    notifyListeners();
+
     _subscription = contactService
-        .streamMyContacts(uid)
+        .streamMyContacts(currentUid)
         .listen(
           (contacts) {
             _contacts = contacts;
@@ -52,7 +58,16 @@ class ConnectionsViewModel extends ChangeNotifier {
         );
   }
 
-  /// Sincroniza la identidad del contacto con su perfil público actualizado.
+  void clear() {
+    _subscription?.cancel();
+    _subscription = null;
+    _initializedUid = null;
+    _contacts = [];
+    _isLoading = false;
+    _errorMessage = null;
+    notifyListeners();
+  }
+
   Future<void> syncContact(String contactoUid) async {
     final miUid = authService.currentUser?.uid;
     if (miUid == null) return;
@@ -68,7 +83,6 @@ class ConnectionsViewModel extends ChangeNotifier {
     }
   }
 
-  /// Actualiza las notas privadas de una conexión.
   Future<void> updateNotes(String contactId, String? notes) async {
     try {
       await contactService.updatePrivateNotes(
@@ -89,6 +103,21 @@ class ConnectionsViewModel extends ChangeNotifier {
       );
     } catch (e) {
       _errorMessage = 'Error al actualizar favorito: $e';
+      notifyListeners();
+    }
+  }
+
+  Future<void> toggleStrengthenRelationship(
+    String contactId,
+    bool wantsToStrengthenRelationship,
+  ) async {
+    try {
+      await contactService.updateStrengthenRelationshipStatus(
+        contactId: contactId,
+        wantsToStrengthenRelationship: wantsToStrengthenRelationship,
+      );
+    } catch (e) {
+      _errorMessage = 'Error al actualizar relacion a cuidar: $e';
       notifyListeners();
     }
   }

@@ -45,19 +45,19 @@ class AppRoutes {
       }
 
       if (isAuth) {
-        await profileService.ensureCurrentUserProfile();
-        final needsOnboarding = await profileService.requiresOnboarding();
+        final needsOnboarding = profileService.requiresOnboardingFromCache();
 
-        if (needsOnboarding && !isOnboardingRoute) {
+        if (needsOnboarding == true && !isOnboardingRoute) {
           return Routes.onboardingProfile;
         }
 
-        if (!needsOnboarding && isOnboardingRoute) {
+        if (needsOnboarding == false && isOnboardingRoute) {
           return Routes.home;
         }
 
         if (isAuthRoute) {
-          return needsOnboarding ? Routes.onboardingProfile : Routes.home;
+          if (needsOnboarding == true) return Routes.onboardingProfile;
+          return Routes.home;
         }
       }
 

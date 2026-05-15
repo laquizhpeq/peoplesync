@@ -1,28 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:peoplesync/core/constants/routes.dart';
 import 'package:peoplesync/core/di/service_locator.dart';
 import 'package:peoplesync/features/auth/auth_service.dart';
+import 'package:peoplesync/features/contacts/connections_viewmodel.dart';
 import 'package:peoplesync/features/navigation/navigation_provider.dart';
 import 'package:peoplesync/features/profile/models/user_profile.dart';
 import 'package:peoplesync/features/profile/profile_viewmodel.dart';
 import 'package:peoplesync/features/qr_code/qr_service.dart';
+import 'package:peoplesync/features/settings/theme_provider.dart';
 import 'package:peoplesync/shared/widgets/profile/profile_section_card.dart';
 import 'package:peoplesync/shared/widgets/profile/profile_summary_card.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
+import 'package:peoplesync/core/constants/routes.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
-
-  Future<void> _logout(BuildContext context) async {
-    await getIt<AuthService>().signOut();
-    getIt<NavigationProvider>().clearMenus();
-
-    if (context.mounted) {
-      context.go(Routes.login);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,11 +43,7 @@ class ProfilePage extends StatelessWidget {
               children: [
                 Align(
                   alignment: Alignment.centerRight,
-                  child: IconButton(
-                    onPressed: () => context.push(Routes.settings),
-                    icon: const Icon(Icons.settings_rounded),
-                    tooltip: 'Configuracion',
-                  ),
+                  child: _ProfileSettingsMenu(),
                 ),
                 ProfileSummaryCard(
                   profile: profile,
@@ -74,39 +63,9 @@ class ProfilePage extends StatelessWidget {
                 const SizedBox(height: 24),
                 _QrIdentityCard(profile: profile),
                 const SizedBox(height: 24),
-                const _AffinityHighlights(),
+                _AboutYouSection(profile: profile),
                 const SizedBox(height: 24),
-                _IdentitySnapshot(profile: profile),
-                const SizedBox(height: 24),
-                const ProfileSectionCard(
-                  title: 'Modelo de contacto',
-                  subtitle:
-                      'La agenda no se mezcla con la cuenta. Cada relacion se guarda como una ficha propia y editable.',
-                  child: _ContactModelNotes(),
-                ),
-                const SizedBox(height: 24),
-                ProfileSectionCard(
-                  title: 'Cuenta',
-                  child: Column(
-                    children: [
-                      const _AccountRow(
-                        icon: Icons.security_rounded,
-                        title: 'Autenticacion separada del perfil',
-                        subtitle:
-                            'Tu cuenta sigue dependiendo de Firebase Auth y el perfil solo representa la informacion visible y contextual.',
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton.icon(
-                          onPressed: () => _logout(context),
-                          icon: const Icon(Icons.logout_rounded),
-                          label: const Text('Cerrar sesion'),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                _AffinityHighlights(profile: profile),
               ],
             ),
           );
@@ -116,40 +75,323 @@ class ProfilePage extends StatelessWidget {
   }
 }
 
-class _IdentitySnapshot extends StatelessWidget {
+enum _ProfileMenuAction { settings, logout }
+
+enum _ProfileSettingsAction { themeSystem, themeLight, themeDark }
+
+class _ProfileSettingsMenu extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return PopupMenuButton<_ProfileMenuAction>(
+      tooltip: 'Configuracion',
+      onSelected: (value) => _handleSelection(context, value),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      itemBuilder: (context) => const [
+        PopupMenuItem<_ProfileMenuAction>(
+          value: _ProfileMenuAction.settings,
+          child: Row(
+            children: [
+              Icon(Icons.tune_rounded),
+              SizedBox(width: 10),
+              Text('Configuracion'),
+            ],
+          ),
+        ),
+        PopupMenuItem<_ProfileMenuAction>(
+          value: _ProfileMenuAction.logout,
+          child: Row(
+            children: [
+              Icon(Icons.logout_rounded),
+              SizedBox(width: 10),
+              Text('Cerrar sesion'),
+            ],
+          ),
+        ),
+      ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface.withValues(alpha: 0.96),
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.settings_rounded,
+              size: 18,
+              color: theme.colorScheme.primary,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Ajustes',
+              style: theme.textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Icon(
+              Icons.expand_more_rounded,
+              size: 18,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleSelection(
+    BuildContext context,
+    _ProfileMenuAction action,
+  ) async {
+    switch (action) {
+      case _ProfileMenuAction.settings:
+        _showSettingsSubmenu(context);
+        break;
+      case _ProfileMenuAction.logout:
+        await getIt<AuthService>().signOut();
+        getIt<NavigationProvider>().clearMenus();
+        getIt<ConnectionsViewModel>().clear();
+
+        if (context.mounted) {
+          context.go(Routes.login);
+        }
+        break;
+    }
+  }
+
+  Future<void> _showSettingsSubmenu(BuildContext context) async {
+    final themeProvider = context.read<ThemeProvider>();
+
+    final selection = await showModalBottomSheet<_ProfileSettingsAction>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        final theme = Theme.of(sheetContext);
+
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Configuracion',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Ajustes basicos de la app.',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                _SettingsSheetOption(
+                  title: 'Tema automatico',
+                  subtitle: 'Usa la configuracion del sistema',
+                  selected: themeProvider.isSystemMode,
+                  onTap: () => Navigator.pop(
+                    sheetContext,
+                    _ProfileSettingsAction.themeSystem,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                _SettingsSheetOption(
+                  title: 'Modo claro',
+                  subtitle: 'Interfaz clara para uso diario',
+                  selected: themeProvider.isLightMode,
+                  onTap: () => Navigator.pop(
+                    sheetContext,
+                    _ProfileSettingsAction.themeLight,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                _SettingsSheetOption(
+                  title: 'Modo oscuro',
+                  subtitle: 'Interfaz mas comoda por la noche',
+                  selected: themeProvider.isDarkMode,
+                  onTap: () => Navigator.pop(
+                    sheetContext,
+                    _ProfileSettingsAction.themeDark,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    switch (selection) {
+      case _ProfileSettingsAction.themeSystem:
+        themeProvider.setThemeMode(ThemeMode.system);
+        break;
+      case _ProfileSettingsAction.themeLight:
+        themeProvider.setThemeMode(ThemeMode.light);
+        break;
+      case _ProfileSettingsAction.themeDark:
+        themeProvider.setThemeMode(ThemeMode.dark);
+        break;
+      case null:
+        break;
+    }
+  }
+}
+
+class _SettingsSheetOption extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _SettingsSheetOption({
+    required this.title,
+    required this.subtitle,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: onTap,
+      child: Ink(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: selected
+              ? theme.colorScheme.primary.withValues(alpha: 0.1)
+              : theme.colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.35,
+                ),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: selected
+                ? theme.colorScheme.primary.withValues(alpha: 0.4)
+                : Colors.transparent,
+          ),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (selected)
+              Icon(
+                Icons.check_circle_rounded,
+                color: theme.colorScheme.primary,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AboutYouSection extends StatelessWidget {
   final UserProfile profile;
 
-  const _IdentitySnapshot({required this.profile});
+  const _AboutYouSection({required this.profile});
 
   @override
   Widget build(BuildContext context) {
     final socialCount = profile.socialProfiles.length;
+    final cards = <Widget>[
+      _AboutInfoCard(
+        icon: Icons.mail_outline_rounded,
+        title: 'Email',
+        value: (profile.email?.trim().isNotEmpty ?? false)
+            ? profile.email!
+            : 'Email pendiente',
+      ),
+      _AboutInfoCard(
+        icon: Icons.location_on_outlined,
+        title: 'Ciudad',
+        value: (profile.city?.trim().isNotEmpty ?? false)
+            ? profile.city!
+            : 'Ciudad pendiente',
+      ),
+      _AboutInfoCard(
+        icon: Icons.person_outline_rounded,
+        title: 'Rol',
+        value: profile.rolId.trim().isNotEmpty ? profile.rolId : 'Usuario',
+      ),
+      _AboutInfoCard(
+        icon: Icons.public_rounded,
+        title: 'Redes',
+        value: socialCount > 0 ? '$socialCount visibles' : 'Sin redes visibles',
+      ),
+    ];
 
     return ProfileSectionCard(
-      title: 'Tu identidad en PeopleSync',
+      title: 'Mas informacion de ti',
       subtitle:
-          'Tu perfil publico se separa de tus conexiones privadas y puedes editarlo cuando quieras.',
+          'Tu ficha publica debe dejar claro quien eres, donde estas y que contexto compartes.',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _AccountRow(
-            icon: Icons.person_pin_circle_outlined,
-            title: profile.city?.trim().isNotEmpty == true
-                ? profile.city!
-                : 'Ciudad pendiente',
-            subtitle: profile.bio?.trim().isNotEmpty == true
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final compact = constraints.maxWidth < 640;
+
+              if (compact) {
+                return Column(
+                  children: cards
+                      .map(
+                        (card) => Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: SizedBox(width: double.infinity, child: card),
+                        ),
+                      )
+                      .toList(),
+                );
+              }
+
+              return Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: cards
+                    .map(
+                      (card) => SizedBox(
+                        width: (constraints.maxWidth - 12) / 2,
+                        child: card,
+                      ),
+                    )
+                    .toList(),
+              );
+            },
+          ),
+          const SizedBox(height: 6),
+          _AboutBioBlock(
+            text: (profile.bio?.trim().isNotEmpty ?? false)
                 ? profile.bio!
                 : 'Anade una bio breve para que los demas entiendan mejor tu perfil.',
-          ),
-          const SizedBox(height: 16),
-          _AccountRow(
-            icon: Icons.public_rounded,
-            title: socialCount > 0
-                ? '$socialCount redes visibles'
-                : 'Sin redes visibles',
-            subtitle: socialCount > 0
-                ? 'Tu ficha ya muestra presencia social estructurada.'
-                : 'Puedes anadir redes sociales a tu perfil desde editar perfil.',
           ),
         ],
       ),
@@ -158,41 +400,48 @@ class _IdentitySnapshot extends StatelessWidget {
 }
 
 class _AffinityHighlights extends StatelessWidget {
-  const _AffinityHighlights();
+  final UserProfile profile;
+
+  const _AffinityHighlights({required this.profile});
 
   @override
   Widget build(BuildContext context) {
+    final favoriteSong =
+        'Tu cancion favorita ayuda a que la gente te recuerde mejor.';
+    final affinityText = profile.bio?.trim().isNotEmpty == true
+        ? 'Tu bio ya aporta tono personal. Completa afinidades desde editar perfil para que tu ficha tenga mas identidad.'
+        : 'Intereses, hobbies y rasgos que quieres que otros asocien contigo.';
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final isCompact = constraints.maxWidth < 640;
 
         if (isCompact) {
-          return const Column(
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _HighlightCard(
                 icon: Icons.music_note_rounded,
                 title: 'Cancion favorita',
-                subtitle:
-                    'Una pista rapida para recordar el tono y la energia de esa persona',
+                subtitle: favoriteSong,
               ),
               SizedBox(height: 12),
               _HighlightCard(
                 icon: Icons.favorite_rounded,
                 title: 'Gustos y afinidades',
-                subtitle: 'Intereses, hobbies y rasgos que quieres recordar',
+                subtitle: affinityText,
               ),
             ],
           );
         }
 
-        return const Row(
+        return Row(
           children: [
             Expanded(
               child: _HighlightCard(
                 icon: Icons.music_note_rounded,
                 title: 'Cancion favorita',
-                subtitle:
-                    'Una pista rapida para recordar el tono y la energia de esa persona',
+                subtitle: favoriteSong,
               ),
             ),
             SizedBox(width: 12),
@@ -200,7 +449,7 @@ class _AffinityHighlights extends StatelessWidget {
               child: _HighlightCard(
                 icon: Icons.favorite_rounded,
                 title: 'Gustos y afinidades',
-                subtitle: 'Intereses, hobbies y rasgos que quieres recordar',
+                subtitle: affinityText,
               ),
             ),
           ],
@@ -263,59 +512,84 @@ class _HighlightCard extends StatelessWidget {
   }
 }
 
-class _ContactModelNotes extends StatelessWidget {
-  const _ContactModelNotes();
+class _AboutInfoCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String value;
+
+  const _AboutInfoCard({
+    required this.icon,
+    required this.title,
+    required this.value,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _BulletLine(
-          text:
-              'users/{uid} representa a la persona real dentro de la plataforma y su ficha propia.',
-        ),
-        SizedBox(height: 12),
-        _BulletLine(
-          text:
-              'users/{uid}/contacts/{contactId} representa la agenda personal de ese usuario y el contexto que guarda sobre otras personas.',
-        ),
-        SizedBox(height: 12),
-        _BulletLine(
-          text:
-              'Cada contacto puede nacer manualmente, desde un usuario enlazado o por importacion futura mediante QR, siempre con campos opcionales y editables.',
-        ),
-        SizedBox(height: 12),
-        _BulletLine(
-          text:
-              'La ficha esta pensada para guardar identidad, afinidades, contexto y redes sociales sin depender de mensajeria interna.',
-        ),
-      ],
+    final colors = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerHighest.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: colors.primary),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: colors.primary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(value, style: Theme.of(context).textTheme.bodyMedium),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
 
-class _BulletLine extends StatelessWidget {
+class _AboutBioBlock extends StatelessWidget {
   final String text;
 
-  const _BulletLine({required this.text});
+  const _AboutBioBlock({required this.text});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.only(top: 4),
-          child: Icon(
-            Icons.favorite_rounded,
-            size: 16,
-            color: Color(0xFFE83E6C),
+    final colors = Theme.of(context).colorScheme;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerHighest.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Bio',
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+              color: colors.primary,
+              fontWeight: FontWeight.w700,
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(child: Text(text)),
-      ],
+          const SizedBox(height: 8),
+          Text(text, style: Theme.of(context).textTheme.bodyMedium),
+        ],
+      ),
     );
   }
 }
@@ -370,53 +644,6 @@ class _QrIdentityCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _AccountRow extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-
-  const _AccountRow({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colors.surfaceContainerHighest.withValues(alpha: 0.35),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: colors.primary),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 6),
-                Text(subtitle),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

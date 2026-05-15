@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:peoplesync/core/constants/routes.dart';
-import 'package:peoplesync/core/di/service_locator.dart';
 import 'package:peoplesync/features/contacts/connections_viewmodel.dart';
 import 'package:peoplesync/features/contacts/models/contact_record.dart';
+import 'package:peoplesync/shared/widgets/contacts/contact_avatar_placeholder.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ContactDetailPage extends StatelessWidget {
@@ -15,45 +15,42 @@ class ContactDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<ConnectionsViewModel>(
-      create: (_) => getIt<ConnectionsViewModel>(),
-      child: Consumer<ConnectionsViewModel>(
-        builder: (context, viewModel, _) {
-          final contact = _resolveContact(
-            viewModel.contacts,
-            contactId,
-            initialContact,
-          );
+    return Consumer<ConnectionsViewModel>(
+      builder: (context, viewModel, _) {
+        final contact = _resolveContact(
+          viewModel.contacts,
+          contactId,
+          initialContact,
+        );
 
-          if (contact == null) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.person_search_rounded, size: 52),
-                    const SizedBox(height: 12),
-                    Text(
-                      'No se encontro este contacto',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+        if (contact == null) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.person_search_rounded, size: 52),
+                  const SizedBox(height: 12),
+                  Text(
+                    'No se encontro este contacto',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
                     ),
-                    const SizedBox(height: 12),
-                    FilledButton(
-                      onPressed: () => context.go(Routes.connections),
-                      child: const Text('Volver a conexiones'),
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 12),
+                  FilledButton(
+                    onPressed: () => context.go(Routes.connections),
+                    child: const Text('Volver a conexiones'),
+                  ),
+                ],
               ),
-            );
-          }
+            ),
+          );
+        }
 
-          return _ContactDetailView(contact: contact);
-        },
-      ),
+        return _ContactDetailView(contact: contact);
+      },
     );
   }
 
@@ -306,11 +303,11 @@ class _HeroCard extends StatelessWidget {
               photoUrl,
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
-                return const _HeroFallback();
+                return _HeroFallback(seed: contact.id, displayName: name);
               },
             )
           else
-            const _HeroFallback(),
+            _HeroFallback(seed: contact.id, displayName: name),
           DecoratedBox(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -373,6 +370,37 @@ class _HeroCard extends StatelessWidget {
                           ],
                         ),
                       ),
+                    if (contact.relationship.wantsToStrengthenRelationship) ...[
+                      const SizedBox(width: 10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.16),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.auto_awesome_rounded,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                            SizedBox(width: 6),
+                            Text(
+                              'A cuidar',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ],
                 ),
                 const Spacer(),
@@ -410,16 +438,19 @@ class _HeroCard extends StatelessWidget {
 }
 
 class _HeroFallback extends StatelessWidget {
-  const _HeroFallback();
+  final String seed;
+  final String displayName;
+
+  const _HeroFallback({required this.seed, required this.displayName});
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Icon(
-        Icons.person_rounded,
-        size: 120,
-        color: Colors.white.withValues(alpha: 0.85),
-      ),
+    return ContactAvatarPlaceholder(
+      seed: seed,
+      displayName: displayName,
+      shape: BoxShape.rectangle,
+      borderRadius: BorderRadius.circular(32),
+      fontSize: 52,
     );
   }
 }
@@ -459,6 +490,25 @@ class _ActionRow extends StatelessWidget {
 
     return Row(
       children: [
+        Expanded(
+          child: FilledButton.tonalIcon(
+            onPressed: () => viewModel.toggleStrengthenRelationship(
+              contact.id,
+              !contact.relationship.wantsToStrengthenRelationship,
+            ),
+            icon: Icon(
+              contact.relationship.wantsToStrengthenRelationship
+                  ? Icons.heart_broken_rounded
+                  : Icons.auto_awesome_rounded,
+            ),
+            label: Text(
+              contact.relationship.wantsToStrengthenRelationship
+                  ? 'Quitar cuidado'
+                  : 'Mejorar relacion',
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
         Expanded(
           child: FilledButton.tonalIcon(
             onPressed: () => _showNotesDialog(context, viewModel, contact),

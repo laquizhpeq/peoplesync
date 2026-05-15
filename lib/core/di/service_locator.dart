@@ -57,7 +57,7 @@ void setupServiceLocator() {
       initialContact: initialContact,
     ),
   );
-  getIt.registerFactory<ConnectionsViewModel>(
+  getIt.registerLazySingleton<ConnectionsViewModel>(
     () => ConnectionsViewModel(
       contactService: getIt<ContactService>(),
       authService: getIt<AuthService>(),

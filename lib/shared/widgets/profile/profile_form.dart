@@ -68,7 +68,6 @@ class ProfileForm extends StatelessWidget {
                 'Sube una foto de perfil y anade las redes que quieras mostrar.',
             child: Column(
               children: [
-                // ---------- Photo picker ----------
                 Center(
                   child: Column(
                     children: [

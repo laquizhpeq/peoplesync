@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:peoplesync/features/navigation/navigation_provider.dart';
 import 'package:peoplesync/features/profile/profile_service.dart';
@@ -32,7 +31,6 @@ class AuthViewModel extends ChangeNotifier {
         password: password,
       );
 
-      // Attempt to load menus as soon as login succeeds
       final uid = authService.currentUser?.uid;
       if (uid != null) {
         await profileService.ensureCurrentUserProfile();
@@ -40,20 +38,16 @@ class AuthViewModel extends ChangeNotifier {
         await navigationProvider.loadMenus(uid);
       }
 
-      // Login success: clear error and notify
       _isLoading = false;
       _errorMessage = null;
       notifyListeners();
-      debugPrint('AuthViewModel: login success');
     } catch (e) {
       _isLoading = false;
-      // Extract message from Exception if present
       final errorStr = e.toString();
       _errorMessage = errorStr.startsWith('Exception: ')
           ? errorStr.substring(11)
           : errorStr;
       notifyListeners();
-      debugPrint('AuthViewModel: login error: $_errorMessage');
     }
   }
 
@@ -89,7 +83,6 @@ class AuthViewModel extends ChangeNotifier {
       _isLoading = false;
       _errorMessage = null;
       notifyListeners();
-      debugPrint('AuthViewModel: register success');
     } catch (e) {
       _isLoading = false;
       final errorStr = e.toString();
@@ -97,7 +90,6 @@ class AuthViewModel extends ChangeNotifier {
           ? errorStr.substring(11)
           : errorStr;
       notifyListeners();
-      debugPrint('AuthViewModel: register error: $_errorMessage');
     }
   }
 

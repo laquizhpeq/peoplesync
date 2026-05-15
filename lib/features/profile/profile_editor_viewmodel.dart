@@ -74,12 +74,7 @@ class ProfileEditorViewModel extends ChangeNotifier {
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // Photo picker
-  // ---------------------------------------------------------------------------
-
   Future<void> pickPhoto() async {
-    debugPrint('[ProfileEditor] pickPhoto called');
     try {
       _photoPickerError = null;
 
@@ -158,10 +153,6 @@ class ProfileEditorViewModel extends ChangeNotifier {
     return true;
   }
 
-  // ---------------------------------------------------------------------------
-  // Social profiles
-  // ---------------------------------------------------------------------------
-
   void addSocialProfile() {
     socialProfiles.add(ProfileSocialProfileDraft());
     notifyListeners();
@@ -184,14 +175,7 @@ class ProfileEditorViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ---------------------------------------------------------------------------
-  // Save
-  // ---------------------------------------------------------------------------
-
   Future<bool> save() async {
-    debugPrint(
-      '[ProfileEditor] save() called – hasPhoto=$hasPhoto, selectedBytes=${_selectedPhotoBytes?.length}, photoUrl=$_photoUrl',
-    );
     if (!formKey.currentState!.validate()) return false;
 
     _isSaving = true;
@@ -212,7 +196,6 @@ class ProfileEditorViewModel extends ChangeNotifier {
 
       _photoUrl = uploadedPhotoUrl;
       _selectedPhotoBytes = null;
-
       _profile = await profileService.getProfile(forceRefresh: true);
       return true;
     } catch (e) {
@@ -226,26 +209,10 @@ class ProfileEditorViewModel extends ChangeNotifier {
 
   Future<String?> _resolvePhotoUrl() async {
     if (_selectedPhotoBytes != null) {
-      debugPrint(
-        '[ProfileEditor] _resolvePhotoUrl: uploading ${_selectedPhotoBytes!.length} bytes...',
-      );
-      try {
-        final url = await profileService.uploadProfilePhoto(
-          bytes: _selectedPhotoBytes!,
-        );
-        debugPrint('[ProfileEditor] upload succeeded: $url');
-        return url;
-      } catch (e) {
-        debugPrint('[ProfileEditor] upload FAILED: $e');
-        rethrow;
-      }
+      return profileService.uploadProfilePhoto(bytes: _selectedPhotoBytes!);
     }
     return _photoUrl;
   }
-
-  // ---------------------------------------------------------------------------
-  // Helpers
-  // ---------------------------------------------------------------------------
 
   void _hydrateControllers(UserProfile? profile) {
     fullNameController.text = profile?.fullName ?? '';

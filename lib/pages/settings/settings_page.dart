@@ -1,9 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:peoplesync/core/constants/routes.dart';
+import 'package:peoplesync/core/di/service_locator.dart';
+import 'package:peoplesync/features/auth/auth_service.dart';
+import 'package:peoplesync/features/contacts/connections_viewmodel.dart';
+import 'package:peoplesync/features/navigation/navigation_provider.dart';
 import 'package:peoplesync/features/settings/theme_provider.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
+
+  Future<void> _logout(BuildContext context) async {
+    await getIt<AuthService>().signOut();
+    getIt<NavigationProvider>().clearMenus();
+    getIt<ConnectionsViewModel>().clear();
+
+    if (context.mounted) {
+      context.go(Routes.login);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,50 +38,15 @@ class SettingsPage extends StatelessWidget {
               Text('Configuracion', style: theme.textTheme.titleLarge),
               const SizedBox(height: 6),
               Text(
-                'Personaliza la apariencia de tu app.',
+                'Gestiona la apariencia y las opciones basicas de tu cuenta.',
                 style: theme.textTheme.bodyMedium,
               ),
               const SizedBox(height: 24),
-
-              // -- Theme section --
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: colors.surface,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: colors.onSurfaceVariant.withValues(alpha: 0.1),
-                  ),
-                ),
+              _SettingsSection(
+                icon: Icons.palette_rounded,
+                title: 'Apariencia',
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 42,
-                          height: 42,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(14),
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFFE83E6C), Color(0xFFF2994A)],
-                            ),
-                          ),
-                          child: const Icon(
-                            Icons.palette_rounded,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Text(
-                          'Apariencia',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
                     _ThemeOption(
                       icon: Icons.brightness_auto_rounded,
                       title: 'Automatico',
@@ -92,8 +73,139 @@ class SettingsPage extends StatelessWidget {
                   ],
                 ),
               ),
+              const SizedBox(height: 18),
+              _SettingsSection(
+                icon: Icons.manage_accounts_rounded,
+                title: 'Cuenta',
+                child: _SettingsAction(
+                  icon: Icons.logout_rounded,
+                  title: 'Cerrar sesion',
+                  subtitle: 'Salir de la cuenta actual y volver al acceso',
+                  accentColor: colors.error,
+                  onTap: () => _logout(context),
+                ),
+              ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SettingsSection extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final Widget child;
+
+  const _SettingsSection({
+    required this.icon,
+    required this.title,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: colors.onSurfaceVariant.withValues(alpha: 0.1),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFE83E6C), Color(0xFFF2994A)],
+                  ),
+                ),
+                child: Icon(icon, color: Colors.white),
+              ),
+              const SizedBox(width: 14),
+              Text(
+                title,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _SettingsAction extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color accentColor;
+  final VoidCallback onTap;
+
+  const _SettingsAction({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.accentColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: onTap,
+      child: Ink(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: colors.surfaceContainerHighest.withValues(alpha: 0.35),
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: accentColor, size: 24),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: accentColor,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(subtitle, style: textTheme.bodySmall),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: colors.onSurfaceVariant,
+              size: 22,
+            ),
+          ],
         ),
       ),
     );

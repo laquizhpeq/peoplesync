@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:peoplesync/core/constants/routes.dart';
-import 'package:peoplesync/core/di/service_locator.dart';
 import 'package:peoplesync/features/contacts/connections_viewmodel.dart';
 import 'package:peoplesync/features/contacts/models/contact_record.dart';
 import 'package:peoplesync/shared/widgets/common/empty_state.dart';
@@ -14,14 +13,11 @@ class ConnectionsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<ConnectionsViewModel>(
-      create: (_) => getIt<ConnectionsViewModel>(),
-      child: const _ConnectionsView(),
-    );
+    return const _ConnectionsView();
   }
 }
 
-enum _ConnectionFilter { all, favorites, recent, linked }
+enum _ConnectionFilter { all, favorites, care, recent, linked }
 
 class _ConnectionsView extends StatefulWidget {
   const _ConnectionsView();
@@ -151,6 +147,8 @@ class _ConnectionsViewState extends State<_ConnectionsView> {
       return switch (_filter) {
         _ConnectionFilter.all => true,
         _ConnectionFilter.favorites => contact.relationship.isFavorite,
+        _ConnectionFilter.care =>
+          contact.relationship.wantsToStrengthenRelationship,
         _ConnectionFilter.linked => contact.linkedUserUid != null,
         _ConnectionFilter.recent => _isRecent(contact),
       };
@@ -339,6 +337,13 @@ class _ConnectionsToolbar extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               _FilterChipButton(
+                label: 'A cuidar',
+                icon: Icons.auto_awesome_rounded,
+                selected: activeFilter == _ConnectionFilter.care,
+                onTap: () => onFilterChanged(_ConnectionFilter.care),
+              ),
+              const SizedBox(width: 8),
+              _FilterChipButton(
                 label: 'Recientes',
                 icon: Icons.schedule_rounded,
                 selected: activeFilter == _ConnectionFilter.recent,
@@ -457,6 +462,7 @@ class _ResultsSummary extends StatelessWidget {
     return switch (filter) {
       _ConnectionFilter.all => 'Vista general',
       _ConnectionFilter.favorites => 'Favoritos',
+      _ConnectionFilter.care => 'Relaciones a cuidar',
       _ConnectionFilter.recent => 'Recientes',
       _ConnectionFilter.linked => 'Vinculados',
     };
