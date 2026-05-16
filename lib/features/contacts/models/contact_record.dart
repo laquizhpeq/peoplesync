@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:peoplesync/features/contacts/models/contact_ai_summary.dart';
 
 enum ContactSource { manual, deviceImport, linkedUser, qrImport }
 
@@ -184,6 +185,9 @@ class ContactRelationship {
   final bool wantsToStrengthenRelationship;
   final bool isArchived;
   final String? customDisplayName;
+  final ContactAiSummary? aiSummary;
+  final DateTime? aiSummaryUpdatedAt;
+  final String? aiSummaryModel;
 
   const ContactRelationship({
     this.relationshipType,
@@ -198,6 +202,9 @@ class ContactRelationship {
     this.wantsToStrengthenRelationship = false,
     this.isArchived = false,
     this.customDisplayName,
+    this.aiSummary,
+    this.aiSummaryUpdatedAt,
+    this.aiSummaryModel,
   });
 
   factory ContactRelationship.fromMap(Map<String, dynamic> map) {
@@ -215,6 +222,15 @@ class ContactRelationship {
           map['wants_to_strengthen_relationship'] as bool? ?? false,
       isArchived: map['is_archived'] as bool? ?? false,
       customDisplayName: map['custom_display_name'] as String?,
+      aiSummary: map['ai_summary'] is Map<String, dynamic>
+          ? ContactAiSummary.fromMap(map['ai_summary'] as Map<String, dynamic>)
+          : map['ai_summary'] is Map
+          ? ContactAiSummary.fromMap(
+              Map<String, dynamic>.from(map['ai_summary'] as Map),
+            )
+          : null,
+      aiSummaryUpdatedAt: (map['ai_summary_updated_at'] as Timestamp?)?.toDate(),
+      aiSummaryModel: map['ai_summary_model'] as String?,
     );
   }
 
@@ -234,6 +250,11 @@ class ContactRelationship {
       'wants_to_strengthen_relationship': wantsToStrengthenRelationship,
       'is_archived': isArchived,
       'custom_display_name': customDisplayName,
+      'ai_summary': aiSummary?.toMap(),
+      'ai_summary_updated_at': aiSummaryUpdatedAt == null
+          ? null
+          : Timestamp.fromDate(aiSummaryUpdatedAt!),
+      'ai_summary_model': aiSummaryModel,
     };
   }
 }

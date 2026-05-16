@@ -23,4 +23,11 @@ class EnvConfig {
     final value = _get('SUPABASE_PROFILE_PHOTOS_FOLDER');
     return value.isEmpty ? 'profiles' : value;
   }
+
+  static String get groqApiKey => _get('GROQ_API_KEY');
+
+  static String get groqModel {
+    final value = _get('GROQ_MODEL');
+    return value.isEmpty ? 'llama-3.3-70b-versatile' : value;
+  }
 }
