@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:peoplesync/core/constants/routes.dart';
 import 'package:peoplesync/features/contacts/connections_viewmodel.dart';
 import 'package:peoplesync/features/contacts/models/contact_record.dart';
+import 'package:peoplesync/features/contacts/models/relationship_type_preset.dart';
 import 'package:peoplesync/shared/widgets/contacts/contact_avatar_placeholder.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -99,6 +100,8 @@ class _ContactDetailView extends StatelessWidget {
           ),
           const SizedBox(height: 18),
           _ActionRow(contact: contact),
+          const SizedBox(height: 18),
+          _RelationshipTypeSelectorCard(contact: contact),
           if (directItems.isNotEmpty) ...[
             const SizedBox(height: 18),
             _DetailSection(
@@ -534,6 +537,91 @@ class _ActionRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _RelationshipTypeSelectorCard extends StatelessWidget {
+  final ContactRecord contact;
+
+  const _RelationshipTypeSelectorCard({required this.contact});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final viewModel = context.read<ConnectionsViewModel>();
+    final currentValue = relationshipTypePresets.any(
+      (preset) => preset.key == contact.relationship.relationshipType,
+    )
+        ? contact.relationship.relationshipType
+        : null;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface.withValues(alpha: 0.97),
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(
+          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.08),
+        ),
+      ),
+      child: Column(
+        children: [
+          Text(
+            'Tipo de relacion',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Cambialo aqui sin entrar al modo edicion completo.',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 320),
+            child: DropdownButtonFormField<String>(
+              value: currentValue,
+              alignment: Alignment.center,
+              decoration: const InputDecoration(
+                prefixIcon: Icon(Icons.category_outlined),
+              ),
+              items: relationshipTypePresets
+                  .map(
+                    (preset) => DropdownMenuItem<String>(
+                      value: preset.key,
+                      child: Center(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(preset.icon, size: 18, color: preset.color),
+                            const SizedBox(width: 8),
+                            Text(preset.label),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) async {
+                await viewModel.updateRelationshipType(contact.id, value);
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Tipo de relacion actualizado'),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'package:peoplesync/core/constants/routes.dart';
 import 'package:peoplesync/features/contacts/connections_viewmodel.dart';
 import 'package:peoplesync/features/contacts/models/contact_record.dart';
+import 'package:peoplesync/features/contacts/models/relationship_type_preset.dart';
 import 'package:peoplesync/shared/widgets/contacts/contact_avatar_placeholder.dart';
-import 'package:provider/provider.dart';
 
 class ConnectionContactCard extends StatelessWidget {
   final ContactRecord contact;
@@ -18,9 +19,9 @@ class ConnectionContactCard extends StatelessWidget {
         contact.relationship.customDisplayName?.trim().isNotEmpty == true
         ? contact.relationship.customDisplayName!
         : contact.identity.displayName;
-    final subtitle = _buildSubtitle(contact);
-    final metaLine = _buildMetaLine(contact);
-    final relationshipMode = _resolveRelationshipMode(contact);
+    final relationshipMode = resolveRelationshipPreset(contact);
+    final focusLine = _buildFocusLine(contact, relationshipMode);
+    final footerLine = _buildFooterLine(contact);
 
     return Material(
       color: Colors.transparent,
@@ -32,13 +33,21 @@ class ConnectionContactCard extends StatelessWidget {
         ),
         child: Container(
           width: double.infinity,
-          margin: const EdgeInsets.only(bottom: 10),
+          margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
             color: theme.colorScheme.surface.withValues(alpha: 0.97),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
               color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.08),
             ),
+            boxShadow: [
+              BoxShadow(
+                color: (relationshipMode?.color ?? theme.colorScheme.primary)
+                    .withValues(alpha: 0.08),
+                blurRadius: 18,
+                offset: const Offset(0, 10),
+              ),
+            ],
           ),
           child: Row(
             children: [
@@ -46,27 +55,25 @@ class ConnectionContactCard extends StatelessWidget {
                 photoUrl: contact.identity.photoUrl,
                 seed: contact.id,
                 displayName: displayName,
+                relationshipMode: relationshipMode,
               ),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 10, 6, 10),
+                  padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (relationshipMode != null) ...[
-                            _RelationshipModeBadge(mode: relationshipMode),
-                            const SizedBox(width: 8),
-                          ],
                           Expanded(
                             child: Text(
                               displayName,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w800,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w900,
                               ),
                             ),
                           ),
@@ -79,9 +86,7 @@ class ConnectionContactCard extends StatelessWidget {
                                 color: theme.colorScheme.primary,
                               ),
                             ),
-                          if (contact
-                              .relationship
-                              .wantsToStrengthenRelationship)
+                          if (contact.relationship.wantsToStrengthenRelationship)
                             Padding(
                               padding: const EdgeInsets.only(right: 4),
                               child: Icon(
@@ -93,25 +98,25 @@ class ConnectionContactCard extends StatelessWidget {
                           _ContactActionsMenu(contact: contact),
                         ],
                       ),
-                      if (subtitle != null) ...[
-                        const SizedBox(height: 3),
+                      const SizedBox(height: 6),
+                      Text(
+                        focusLine,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color:
+                              relationshipMode?.color ?? theme.colorScheme.onSurface,
+                          fontWeight: FontWeight.w700,
+                          height: 1.25,
+                        ),
+                      ),
+                      if (footerLine != null) ...[
+                        const SizedBox(height: 8),
                         Text(
-                          subtitle,
+                          footerLine,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                      if (metaLine != null) ...[
-                        const SizedBox(height: 5),
-                        Text(
-                          metaLine,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.labelMedium?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
@@ -128,54 +133,37 @@ class ConnectionContactCard extends StatelessWidget {
   }
 }
 
-class _RelationshipModeBadge extends StatelessWidget {
-  final _RelationshipMode mode;
-
-  const _RelationshipModeBadge({required this.mode});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      width: 24,
-      height: 24,
-      decoration: BoxDecoration(
-        color: mode.color.withValues(alpha: 0.14),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Icon(mode.icon, size: 14, color: mode.color),
-    );
-  }
-}
-
 class _ContactPhoto extends StatelessWidget {
   final String? photoUrl;
   final String seed;
   final String displayName;
+  final RelationshipTypePreset? relationshipMode;
 
   const _ContactPhoto({
     required this.photoUrl,
     required this.seed,
     required this.displayName,
+    required this.relationshipMode,
   });
 
   @override
   Widget build(BuildContext context) {
     final hasPhoto = photoUrl != null && photoUrl!.trim().isNotEmpty;
+    final gradient = relationshipMode?.gradient ??
+        const [Color(0xFFFF8A65), Color(0xFFE85D5D)];
 
     return Container(
-      width: 64,
-      height: 82,
-      decoration: const BoxDecoration(
-        borderRadius: BorderRadius.only(
+      width: 94,
+      height: 118,
+      decoration: BoxDecoration(
+        borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(24),
           bottomLeft: Radius.circular(24),
         ),
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color(0xFFFF8A65), Color(0xFFE85D5D)],
+          colors: gradient,
         ),
       ),
       child: ClipRRect(
@@ -183,15 +171,69 @@ class _ContactPhoto extends StatelessWidget {
           topLeft: Radius.circular(24),
           bottomLeft: Radius.circular(24),
         ),
-        child: hasPhoto
-            ? Image.network(
-                photoUrl!,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return _PhotoFallback(seed: seed, displayName: displayName);
-                },
-              )
-            : _PhotoFallback(seed: seed, displayName: displayName),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            hasPhoto
+                ? Image.network(
+                    photoUrl!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return _PhotoFallback(
+                        seed: seed,
+                        displayName: displayName,
+                      );
+                    },
+                  )
+                : _PhotoFallback(seed: seed, displayName: displayName),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: 0.05),
+                    Colors.black.withValues(alpha: 0.0),
+                    Colors.black.withValues(alpha: 0.42),
+                  ],
+                ),
+              ),
+            ),
+            if (relationshipMode != null)
+              Positioned(
+                top: 8,
+                left: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.92),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        relationshipMode!.icon,
+                        size: 13,
+                        color: relationshipMode!.color,
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        relationshipMode!.label,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: relationshipMode!.color,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -355,118 +397,52 @@ class _ContactActionsMenu extends StatelessWidget {
   }
 }
 
-String? _buildSubtitle(ContactRecord contact) {
-  if (_hasText(contact.identity.jobTitle) &&
-      _hasText(contact.identity.company)) {
-    return '${contact.identity.jobTitle} - ${contact.identity.company}';
+String _buildFocusLine(
+  ContactRecord contact,
+  RelationshipTypePreset? relationshipMode,
+) {
+  if (_hasText(contact.relationship.contextNote)) {
+    return contact.relationship.contextNote!;
   }
-  if (_hasText(contact.identity.jobTitle)) return contact.identity.jobTitle;
-  if (_hasText(contact.identity.company)) return contact.identity.company;
-  return null;
+  if (_hasText(contact.relationship.lastInteractionNote)) {
+    return contact.relationship.lastInteractionNote!;
+  }
+  if (_hasText(contact.identity.about)) {
+    return contact.identity.about!;
+  }
+  if (_hasText(contact.identity.bio)) {
+    return contact.identity.bio!;
+  }
+  if (relationshipMode != null) {
+    return 'Relacion enfocada en ${relationshipMode.label.toLowerCase()}.';
+  }
+  if (_hasText(contact.identity.jobTitle) && _hasText(contact.identity.company)) {
+    return '${contact.identity.jobTitle} en ${contact.identity.company}';
+  }
+  if (_hasText(contact.identity.jobTitle)) {
+    return contact.identity.jobTitle!;
+  }
+  return 'Todavia falta contexto fuerte en esta ficha.';
 }
 
-String? _buildMetaLine(ContactRecord contact) {
+String? _buildFooterLine(ContactRecord contact) {
   final parts = <String>[];
-  final relationshipMode = _resolveRelationshipMode(contact);
 
-  if (relationshipMode != null) {
-    parts.add(relationshipMode.label);
-  }
-
-  if (contact.relationship.wantsToStrengthenRelationship) {
-    parts.add('Relacion a cuidar');
-  }
   if (_hasText(contact.identity.city)) {
     parts.add(contact.identity.city!);
   }
-  if ((contact.identity.age ?? 0) > 0) {
-    parts.add('${contact.identity.age} anos');
+  if (_hasText(contact.identity.jobTitle)) {
+    parts.add(contact.identity.jobTitle!);
   }
-  if (_hasText(contact.relationship.contextNote)) {
-    parts.add(contact.relationship.contextNote!);
+  if (contact.relationship.wantsToStrengthenRelationship) {
+    parts.add('A cuidar');
+  }
+  if (contact.relationship.isFavorite) {
+    parts.add('Favorito');
   }
 
   if (parts.isEmpty) return null;
-  return parts.take(2).join(' | ');
+  return parts.take(2).join(' · ');
 }
 
 bool _hasText(String? value) => value != null && value.trim().isNotEmpty;
-
-class _RelationshipMode {
-  final String label;
-  final IconData icon;
-  final Color color;
-
-  const _RelationshipMode({
-    required this.label,
-    required this.icon,
-    required this.color,
-  });
-}
-
-_RelationshipMode? _resolveRelationshipMode(ContactRecord contact) {
-  final candidates = <String>[
-    contact.relationship.relationshipType ?? '',
-    ...contact.relationship.lookingFor,
-    ...contact.relationship.personalityTags,
-  ];
-
-  for (final candidate in candidates) {
-    final mode = _relationshipModeFromText(candidate);
-    if (mode != null) return mode;
-  }
-
-  return null;
-}
-
-_RelationshipMode? _relationshipModeFromText(String value) {
-  final normalized = value.trim().toLowerCase();
-  if (normalized.isEmpty) return null;
-
-  if (normalized.contains('network')) {
-    return const _RelationshipMode(
-      label: 'Networking',
-      icon: Icons.hub_outlined,
-      color: Color(0xFF3F51B5),
-    );
-  }
-  if (normalized.contains('amist')) {
-    return const _RelationshipMode(
-      label: 'Amistad',
-      icon: Icons.favorite_outline_rounded,
-      color: Color(0xFFE85D75),
-    );
-  }
-  if (normalized.contains('client')) {
-    return const _RelationshipMode(
-      label: 'Cliente',
-      icon: Icons.business_center_outlined,
-      color: Color(0xFFFB8C00),
-    );
-  }
-  if (normalized.contains('colabor')) {
-    return const _RelationshipMode(
-      label: 'Colaboracion',
-      icon: Icons.handshake_outlined,
-      color: Color(0xFF00897B),
-    );
-  }
-  if (normalized.contains('famil')) {
-    return const _RelationshipMode(
-      label: 'Familia',
-      icon: Icons.home_outlined,
-      color: Color(0xFF8E24AA),
-    );
-  }
-  if (normalized.contains('cultiv') ||
-      normalized.contains('seguir') ||
-      normalized.contains('cuidar')) {
-    return const _RelationshipMode(
-      label: 'Seguir cultivando',
-      icon: Icons.eco_outlined,
-      color: Color(0xFF43A047),
-    );
-  }
-
-  return null;
-}

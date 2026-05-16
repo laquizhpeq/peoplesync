@@ -135,6 +135,26 @@ class ConnectionsViewModel extends ChangeNotifier {
     }
   }
 
+  Future<void> updateRelationshipType(
+    String contactId,
+    String? relationshipType,
+  ) async {
+    try {
+      await contactService.updateContact(
+        contactId: contactId,
+        relationshipType: relationshipType ?? '',
+      );
+    } catch (e) {
+      AppLogger.error(
+        'No se pudo actualizar el tipo de relacion',
+        scope: 'connections',
+        error: e,
+      );
+      _errorMessage = 'Error al actualizar el tipo de relacion: $e';
+      notifyListeners();
+    }
+  }
+
   Future<void> toggleFavorite(String contactId, bool isFavorite) async {
     try {
       await contactService.updateFavoriteStatus(

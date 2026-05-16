@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:peoplesync/core/constants/routes.dart';
 import 'package:peoplesync/features/contacts/connections_viewmodel.dart';
 import 'package:peoplesync/features/contacts/models/contact_record.dart';
+import 'package:peoplesync/features/contacts/models/relationship_type_preset.dart';
 import 'package:peoplesync/shared/widgets/common/empty_state.dart';
 import 'package:peoplesync/shared/widgets/common/loading_widget.dart';
 import 'package:peoplesync/shared/widgets/contacts/connection_contact_card.dart';
@@ -30,6 +31,11 @@ class _ConnectionsViewState extends State<_ConnectionsView> {
   final TextEditingController _searchController = TextEditingController();
   String _query = '';
   _ConnectionFilter _filter = _ConnectionFilter.all;
+  final Set<String> _selectedRelationshipTypes = <String>{};
+  bool _onlyFavorites = false;
+  bool _onlyCare = false;
+  bool _onlyLinked = false;
+  bool _onlyRecent = false;
 
   @override
   void initState() {
@@ -90,13 +96,9 @@ class _ConnectionsViewState extends State<_ConnectionsView> {
                     const SizedBox(height: 16),
                     _ConnectionsToolbar(
                       controller: _searchController,
-                      activeFilter: _filter,
+                      activeFilterCount: _activeFilterCount,
                       hasQuery: _query.isNotEmpty,
-                      onFilterChanged: (filter) {
-                        setState(() {
-                          _filter = filter;
-                        });
-                      },
+                      onOpenFilters: () => _openFilters(context),
                       onClearSearch: () {
                         _searchController.clear();
                       },
@@ -145,7 +147,7 @@ class _ConnectionsViewState extends State<_ConnectionsView> {
                     child: _ResultsSummary(
                       visible: contacts.length,
                       total: viewModel.contacts.length,
-                      activeFilter: _filter,
+                      activeFilter: _resultsSummaryLabel,
                     ),
                   ),
                 ),
@@ -180,14 +182,21 @@ class _ConnectionsViewState extends State<_ConnectionsView> {
         return false;
       }
 
-      return switch (_filter) {
-        _ConnectionFilter.all => true,
-        _ConnectionFilter.favorites => contact.relationship.isFavorite,
-        _ConnectionFilter.care =>
-          contact.relationship.wantsToStrengthenRelationship,
-        _ConnectionFilter.linked => contact.linkedUserUid != null,
-        _ConnectionFilter.recent => _isRecent(contact),
-      };
+      if (_onlyFavorites && !contact.relationship.isFavorite) return false;
+      if (_onlyCare && !contact.relationship.wantsToStrengthenRelationship) {
+        return false;
+      }
+      if (_onlyLinked && contact.linkedUserUid == null) return false;
+      if (_onlyRecent && !_isRecent(contact)) return false;
+
+      if (_selectedRelationshipTypes.isNotEmpty) {
+        final preset = resolveRelationshipPreset(contact);
+        if (preset == null || !_selectedRelationshipTypes.contains(preset.key)) {
+          return false;
+        }
+      }
+
+      return true;
     }).toList();
 
     filtered.sort((a, b) {
@@ -199,6 +208,184 @@ class _ConnectionsViewState extends State<_ConnectionsView> {
     });
 
     return filtered;
+  }
+
+  int get _activeFilterCount {
+    var count = 0;
+    if (_onlyFavorites) count++;
+    if (_onlyCare) count++;
+    if (_onlyLinked) count++;
+    if (_onlyRecent) count++;
+    count += _selectedRelationshipTypes.length;
+    return count;
+  }
+
+  String get _resultsSummaryLabel {
+    if (_activeFilterCount == 0) return 'Vista general';
+    if (_selectedRelationshipTypes.length == 1) {
+      final preset = relationshipTypePresets.firstWhere(
+        (item) => item.key == _selectedRelationshipTypes.first,
+        orElse: () => relationshipTypePresets.first,
+      );
+      return preset.label;
+    }
+    return 'Filtros activos';
+  }
+
+  Future<void> _openFilters(BuildContext context) async {
+    final selectedTypes = Set<String>.from(_selectedRelationshipTypes);
+    var onlyFavorites = _onlyFavorites;
+    var onlyCare = _onlyCare;
+    var onlyLinked = _onlyLinked;
+    var onlyRecent = _onlyRecent;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          return SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 6, 16, 24),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Filtros',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Combina estados y tipos de relacion para recortar ruido de verdad.',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 18),
+                    Text(
+                      'Estado',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        FilterChip(
+                          label: const Text('Favoritos'),
+                          selected: onlyFavorites,
+                          onSelected: (value) {
+                            setModalState(() => onlyFavorites = value);
+                          },
+                        ),
+                        FilterChip(
+                          label: const Text('A cuidar'),
+                          selected: onlyCare,
+                          onSelected: (value) {
+                            setModalState(() => onlyCare = value);
+                          },
+                        ),
+                        FilterChip(
+                          label: const Text('Vinculados'),
+                          selected: onlyLinked,
+                          onSelected: (value) {
+                            setModalState(() => onlyLinked = value);
+                          },
+                        ),
+                        FilterChip(
+                          label: const Text('Recientes'),
+                          selected: onlyRecent,
+                          onSelected: (value) {
+                            setModalState(() => onlyRecent = value);
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Tipo de relacion',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: relationshipTypePresets.map((preset) {
+                        return FilterChip(
+                          avatar: Icon(
+                            preset.icon,
+                            size: 16,
+                            color: preset.color,
+                          ),
+                          label: Text(preset.label),
+                          selected: selectedTypes.contains(preset.key),
+                          onSelected: (value) {
+                            setModalState(() {
+                              if (value) {
+                                selectedTypes.add(preset.key);
+                              } else {
+                                selectedTypes.remove(preset.key);
+                              }
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () {
+                              setModalState(() {
+                                selectedTypes.clear();
+                                onlyFavorites = false;
+                                onlyCare = false;
+                                onlyLinked = false;
+                                onlyRecent = false;
+                              });
+                            },
+                            child: const Text('Limpiar'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: FilledButton(
+                            onPressed: () {
+                              setState(() {
+                                _selectedRelationshipTypes
+                                  ..clear()
+                                  ..addAll(selectedTypes);
+                                _onlyFavorites = onlyFavorites;
+                                _onlyCare = onlyCare;
+                                _onlyLinked = onlyLinked;
+                                _onlyRecent = onlyRecent;
+                                _filter = _activeFilterCount == 0
+                                    ? _ConnectionFilter.all
+                                    : _ConnectionFilter.favorites;
+                              });
+                              Navigator.pop(context);
+                            },
+                            child: const Text('Aplicar'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   bool _matchesQuery(ContactRecord contact, String query) {
@@ -344,16 +531,16 @@ class _ConnectionsHeader extends StatelessWidget {
 
 class _ConnectionsToolbar extends StatelessWidget {
   final TextEditingController controller;
-  final _ConnectionFilter activeFilter;
+  final int activeFilterCount;
   final bool hasQuery;
-  final ValueChanged<_ConnectionFilter> onFilterChanged;
+  final VoidCallback onOpenFilters;
   final VoidCallback onClearSearch;
 
   const _ConnectionsToolbar({
     required this.controller,
-    required this.activeFilter,
+    required this.activeFilterCount,
     required this.hasQuery,
-    required this.onFilterChanged,
+    required this.onOpenFilters,
     required this.onClearSearch,
   });
 
@@ -362,77 +549,42 @@ class _ConnectionsToolbar extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TextField(
-          controller: controller,
-          textInputAction: TextInputAction.search,
-          decoration: InputDecoration(
-            hintText: 'Buscar por nombre, ciudad, empresa o contexto',
-            prefixIcon: const Icon(Icons.search_rounded),
-            suffixIcon: hasQuery
-                ? IconButton(
-                    onPressed: onClearSearch,
-                    icon: const Icon(Icons.close_rounded),
-                  )
-                : null,
-          ),
-        ),
-        const SizedBox(height: 10),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              _FilterChipButton(
-                label: 'Todos',
-                icon: Icons.apps_rounded,
-                selected: activeFilter == _ConnectionFilter.all,
-                onTap: () => onFilterChanged(_ConnectionFilter.all),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: controller,
+                textInputAction: TextInputAction.search,
+                decoration: InputDecoration(
+                  hintText: 'Buscar por nombre, ciudad, empresa o contexto',
+                  prefixIcon: const Icon(Icons.search_rounded),
+                  suffixIcon: hasQuery
+                      ? IconButton(
+                          onPressed: onClearSearch,
+                          icon: const Icon(Icons.close_rounded),
+                        )
+                      : null,
+                ),
               ),
-              const SizedBox(width: 8),
-              _FilterChipButton(
-                label: 'Favoritos',
-                icon: Icons.favorite_rounded,
-                selected: activeFilter == _ConnectionFilter.favorites,
-                onTap: () => onFilterChanged(_ConnectionFilter.favorites),
-              ),
-              const SizedBox(width: 8),
-              _FilterChipButton(
-                label: 'A cuidar',
-                icon: Icons.auto_awesome_rounded,
-                selected: activeFilter == _ConnectionFilter.care,
-                onTap: () => onFilterChanged(_ConnectionFilter.care),
-              ),
-              const SizedBox(width: 8),
-              _FilterChipButton(
-                label: 'Recientes',
-                icon: Icons.schedule_rounded,
-                selected: activeFilter == _ConnectionFilter.recent,
-                onTap: () => onFilterChanged(_ConnectionFilter.recent),
-              ),
-              const SizedBox(width: 8),
-              _FilterChipButton(
-                label: 'Vinculados',
-                icon: Icons.link_rounded,
-                selected: activeFilter == _ConnectionFilter.linked,
-                onTap: () => onFilterChanged(_ConnectionFilter.linked),
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(width: 10),
+            _FiltersMiniCard(
+              activeFilterCount: activeFilterCount,
+              onTap: onOpenFilters,
+            ),
+          ],
         ),
       ],
     );
   }
 }
 
-class _FilterChipButton extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final bool selected;
+class _FiltersMiniCard extends StatelessWidget {
+  final int activeFilterCount;
   final VoidCallback onTap;
 
-  const _FilterChipButton({
-    required this.label,
-    required this.icon,
-    required this.selected,
+  const _FiltersMiniCard({
+    required this.activeFilterCount,
     required this.onTap,
   });
 
@@ -441,35 +593,60 @@ class _FilterChipButton extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Material(
-      color: selected
-          ? theme.colorScheme.primaryContainer
-          : theme.colorScheme.surface,
-      borderRadius: BorderRadius.circular(999),
+      color: theme.colorScheme.surface,
+      borderRadius: BorderRadius.circular(18),
       child: InkWell(
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(18),
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          child: Row(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: activeFilterCount > 0
+                  ? theme.colorScheme.primary.withValues(alpha: 0.35)
+                  : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.08),
+            ),
+            color: activeFilterCount > 0
+                ? theme.colorScheme.primaryContainer.withValues(alpha: 0.55)
+                : theme.colorScheme.surface,
+          ),
+          child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
-                icon,
-                size: 16,
-                color: selected
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.onSurfaceVariant,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.tune_rounded,
+                    size: 16,
+                    color: activeFilterCount > 0
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Filtros',
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: activeFilterCount > 0
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.onSurface,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: theme.textTheme.labelLarge?.copyWith(
-                  color: selected
-                      ? theme.colorScheme.primary
-                      : theme.colorScheme.onSurface,
-                  fontWeight: FontWeight.w700,
+              if (activeFilterCount > 0) ...[
+                const SizedBox(height: 4),
+                Text(
+                  '$activeFilterCount activos',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ),
@@ -481,7 +658,7 @@ class _FilterChipButton extends StatelessWidget {
 class _ResultsSummary extends StatelessWidget {
   final int visible;
   final int total;
-  final _ConnectionFilter activeFilter;
+  final String activeFilter;
 
   const _ResultsSummary({
     required this.visible,
@@ -507,7 +684,7 @@ class _ResultsSummary extends StatelessWidget {
           ),
         ),
         Text(
-          _filterLabel(activeFilter),
+          activeFilter,
           style: theme.textTheme.labelLarge?.copyWith(
             color: theme.colorScheme.primary,
             fontWeight: FontWeight.w700,
@@ -515,16 +692,6 @@ class _ResultsSummary extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  String _filterLabel(_ConnectionFilter filter) {
-    return switch (filter) {
-      _ConnectionFilter.all => 'Vista general',
-      _ConnectionFilter.favorites => 'Favoritos',
-      _ConnectionFilter.care => 'Relaciones a cuidar',
-      _ConnectionFilter.recent => 'Recientes',
-      _ConnectionFilter.linked => 'Vinculados',
-    };
   }
 }
 
