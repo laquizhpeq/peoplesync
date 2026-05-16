@@ -57,6 +57,7 @@ class ContactFormViewModel extends ChangeNotifier {
     final value = relationshipTypeController.text.trim();
     return value.isEmpty ? null : value;
   }
+
   bool get hasPhoto =>
       _selectedPhotoBytes != null ||
       (_photoUrl != null && _photoUrl!.isNotEmpty);

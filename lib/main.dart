@@ -41,40 +41,43 @@ void main() async {
     return true;
   };
 
-  await runZonedGuarded(() async {
-    AppLogger.info('Iniciando aplicacion', scope: 'main');
-    await dotenv.load(fileName: '.env');
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    FirebaseFirestore.instance.settings = const Settings(
-      persistenceEnabled: true,
-    );
-    if (EnvConfig.supabaseUrl.isNotEmpty &&
-        EnvConfig.supabaseAnonKey.isNotEmpty) {
-      await Supabase.initialize(
-        url: EnvConfig.supabaseUrl,
-        anonKey: EnvConfig.supabaseAnonKey,
+  await runZonedGuarded(
+    () async {
+      AppLogger.info('Iniciando aplicacion', scope: 'main');
+      await dotenv.load(fileName: '.env');
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
       );
-      AppLogger.info('Supabase inicializado', scope: 'main');
-    } else {
-      AppLogger.warning(
-        'Supabase no configurado; algunas funciones de imagen pueden fallar',
+      FirebaseFirestore.instance.settings = const Settings(
+        persistenceEnabled: true,
+      );
+      if (EnvConfig.supabaseUrl.isNotEmpty &&
+          EnvConfig.supabaseAnonKey.isNotEmpty) {
+        await Supabase.initialize(
+          url: EnvConfig.supabaseUrl,
+          anonKey: EnvConfig.supabaseAnonKey,
+        );
+        AppLogger.info('Supabase inicializado', scope: 'main');
+      } else {
+        AppLogger.warning(
+          'Supabase no configurado; algunas funciones de imagen pueden fallar',
+          scope: 'main',
+        );
+      }
+      setupServiceLocator();
+      AppLogger.info('Service locator listo', scope: 'main');
+      runApp(const MyApp());
+    },
+    (error, stackTrace) {
+      AppLogger.error(
+        'Error de zona no controlado durante el arranque',
         scope: 'main',
+        error: error,
+        stackTrace: stackTrace,
       );
-    }
-    setupServiceLocator();
-    AppLogger.info('Service locator listo', scope: 'main');
-    runApp(const MyApp());
-  }, (error, stackTrace) {
-    AppLogger.error(
-      'Error de zona no controlado durante el arranque',
-      scope: 'main',
-      error: error,
-      stackTrace: stackTrace,
-    );
-    AppFeedbackService.showError(
-      'La app fallo durante el arranque. Cierra y vuelve a abrir.',
-    );
-  });
+      AppFeedbackService.showError(
+        'La app fallo durante el arranque. Cierra y vuelve a abrir.',
+      );
+    },
+  );
 }

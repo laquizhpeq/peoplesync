@@ -400,7 +400,9 @@ class _AdminUserCard extends StatelessWidget {
                 height: 52,
                 child: ContactAvatarPlaceholder(
                   seed: user.uid,
-                  displayName: user.fullName.isEmpty ? user.email : user.fullName,
+                  displayName: user.fullName.isEmpty
+                      ? user.email
+                      : user.fullName,
                 ),
               ),
               const SizedBox(width: 12),
@@ -459,9 +461,7 @@ class _AdminUserCard extends StatelessWidget {
                   ),
                   PopupMenuItem(
                     value: user.isActive ? 'deactivate' : 'activate',
-                    child: Text(
-                      user.isActive ? 'Dar de baja' : 'Dar de alta',
-                    ),
+                    child: Text(user.isActive ? 'Dar de baja' : 'Dar de alta'),
                   ),
                   const PopupMenuItem(
                     value: 'reset_onboarding',
@@ -570,10 +570,8 @@ class _AdminUserCard extends StatelessWidget {
                     decoration: const InputDecoration(labelText: 'Rol'),
                     items: viewModel.roles
                         .map(
-                          (role) => DropdownMenuItem(
-                            value: role,
-                            child: Text(role),
-                          ),
+                          (role) =>
+                              DropdownMenuItem(value: role, child: Text(role)),
                         )
                         .toList(),
                     onChanged: (value) {
@@ -661,9 +659,9 @@ class _AdminUserCard extends StatelessWidget {
     final error = await future;
     if (!context.mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(error ?? successMessage)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(error ?? successMessage)));
   }
 }
 
@@ -706,7 +704,9 @@ class _AdminInfoLine extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(
+          alpha: 0.35,
+        ),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(

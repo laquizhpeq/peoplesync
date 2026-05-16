@@ -562,7 +562,8 @@ class _RelationshipMapCanvas extends StatelessWidget {
             ),
             ...List.generate(visibleItems.length, (index) {
               final item = visibleItems[index];
-              final angle = (-pi / 2) + ((2 * pi) / visibleItems.length) * index;
+              final angle =
+                  (-pi / 2) + ((2 * pi) / visibleItems.length) * index;
               final nodeCenter = Offset(
                 center.dx + cos(angle) * orbitRadius,
                 center.dy + sin(angle) * orbitRadius,

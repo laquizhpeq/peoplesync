@@ -151,10 +151,8 @@ class AdminUsersViewModel extends ChangeNotifier {
     }).toList();
 
     filtered.sort((a, b) {
-      final aDate =
-          a.updatedAt ?? a.lastLogin ?? a.createdAt ?? DateTime(2000);
-      final bDate =
-          b.updatedAt ?? b.lastLogin ?? b.createdAt ?? DateTime(2000);
+      final aDate = a.updatedAt ?? a.lastLogin ?? a.createdAt ?? DateTime(2000);
+      final bDate = b.updatedAt ?? b.lastLogin ?? b.createdAt ?? DateTime(2000);
       return bDate.compareTo(aDate);
     });
     return filtered;

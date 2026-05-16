@@ -52,11 +52,7 @@ class AuthViewModel extends ChangeNotifier {
     } catch (e) {
       _isLoading = false;
       final errorStr = e.toString();
-      AppLogger.error(
-        'Fallo el login de usuario',
-        scope: 'auth',
-        error: e,
-      );
+      AppLogger.error('Fallo el login de usuario', scope: 'auth', error: e);
       _errorMessage = errorStr.startsWith('Exception: ')
           ? errorStr.substring(11)
           : errorStr;
