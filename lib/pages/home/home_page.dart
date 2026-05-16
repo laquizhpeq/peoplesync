@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -18,9 +20,9 @@ class HomePage extends StatelessWidget {
           connectionsViewModel.contacts,
         );
         final careContacts = _buildCareContacts(connectionsViewModel.contacts);
-        final spotlightContact = reconnectContacts.isNotEmpty
-            ? reconnectContacts.first
-            : null;
+        final spotlightContact = _pickSpotlightContact(
+          connectionsViewModel.contacts,
+        );
 
         return SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
@@ -56,6 +58,7 @@ class _QuickActionsMenu extends StatelessWidget {
 
     return PopupMenuButton<_QuickAction>(
       tooltip: 'Accesos rapidos',
+      padding: EdgeInsets.zero,
       onSelected: (action) => _handleAction(context, action),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       color: theme.colorScheme.surface,
@@ -89,41 +92,11 @@ class _QuickActionsMenu extends StatelessWidget {
           ),
         ),
       ],
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface.withValues(alpha: 0.96),
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(
-              color: theme.colorScheme.primary.withValues(alpha: 0.12),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.flash_on_rounded,
-              size: 18,
-              color: theme.colorScheme.primary,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'Acceso rapido',
-              style: theme.textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(width: 6),
-            Icon(
-              Icons.expand_more_rounded,
-              size: 18,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ],
+      child: Text(
+        'Acciones',
+        style: theme.textTheme.labelLarge?.copyWith(
+          fontWeight: FontWeight.w700,
+          color: theme.colorScheme.primary,
         ),
       ),
     );
@@ -618,6 +591,15 @@ List<ContactRecord> _buildCareContacts(List<ContactRecord> contacts) {
     return aDate.compareTo(bDate);
   });
   return filtered;
+}
+
+ContactRecord? _pickSpotlightContact(List<ContactRecord> contacts) {
+  if (contacts.isEmpty) return null;
+
+  final now = DateTime.now();
+  final seed = now.year * 1000 + now.month * 100 + now.day;
+  final index = Random(seed).nextInt(contacts.length);
+  return contacts[index];
 }
 
 DateTime _stalenessDate(ContactRecord contact) {

@@ -73,66 +73,102 @@ class _ConnectionsViewState extends State<_ConnectionsView> {
         }
 
         final contacts = _applyFilters(viewModel.contacts);
-        final groupedContacts = _buildGroups(contacts);
-        return SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _ConnectionsHeader(
-                total: viewModel.contacts.length,
-                onAddManual: () => context.go(Routes.contactNew),
+        final listItems = _buildListItems(contacts);
+
+        return CustomScrollView(
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
+              sliver: SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _ConnectionsHeader(
+                      total: viewModel.contacts.length,
+                      onAddManual: () => context.go(Routes.contactNew),
+                    ),
+                    const SizedBox(height: 16),
+                    _ConnectionsToolbar(
+                      controller: _searchController,
+                      activeFilter: _filter,
+                      hasQuery: _query.isNotEmpty,
+                      onFilterChanged: (filter) {
+                        setState(() {
+                          _filter = filter;
+                        });
+                      },
+                      onClearSearch: () {
+                        _searchController.clear();
+                      },
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 16),
-              _ConnectionsToolbar(
-                controller: _searchController,
-                activeFilter: _filter,
-                hasQuery: _query.isNotEmpty,
-                onFilterChanged: (filter) {
-                  setState(() {
-                    _filter = filter;
-                  });
-                },
-                onClearSearch: () {
-                  _searchController.clear();
-                },
-              ),
-              const SizedBox(height: 14),
-              if (viewModel.contacts.isEmpty)
-                AppEmptyState(
-                  icon: Icons.groups_rounded,
-                  title: 'Todavia no tienes conexiones guardadas',
-                  description:
-                      'Anade tu primer contacto manualmente y aparecera aqui como una ficha visual.',
-                  action: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () => context.go(Routes.contactNew),
-                      icon: const Icon(Icons.person_add_alt_1_rounded),
-                      label: const Text('Crear primera conexion'),
+            ),
+            if (viewModel.contacts.isEmpty)
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
+                sliver: SliverToBoxAdapter(
+                  child: AppEmptyState(
+                    icon: Icons.groups_rounded,
+                    title: 'Todavia no tienes conexiones guardadas',
+                    description:
+                        'Anade tu primer contacto manualmente y aparecera aqui como una ficha visual.',
+                    action: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () => context.go(Routes.contactNew),
+                        icon: const Icon(Icons.person_add_alt_1_rounded),
+                        label: const Text('Crear primera conexion'),
+                      ),
                     ),
                   ),
-                )
-              else if (contacts.isEmpty)
-                AppEmptyState(
-                  icon: Icons.search_off_rounded,
-                  title: 'No hay resultados con esos filtros',
-                  description:
-                      'La interfaz mejora cuando puedes recortar ruido. Ajusta la busqueda o cambia el filtro.',
-                )
-              else ...[
-                if (_query.isNotEmpty || _filter != _ConnectionFilter.all)
-                  _ResultsSummary(
-                    visible: contacts.length,
-                    total: viewModel.contacts.length,
-                    activeFilter: _filter,
+                ),
+              )
+            else if (contacts.isEmpty)
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
+                sliver: SliverToBoxAdapter(
+                  child: AppEmptyState(
+                    icon: Icons.search_off_rounded,
+                    title: 'No hay resultados con esos filtros',
+                    description:
+                        'La interfaz mejora cuando puedes recortar ruido. Ajusta la busqueda o cambia el filtro.',
                   ),
-                if (_query.isNotEmpty || _filter != _ConnectionFilter.all)
-                  const SizedBox(height: 10),
-                ...groupedContacts,
-              ],
+                ),
+              )
+            else ...[
+              if (_query.isNotEmpty || _filter != _ConnectionFilter.all)
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                  sliver: SliverToBoxAdapter(
+                    child: _ResultsSummary(
+                      visible: contacts.length,
+                      total: viewModel.contacts.length,
+                      activeFilter: _filter,
+                    ),
+                  ),
+                ),
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
+                sliver: SliverList.builder(
+                  itemCount: listItems.length,
+                  itemBuilder: (context, index) {
+                    final item = listItems[index];
+                    return switch (item) {
+                      _ConnectionsListSpacer() => const SizedBox(height: 14),
+                      _ConnectionsListSectionHeader(:final title) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: _GroupHeader(title: title),
+                      ),
+                      _ConnectionsListContact(:final contact) =>
+                        ConnectionContactCard(contact: contact),
+                    };
+                  },
+                ),
+              ),
             ],
-          ),
+          ],
         );
       },
     );
@@ -186,10 +222,12 @@ class _ConnectionsViewState extends State<_ConnectionsView> {
     return DateTime.now().difference(reference).inDays <= 30;
   }
 
-  List<Widget> _buildGroups(List<ContactRecord> contacts) {
+  List<_ConnectionsListItem> _buildListItems(List<ContactRecord> contacts) {
     if (_query.isNotEmpty || _filter != _ConnectionFilter.all) {
       return contacts
-          .map((contact) => ConnectionContactCard(contact: contact))
+          .map<_ConnectionsListItem>(
+            (contact) => _ConnectionsListContact(contact),
+          )
           .toList();
     }
 
@@ -207,17 +245,18 @@ class _ConnectionsViewState extends State<_ConnectionsView> {
         )
         .toList();
 
-    final sections = <Widget>[];
+    final sections = <_ConnectionsListItem>[];
 
     void addSection(String title, List<ContactRecord> items) {
       if (items.isEmpty) return;
       if (sections.isNotEmpty) {
-        sections.add(const SizedBox(height: 14));
+        sections.add(const _ConnectionsListSpacer());
       }
-      sections.add(_GroupHeader(title: title));
-      sections.add(const SizedBox(height: 8));
+      sections.add(_ConnectionsListSectionHeader(title));
       sections.addAll(
-        items.map((contact) => ConnectionContactCard(contact: contact)),
+        items.map<_ConnectionsListItem>(
+          (contact) => _ConnectionsListContact(contact),
+        ),
       );
     }
 
@@ -227,6 +266,26 @@ class _ConnectionsViewState extends State<_ConnectionsView> {
 
     return sections;
   }
+}
+
+sealed class _ConnectionsListItem {
+  const _ConnectionsListItem();
+}
+
+class _ConnectionsListContact extends _ConnectionsListItem {
+  final ContactRecord contact;
+
+  const _ConnectionsListContact(this.contact);
+}
+
+class _ConnectionsListSectionHeader extends _ConnectionsListItem {
+  final String title;
+
+  const _ConnectionsListSectionHeader(this.title);
+}
+
+class _ConnectionsListSpacer extends _ConnectionsListItem {
+  const _ConnectionsListSpacer();
 }
 
 class _ConnectionsHeader extends StatelessWidget {

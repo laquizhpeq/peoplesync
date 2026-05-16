@@ -86,6 +86,7 @@ class _ProfileSettingsMenu extends StatelessWidget {
 
     return PopupMenuButton<_ProfileMenuAction>(
       tooltip: 'Configuracion',
+      padding: EdgeInsets.zero,
       onSelected: (value) => _handleSelection(context, value),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       itemBuilder: (context) => const [
@@ -110,34 +111,11 @@ class _ProfileSettingsMenu extends StatelessWidget {
           ),
         ),
       ],
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface.withValues(alpha: 0.96),
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.settings_rounded,
-              size: 18,
-              color: theme.colorScheme.primary,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'Ajustes',
-              style: theme.textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(width: 6),
-            Icon(
-              Icons.expand_more_rounded,
-              size: 18,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ],
+      child: Text(
+        'Ajustes',
+        style: theme.textTheme.labelLarge?.copyWith(
+          fontWeight: FontWeight.w700,
+          color: theme.colorScheme.primary,
         ),
       ),
     );
