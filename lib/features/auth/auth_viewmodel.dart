@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:peoplesync/core/services/app_logger.dart';
 import 'package:peoplesync/features/navigation/navigation_provider.dart';
 import 'package:peoplesync/features/profile/profile_service.dart';
 import 'auth_service.dart';
@@ -34,6 +35,13 @@ class AuthViewModel extends ChangeNotifier {
       final uid = authService.currentUser?.uid;
       if (uid != null) {
         await profileService.ensureCurrentUserProfile();
+        final profile = profileService.cachedProfile;
+        if (profile != null && !profile.isActive) {
+          await authService.signOut();
+          throw Exception(
+            'Tu cuenta esta desactivada. Contacta con un administrador.',
+          );
+        }
         await profileService.touchLastLogin();
         await navigationProvider.loadMenus(uid);
       }
@@ -44,6 +52,11 @@ class AuthViewModel extends ChangeNotifier {
     } catch (e) {
       _isLoading = false;
       final errorStr = e.toString();
+      AppLogger.error(
+        'Fallo el login de usuario',
+        scope: 'auth',
+        error: e,
+      );
       _errorMessage = errorStr.startsWith('Exception: ')
           ? errorStr.substring(11)
           : errorStr;

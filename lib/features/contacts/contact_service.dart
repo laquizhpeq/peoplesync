@@ -192,6 +192,7 @@ class ContactService {
     String? favoriteSong,
     String? email,
     String? phone,
+    String? relationshipType,
     List<String>? interests,
     List<String>? lookingFor,
     List<String>? personalityTags,
@@ -229,6 +230,9 @@ class ContactService {
           .toList();
     }
 
+    if (relationshipType != null) {
+      updates['relationship.relationship_type'] = relationshipType;
+    }
     if (interests != null) updates['relationship.interests'] = interests;
     if (lookingFor != null) {
       updates['relationship.looking_for'] = lookingFor;

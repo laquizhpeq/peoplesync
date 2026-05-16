@@ -164,6 +164,25 @@ class ContactManualForm extends StatelessWidget {
                 'Todo lo que solo tu sabes o quieres recordar sobre esta conexion.',
             child: Column(
               children: [
+                DropdownButtonFormField<String>(
+                  value: viewModel.selectedRelationshipType,
+                  decoration: const InputDecoration(
+                    labelText: 'Tipo de relacion',
+                    prefixIcon: Icon(Icons.category_outlined),
+                  ),
+                  items: ContactFormViewModel.relationshipTypeOptions
+                      .map(
+                        (option) => DropdownMenuItem<String>(
+                          value: option,
+                          child: Text(_relationshipTypeLabel(option)),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: viewModel.isSaving
+                      ? null
+                      : viewModel.setRelationshipType,
+                ),
+                const SizedBox(height: 16),
                 AppTextField(
                   controller: viewModel.relationshipInterestsController,
                   label: 'Intereses',
@@ -282,6 +301,25 @@ class ContactManualForm extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+String _relationshipTypeLabel(String value) {
+  switch (value) {
+    case 'networking':
+      return 'Networking';
+    case 'amistad':
+      return 'Amistad';
+    case 'clientes':
+      return 'Clientes';
+    case 'colaboradores':
+      return 'Colaboradores';
+    case 'familia':
+      return 'Familia';
+    case 'seguir cultivando':
+      return 'Seguir cultivando';
+    default:
+      return value;
   }
 }
 

@@ -20,6 +20,9 @@ class HomePage extends StatelessWidget {
           connectionsViewModel.contacts,
         );
         final careContacts = _buildCareContacts(connectionsViewModel.contacts);
+        final relationshipMap = _buildRelationshipMap(
+          connectionsViewModel.contacts,
+        );
         final spotlightContact = _pickSpotlightContact(
           connectionsViewModel.contacts,
         );
@@ -37,6 +40,11 @@ class HomePage extends StatelessWidget {
               _ReconnectSection(contacts: reconnectContacts),
               const SizedBox(height: 18),
               _CareSection(contacts: careContacts),
+              const SizedBox(height: 18),
+              _RelationshipMapSection(
+                totalContacts: connectionsViewModel.contacts.length,
+                mapItems: relationshipMap,
+              ),
               const SizedBox(height: 18),
               _SpotlightSection(contact: spotlightContact),
             ],
@@ -92,11 +100,32 @@ class _QuickActionsMenu extends StatelessWidget {
           ),
         ),
       ],
-      child: Text(
-        'Acciones',
-        style: theme.textTheme.labelLarge?.copyWith(
-          fontWeight: FontWeight.w700,
-          color: theme.colorScheme.primary,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface.withValues(alpha: 0.96),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.08),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Acciones',
+              style: theme.textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: theme.colorScheme.primary,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Icon(
+              Icons.expand_more_rounded,
+              size: 18,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ],
         ),
       ),
     );
@@ -378,6 +407,386 @@ class _SpotlightSection extends StatelessWidget {
   }
 }
 
+class _RelationshipMapSection extends StatelessWidget {
+  final int totalContacts;
+  final List<_RelationshipMapItem> mapItems;
+
+  const _RelationshipMapSection({
+    required this.totalContacts,
+    required this.mapItems,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final hasData = mapItems.isNotEmpty;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface.withValues(alpha: 0.97),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(
+          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.08),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: theme.colorScheme.primary.withValues(alpha: 0.06),
+            blurRadius: 24,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Mapa de relaciones',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            hasData
+                ? 'Asi se reparte tu red segun el tipo de relacion que has definido.'
+                : 'Todavia no has clasificado contactos por tipo de relacion.',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 18),
+          SizedBox(
+            height: 280,
+            child: hasData
+                ? _RelationshipMapCanvas(
+                    totalContacts: totalContacts,
+                    items: mapItems,
+                  )
+                : _RelationshipMapEmpty(totalContacts: totalContacts),
+          ),
+          if (hasData) ...[
+            const SizedBox(height: 18),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: mapItems
+                  .map((item) => _RelationshipMapLegendChip(item: item))
+                  .toList(),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _RelationshipMapCanvas extends StatelessWidget {
+  final int totalContacts;
+  final List<_RelationshipMapItem> items;
+
+  const _RelationshipMapCanvas({
+    required this.totalContacts,
+    required this.items,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final visibleItems = items.take(6).toList();
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final size = Size(constraints.maxWidth, constraints.maxHeight);
+        final center = Offset(size.width / 2, size.height / 2);
+        final orbitRadius = min(size.width, size.height) * 0.41;
+        final coreRadius = min(size.width, size.height) * 0.23;
+
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned.fill(
+              child: CustomPaint(
+                painter: _RelationshipOrbitPainter(
+                  items: visibleItems,
+                  center: center,
+                  orbitRadius: orbitRadius,
+                  lineColor: theme.colorScheme.onSurfaceVariant.withValues(
+                    alpha: 0.12,
+                  ),
+                ),
+              ),
+            ),
+            Align(
+              alignment: Alignment.center,
+              child: Container(
+                width: coreRadius * 2.1,
+                height: coreRadius * 2.1,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFFFF8A65), Color(0xFFE85D5D)],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFE85D5D).withValues(alpha: 0.24),
+                      blurRadius: 28,
+                      offset: const Offset(0, 16),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '$totalContacts',
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      totalContacts == 1 ? 'conexion' : 'conexiones',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.92),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            ...List.generate(visibleItems.length, (index) {
+              final item = visibleItems[index];
+              final angle = (-pi / 2) + ((2 * pi) / visibleItems.length) * index;
+              final nodeCenter = Offset(
+                center.dx + cos(angle) * orbitRadius,
+                center.dy + sin(angle) * orbitRadius,
+              );
+
+              return Positioned(
+                left: nodeCenter.dx - 46,
+                top: nodeCenter.dy - 28,
+                child: _RelationshipMapNode(item: item),
+              );
+            }),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _RelationshipMapNode extends StatelessWidget {
+  final _RelationshipMapItem item;
+
+  const _RelationshipMapNode({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      width: 92,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: item.color.withValues(alpha: 0.22)),
+        boxShadow: [
+          BoxShadow(
+            color: item.color.withValues(alpha: 0.12),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: item.color.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(item.icon, color: item.color, size: 18),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '${item.count}',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            item.label,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w700,
+              height: 1.15,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RelationshipMapLegendChip extends StatelessWidget {
+  final _RelationshipMapItem item;
+
+  const _RelationshipMapLegendChip({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: item.color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(item.icon, size: 16, color: item.color),
+          const SizedBox(width: 8),
+          Text(
+            '${item.label} ${item.count}',
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: item.color,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RelationshipMapEmpty extends StatelessWidget {
+  final int totalContacts;
+
+  const _RelationshipMapEmpty({required this.totalContacts});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            theme.colorScheme.primaryContainer.withValues(alpha: 0.5),
+            theme.colorScheme.secondaryContainer.withValues(alpha: 0.35),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(26),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.hub_outlined,
+              size: 42,
+              color: theme.colorScheme.primary,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              totalContacts == 0
+                  ? 'Todavia no hay red que mapear'
+                  : 'Clasifica tus contactos para ver el mapa',
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                totalContacts == 0
+                    ? 'Cuando empieces a guardar conexiones, este bloque dibujara como se reparte tu red.'
+                    : 'El mapa gana sentido cuando cada ficha tiene un tipo de relacion claro.',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RelationshipOrbitPainter extends CustomPainter {
+  final List<_RelationshipMapItem> items;
+  final Offset center;
+  final double orbitRadius;
+  final Color lineColor;
+
+  const _RelationshipOrbitPainter({
+    required this.items,
+    required this.center,
+    required this.orbitRadius,
+    required this.lineColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final orbitPaint = Paint()
+      ..color = lineColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+
+    canvas.drawCircle(center, orbitRadius, orbitPaint);
+    canvas.drawCircle(center, orbitRadius * 0.62, orbitPaint);
+
+    for (var index = 0; index < items.length; index++) {
+      final angle = (-pi / 2) + ((2 * pi) / items.length) * index;
+      final nodeCenter = Offset(
+        center.dx + cos(angle) * orbitRadius,
+        center.dy + sin(angle) * orbitRadius,
+      );
+
+      final linkPaint = Paint()
+        ..color = items[index].color.withValues(alpha: 0.2)
+        ..strokeWidth = 2;
+
+      canvas.drawLine(center, nodeCenter, linkPaint);
+      canvas.drawCircle(
+        nodeCenter,
+        5,
+        Paint()..color = items[index].color.withValues(alpha: 0.24),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _RelationshipOrbitPainter oldDelegate) {
+    return oldDelegate.items != items ||
+        oldDelegate.center != center ||
+        oldDelegate.orbitRadius != orbitRadius ||
+        oldDelegate.lineColor != lineColor;
+  }
+}
+
 class _CareSection extends StatelessWidget {
   final List<ContactRecord> contacts;
 
@@ -593,6 +1002,24 @@ List<ContactRecord> _buildCareContacts(List<ContactRecord> contacts) {
   return filtered;
 }
 
+List<_RelationshipMapItem> _buildRelationshipMap(List<ContactRecord> contacts) {
+  final counts = <String, int>{};
+
+  for (final contact in contacts) {
+    final type = _relationshipTypeKey(contact);
+    if (type == null) continue;
+    counts[type] = (counts[type] ?? 0) + 1;
+  }
+
+  final items = counts.entries
+      .map((entry) => _relationshipMapItemFromKey(entry.key, entry.value))
+      .whereType<_RelationshipMapItem>()
+      .toList();
+
+  items.sort((a, b) => b.count.compareTo(a.count));
+  return items;
+}
+
 ContactRecord? _pickSpotlightContact(List<ContactRecord> contacts) {
   if (contacts.isEmpty) return null;
 
@@ -652,6 +1079,92 @@ String _careSubtitle(ContactRecord contact) {
   }
 
   return pieces.take(2).join(' - ');
+}
+
+class _RelationshipMapItem {
+  final String key;
+  final String label;
+  final int count;
+  final IconData icon;
+  final Color color;
+
+  const _RelationshipMapItem({
+    required this.key,
+    required this.label,
+    required this.count,
+    required this.icon,
+    required this.color,
+  });
+}
+
+String? _relationshipTypeKey(ContactRecord contact) {
+  final value = contact.relationship.relationshipType?.trim().toLowerCase();
+  if (value == null || value.isEmpty) return null;
+
+  return switch (value) {
+    'networking' => 'networking',
+    'amistad' => 'amistad',
+    'clientes' => 'clientes',
+    'colaboradores' => 'colaboradores',
+    'familia' => 'familia',
+    'seguir cultivando' => 'seguir cultivando',
+    _ => null,
+  };
+}
+
+_RelationshipMapItem? _relationshipMapItemFromKey(String key, int count) {
+  switch (key) {
+    case 'networking':
+      return _RelationshipMapItem(
+        key: 'networking',
+        label: 'Networking',
+        count: count,
+        icon: Icons.hub_outlined,
+        color: const Color(0xFF4F6BED),
+      );
+    case 'amistad':
+      return _RelationshipMapItem(
+        key: 'amistad',
+        label: 'Amistad',
+        count: count,
+        icon: Icons.favorite_outline_rounded,
+        color: const Color(0xFFE85D75),
+      );
+    case 'clientes':
+      return _RelationshipMapItem(
+        key: 'clientes',
+        label: 'Clientes',
+        count: count,
+        icon: Icons.business_center_outlined,
+        color: const Color(0xFFF2994A),
+      );
+    case 'colaboradores':
+      return _RelationshipMapItem(
+        key: 'colaboradores',
+        label: 'Colaboradores',
+        count: count,
+        icon: Icons.handshake_outlined,
+        color: const Color(0xFF1FA37A),
+      );
+    case 'familia':
+      return _RelationshipMapItem(
+        key: 'familia',
+        label: 'Familia',
+        count: count,
+        icon: Icons.home_outlined,
+        color: const Color(0xFF9B51E0),
+      );
+    case 'seguir cultivando':
+      return _RelationshipMapItem(
+        key: 'seguir cultivando',
+        label: 'Seguir cultivando',
+        count: count,
+        icon: Icons.eco_outlined,
+        color: const Color(0xFF43A047),
+      );
+    default:
+      return null;
+  }
 }
 
 String _spotlightText(ContactRecord contact) {

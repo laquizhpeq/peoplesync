@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:peoplesync/core/services/app_logger.dart';
 import 'package:peoplesync/features/auth/auth_service.dart';
 import 'package:peoplesync/features/contacts/contact_service.dart';
 import 'package:peoplesync/features/contacts/models/contact_record.dart';
@@ -27,14 +28,26 @@ class ConnectionsViewModel extends ChangeNotifier {
   void initialize() {
     final currentUid = authService.currentUser?.uid;
     if (currentUid == null || currentUid.isEmpty) {
+      AppLogger.warning(
+        'Se intento inicializar conexiones sin usuario autenticado',
+        scope: 'connections',
+      );
       clear();
       return;
     }
 
     if (_initializedUid == currentUid && _subscription != null) {
+      AppLogger.debug(
+        'Conexiones ya inicializadas para el usuario actual',
+        scope: 'connections',
+      );
       return;
     }
 
+    AppLogger.info(
+      'Inicializando stream de conexiones para el usuario actual',
+      scope: 'connections',
+    );
     _subscription?.cancel();
     _initializedUid = currentUid;
     _isLoading = _contacts.isEmpty;
@@ -48,17 +61,34 @@ class ConnectionsViewModel extends ChangeNotifier {
             _contacts = contacts;
             _isLoading = false;
             _errorMessage = null;
+            if (contacts.isEmpty) {
+              AppLogger.info(
+                'El usuario no tiene contactos guardados',
+                scope: 'connections',
+              );
+            } else {
+              AppLogger.debug(
+                'Conexiones cargadas: ${contacts.length}',
+                scope: 'connections',
+              );
+            }
             notifyListeners();
           },
           onError: (error) {
             _errorMessage = '$error';
             _isLoading = false;
+            AppLogger.error(
+              'Fallo el stream de conexiones',
+              scope: 'connections',
+              error: error,
+            );
             notifyListeners();
           },
         );
   }
 
   void clear() {
+    AppLogger.debug('Limpiando estado de conexiones', scope: 'connections');
     _subscription?.cancel();
     _subscription = null;
     _initializedUid = null;
@@ -78,6 +108,11 @@ class ConnectionsViewModel extends ChangeNotifier {
         contactoUid: contactoUid,
       );
     } catch (e) {
+      AppLogger.error(
+        'No se pudo sincronizar la identidad del contacto',
+        scope: 'connections',
+        error: e,
+      );
       _errorMessage = 'Error al sincronizar: $e';
       notifyListeners();
     }
@@ -90,6 +125,11 @@ class ConnectionsViewModel extends ChangeNotifier {
         privateNotes: notes,
       );
     } catch (e) {
+      AppLogger.error(
+        'No se pudieron guardar notas privadas',
+        scope: 'connections',
+        error: e,
+      );
       _errorMessage = 'Error al actualizar notas: $e';
       notifyListeners();
     }
@@ -102,6 +142,11 @@ class ConnectionsViewModel extends ChangeNotifier {
         isFavorite: isFavorite,
       );
     } catch (e) {
+      AppLogger.error(
+        'No se pudo actualizar favorito',
+        scope: 'connections',
+        error: e,
+      );
       _errorMessage = 'Error al actualizar favorito: $e';
       notifyListeners();
     }
@@ -117,6 +162,11 @@ class ConnectionsViewModel extends ChangeNotifier {
         wantsToStrengthenRelationship: wantsToStrengthenRelationship,
       );
     } catch (e) {
+      AppLogger.error(
+        'No se pudo actualizar la relacion a cuidar',
+        scope: 'connections',
+        error: e,
+      );
       _errorMessage = 'Error al actualizar relacion a cuidar: $e';
       notifyListeners();
     }
@@ -127,6 +177,11 @@ class ConnectionsViewModel extends ChangeNotifier {
       await contactService.deleteContact(contactId);
       return null;
     } catch (e) {
+      AppLogger.error(
+        'No se pudo eliminar el contacto',
+        scope: 'connections',
+        error: e,
+      );
       _errorMessage = 'Error al eliminar contacto: $e';
       notifyListeners();
       return _errorMessage;

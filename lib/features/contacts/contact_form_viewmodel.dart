@@ -7,6 +7,15 @@ import 'package:peoplesync/features/contacts/contact_service.dart';
 import 'package:peoplesync/features/contacts/models/contact_record.dart';
 
 class ContactFormViewModel extends ChangeNotifier {
+  static const List<String> relationshipTypeOptions = [
+    'networking',
+    'amistad',
+    'clientes',
+    'colaboradores',
+    'familia',
+    'seguir cultivando',
+  ];
+
   final ContactService contactService;
   final ContactRecord? initialContact;
 
@@ -21,6 +30,7 @@ class ContactFormViewModel extends ChangeNotifier {
   final identityFavoriteSongController = TextEditingController();
   final identityEmailController = TextEditingController();
   final identityPhoneController = TextEditingController();
+  final relationshipTypeController = TextEditingController();
   final relationshipInterestsController = TextEditingController();
   final relationshipLookingForController = TextEditingController();
   final relationshipPersonalityTagsController = TextEditingController();
@@ -43,6 +53,10 @@ class ContactFormViewModel extends ChangeNotifier {
   Uint8List? get selectedPhotoBytes => _selectedPhotoBytes;
   String? get photoUrl => _photoUrl;
   String? get photoPickerError => _photoPickerError;
+  String? get selectedRelationshipType {
+    final value = relationshipTypeController.text.trim();
+    return value.isEmpty ? null : value;
+  }
   bool get hasPhoto =>
       _selectedPhotoBytes != null ||
       (_photoUrl != null && _photoUrl!.isNotEmpty);
@@ -77,6 +91,11 @@ class ContactFormViewModel extends ChangeNotifier {
 
     final profile = socialProfiles.removeAt(index);
     profile.dispose();
+    notifyListeners();
+  }
+
+  void setRelationshipType(String? value) {
+    relationshipTypeController.text = value?.trim() ?? '';
     notifyListeners();
   }
 
@@ -185,6 +204,7 @@ class ContactFormViewModel extends ChangeNotifier {
           favoriteSong: _normalizedUpdateText(identityFavoriteSongController),
           email: _normalizedUpdateText(identityEmailController),
           phone: _normalizedUpdateText(identityPhoneController),
+          relationshipType: _normalizedUpdateText(relationshipTypeController),
           interests: _splitTags(relationshipInterestsController.text),
           lookingFor: _splitTags(relationshipLookingForController.text),
           personalityTags: _splitTags(
@@ -271,6 +291,7 @@ class ContactFormViewModel extends ChangeNotifier {
 
   ContactRelationship _buildRelationship() {
     return ContactRelationship(
+      relationshipType: _normalizedText(relationshipTypeController),
       contextNote: _normalizedText(relationshipContextNoteController),
       interests: _splitTags(relationshipInterestsController.text),
       lookingFor: _splitTags(relationshipLookingForController.text),
@@ -314,6 +335,8 @@ class ContactFormViewModel extends ChangeNotifier {
     identityFavoriteSongController.text = contact.identity.favoriteSong ?? '';
     identityEmailController.text = contact.identity.email ?? '';
     identityPhoneController.text = contact.identity.phone ?? '';
+    relationshipTypeController.text =
+        contact.relationship.relationshipType ?? '';
     relationshipInterestsController.text = contact.relationship.interests.join(
       ', ',
     );
@@ -360,6 +383,7 @@ class ContactFormViewModel extends ChangeNotifier {
     identityFavoriteSongController.dispose();
     identityEmailController.dispose();
     identityPhoneController.dispose();
+    relationshipTypeController.dispose();
     relationshipInterestsController.dispose();
     relationshipLookingForController.dispose();
     relationshipPersonalityTagsController.dispose();

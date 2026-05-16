@@ -83,6 +83,8 @@ class ProfileService {
       'bio': null,
       'social_profiles': const [],
       'onboarding_completed': false,
+      'is_active': true,
+      'deactivated_at': null,
       'created_at': FieldValue.serverTimestamp(),
       'updated_at': FieldValue.serverTimestamp(),
       'last_login': FieldValue.serverTimestamp(),
@@ -98,9 +100,11 @@ class ProfileService {
       bio: null,
       socialProfiles: const [],
       onboardingCompleted: false,
+      isActive: true,
       createdAt: now,
       updatedAt: now,
       lastLogin: now,
+      deactivatedAt: null,
     );
   }
 

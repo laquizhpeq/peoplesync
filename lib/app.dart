@@ -3,11 +3,14 @@ import 'package:peoplesync/shared/themes/app_theme.dart';
 
 import 'package:provider/provider.dart';
 import 'package:peoplesync/core/di/service_locator.dart';
+import 'package:peoplesync/core/services/app_feedback_service.dart';
+import 'package:peoplesync/core/services/app_logger.dart';
 import 'package:peoplesync/features/auth/auth_service.dart';
 import 'package:peoplesync/features/contacts/connections_viewmodel.dart';
 import 'package:peoplesync/features/navigation/navigation_provider.dart';
 import 'package:peoplesync/features/profile/profile_service.dart';
 import 'package:peoplesync/features/settings/theme_provider.dart';
+import 'package:peoplesync/shared/widgets/common/app_runtime_error_view.dart';
 
 import 'core/constants/routes.dart';
 import 'core/utils/route_utils.dart';
@@ -69,6 +72,7 @@ class _SessionBootstrapState extends State<_SessionBootstrap> {
     final currentUser = authService.currentUser;
 
     if (currentUser == null) {
+      AppLogger.info('Sesion vacia; limpiando estado global', scope: 'session');
       _bootstrappedUid = null;
       connectionsViewModel.clear();
       profileService.clearCache();
@@ -77,14 +81,46 @@ class _SessionBootstrapState extends State<_SessionBootstrap> {
     }
 
     if (_bootstrappedUid != currentUser.uid) {
+      AppLogger.debug(
+        'Cambio de usuario detectado; invalidando cache de perfil',
+        scope: 'session',
+      );
       profileService.clearCache();
       _bootstrappedUid = currentUser.uid;
     }
 
-    await profileService.ensureCurrentUserProfile();
-    connectionsViewModel.initialize();
-    if (!navigationProvider.hasLoaded && !navigationProvider.isLoading) {
-      await navigationProvider.loadMenus(currentUser.uid);
+    try {
+      await profileService.ensureCurrentUserProfile();
+      AppLogger.debug('Perfil del usuario asegurado', scope: 'session');
+      final profile = profileService.cachedProfile;
+      if (profile != null && !profile.isActive) {
+        AppLogger.warning(
+          'Se detecto una cuenta desactivada con sesion activa',
+          scope: 'session',
+        );
+        await authService.signOut();
+        connectionsViewModel.clear();
+        navigationProvider.clearMenus();
+        AppFeedbackService.showError(
+          'Tu cuenta esta desactivada. Contacta con un administrador.',
+        );
+        return;
+      }
+      connectionsViewModel.initialize();
+      if (!navigationProvider.hasLoaded && !navigationProvider.isLoading) {
+        await navigationProvider.loadMenus(currentUser.uid);
+      }
+    } catch (error, stackTrace) {
+      AppLogger.error(
+        'Fallo durante el bootstrap de sesion',
+        scope: 'session',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      AppFeedbackService.showError(
+        'No se pudo preparar tu sesion. Reintenta o reinicia la app.',
+      );
+      return;
     }
 
     final needsOnboarding = profileService.requiresOnboardingFromCache();
@@ -120,10 +156,27 @@ class _SessionBootstrapState extends State<_SessionBootstrap> {
           builder: (context, themeProvider, _) {
             return MaterialApp.router(
               title: 'PeopleSync',
+              scaffoldMessengerKey: AppFeedbackService.scaffoldMessengerKey,
               theme: AppTheme.lightTheme,
               darkTheme: AppTheme.darkTheme,
               themeMode: themeProvider.themeMode,
               routerConfig: AppRoutes.router,
+              builder: (context, child) {
+                ErrorWidget.builder = (details) {
+                  AppLogger.error(
+                    'Error al construir un widget',
+                    scope: 'ui',
+                    error: details.exception,
+                    stackTrace: details.stack,
+                  );
+                  return const AppRuntimeErrorView(
+                    title: 'Esta parte de la app no se pudo mostrar',
+                    description:
+                        'Prueba a volver atras, recargar la pantalla o reiniciar la aplicacion. Si el problema persiste, revisa los logs de depuracion.',
+                  );
+                };
+                return child ?? const SizedBox.shrink();
+              },
             );
           },
         );

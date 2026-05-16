@@ -1,4 +1,6 @@
 import 'package:get_it/get_it.dart';
+import 'package:peoplesync/features/admin/admin_service.dart';
+import 'package:peoplesync/features/admin/admin_users_viewmodel.dart';
 import 'package:peoplesync/features/contacts/contact_service.dart';
 import 'package:peoplesync/features/contacts/contact_form_viewmodel.dart';
 import 'package:peoplesync/features/contacts/connections_viewmodel.dart';
@@ -21,6 +23,7 @@ final getIt = GetIt.instance;
 void setupServiceLocator() {
   // Services
   getIt.registerLazySingleton<ContactService>(() => ContactService());
+  getIt.registerLazySingleton<AdminService>(() => AdminService());
   getIt.registerLazySingleton<AuthService>(() => AuthService());
   getIt.registerLazySingleton<ProfileService>(() => ProfileService());
   getIt.registerLazySingleton<NavigationService>(() => NavigationService());
@@ -77,5 +80,8 @@ void setupServiceLocator() {
       contactService: getIt<ContactService>(),
       authService: getIt<AuthService>(),
     ),
+  );
+  getIt.registerFactory<AdminUsersViewModel>(
+    () => AdminUsersViewModel(adminService: getIt<AdminService>()),
   );
 }

@@ -11,9 +11,11 @@ class UserProfile {
   String? bio;
   List<ContactSocialProfile> socialProfiles;
   bool onboardingCompleted;
+  bool isActive;
   DateTime? createdAt;
   DateTime? updatedAt;
   DateTime? lastLogin;
+  DateTime? deactivatedAt;
 
   UserProfile({
     required this.uid,
@@ -25,9 +27,11 @@ class UserProfile {
     this.bio,
     this.socialProfiles = const [],
     this.onboardingCompleted = false,
+    this.isActive = true,
     this.createdAt,
     this.updatedAt,
     this.lastLogin,
+    this.deactivatedAt,
   });
 
   factory UserProfile.fromMap(Map<String, dynamic> map, String uid) {
@@ -47,9 +51,11 @@ class UserProfile {
           )
           .toList(),
       onboardingCompleted: map['onboarding_completed'] as bool? ?? false,
+      isActive: map['is_active'] as bool? ?? true,
       createdAt: (map['created_at'] as Timestamp?)?.toDate(),
       updatedAt: (map['updated_at'] as Timestamp?)?.toDate(),
       lastLogin: (map['last_login'] as Timestamp?)?.toDate(),
+      deactivatedAt: (map['deactivated_at'] as Timestamp?)?.toDate(),
     );
   }
 
@@ -65,9 +71,13 @@ class UserProfile {
           .map((profile) => profile.toMap())
           .toList(),
       'onboarding_completed': onboardingCompleted,
+      'is_active': isActive,
       'created_at': createdAt ?? FieldValue.serverTimestamp(),
       'updated_at': updatedAt ?? FieldValue.serverTimestamp(),
       'last_login': lastLogin ?? FieldValue.serverTimestamp(),
+      'deactivated_at': deactivatedAt == null
+          ? null
+          : Timestamp.fromDate(deactivatedAt!),
     };
   }
 }

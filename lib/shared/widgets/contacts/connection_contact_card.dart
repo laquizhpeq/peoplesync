@@ -20,6 +20,7 @@ class ConnectionContactCard extends StatelessWidget {
         : contact.identity.displayName;
     final subtitle = _buildSubtitle(contact);
     final metaLine = _buildMetaLine(contact);
+    final relationshipMode = _resolveRelationshipMode(contact);
 
     return Material(
       color: Colors.transparent,
@@ -55,6 +56,10 @@ class ConnectionContactCard extends StatelessWidget {
                     children: [
                       Row(
                         children: [
+                          if (relationshipMode != null) ...[
+                            _RelationshipModeBadge(mode: relationshipMode),
+                            const SizedBox(width: 8),
+                          ],
                           Expanded(
                             child: Text(
                               displayName,
@@ -119,6 +124,27 @@ class ConnectionContactCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _RelationshipModeBadge extends StatelessWidget {
+  final _RelationshipMode mode;
+
+  const _RelationshipModeBadge({required this.mode});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      width: 24,
+      height: 24,
+      decoration: BoxDecoration(
+        color: mode.color.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Icon(mode.icon, size: 14, color: mode.color),
     );
   }
 }
@@ -341,6 +367,11 @@ String? _buildSubtitle(ContactRecord contact) {
 
 String? _buildMetaLine(ContactRecord contact) {
   final parts = <String>[];
+  final relationshipMode = _resolveRelationshipMode(contact);
+
+  if (relationshipMode != null) {
+    parts.add(relationshipMode.label);
+  }
 
   if (contact.relationship.wantsToStrengthenRelationship) {
     parts.add('Relacion a cuidar');
@@ -360,3 +391,82 @@ String? _buildMetaLine(ContactRecord contact) {
 }
 
 bool _hasText(String? value) => value != null && value.trim().isNotEmpty;
+
+class _RelationshipMode {
+  final String label;
+  final IconData icon;
+  final Color color;
+
+  const _RelationshipMode({
+    required this.label,
+    required this.icon,
+    required this.color,
+  });
+}
+
+_RelationshipMode? _resolveRelationshipMode(ContactRecord contact) {
+  final candidates = <String>[
+    contact.relationship.relationshipType ?? '',
+    ...contact.relationship.lookingFor,
+    ...contact.relationship.personalityTags,
+  ];
+
+  for (final candidate in candidates) {
+    final mode = _relationshipModeFromText(candidate);
+    if (mode != null) return mode;
+  }
+
+  return null;
+}
+
+_RelationshipMode? _relationshipModeFromText(String value) {
+  final normalized = value.trim().toLowerCase();
+  if (normalized.isEmpty) return null;
+
+  if (normalized.contains('network')) {
+    return const _RelationshipMode(
+      label: 'Networking',
+      icon: Icons.hub_outlined,
+      color: Color(0xFF3F51B5),
+    );
+  }
+  if (normalized.contains('amist')) {
+    return const _RelationshipMode(
+      label: 'Amistad',
+      icon: Icons.favorite_outline_rounded,
+      color: Color(0xFFE85D75),
+    );
+  }
+  if (normalized.contains('client')) {
+    return const _RelationshipMode(
+      label: 'Cliente',
+      icon: Icons.business_center_outlined,
+      color: Color(0xFFFB8C00),
+    );
+  }
+  if (normalized.contains('colabor')) {
+    return const _RelationshipMode(
+      label: 'Colaboracion',
+      icon: Icons.handshake_outlined,
+      color: Color(0xFF00897B),
+    );
+  }
+  if (normalized.contains('famil')) {
+    return const _RelationshipMode(
+      label: 'Familia',
+      icon: Icons.home_outlined,
+      color: Color(0xFF8E24AA),
+    );
+  }
+  if (normalized.contains('cultiv') ||
+      normalized.contains('seguir') ||
+      normalized.contains('cuidar')) {
+    return const _RelationshipMode(
+      label: 'Seguir cultivando',
+      icon: Icons.eco_outlined,
+      color: Color(0xFF43A047),
+    );
+  }
+
+  return null;
+}
