@@ -16,9 +16,6 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<ConnectionsViewModel>(
       builder: (context, connectionsViewModel, _) {
-        final reconnectContacts = _buildReconnectContacts(
-          connectionsViewModel.contacts,
-        );
         final careContacts = _buildCareContacts(connectionsViewModel.contacts);
         final relationshipMap = _buildRelationshipMap(
           connectionsViewModel.contacts,
@@ -37,14 +34,12 @@ class HomePage extends StatelessWidget {
                 child: _QuickActionsMenu(),
               ),
               const SizedBox(height: 16),
-              _ReconnectSection(contacts: reconnectContacts),
-              const SizedBox(height: 18),
-              _CareSection(contacts: careContacts),
-              const SizedBox(height: 18),
               _RelationshipMapSection(
                 totalContacts: connectionsViewModel.contacts.length,
                 mapItems: relationshipMap,
               ),
+              const SizedBox(height: 18),
+              _CareSection(contacts: careContacts),
               const SizedBox(height: 18),
               _SpotlightSection(contact: spotlightContact),
             ],
@@ -165,155 +160,6 @@ class _QuickActionMenuItem extends StatelessWidget {
         const SizedBox(width: 12),
         Text(label),
       ],
-    );
-  }
-}
-
-class _ReconnectSection extends StatelessWidget {
-  final List<ContactRecord> contacts;
-
-  const _ReconnectSection({required this.contacts});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
-        gradient: LinearGradient(
-          colors: [theme.colorScheme.primary, theme.colorScheme.secondary],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.primary.withValues(alpha: 0.14),
-            blurRadius: 24,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Vuelve a conectar',
-            style: theme.textTheme.headlineSmall?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Personas de tu red que llevan tiempo sin una actualizacion.',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: Colors.white.withValues(alpha: 0.92),
-            ),
-          ),
-          const SizedBox(height: 16),
-          if (contacts.isEmpty)
-            _ReconnectEmpty()
-          else
-            Column(
-              children: contacts
-                  .take(3)
-                  .map(
-                    (contact) => Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: _ReconnectItem(contact: contact),
-                    ),
-                  )
-                  .toList(),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ReconnectEmpty extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.14),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        'Todavia no hay contactos suficientes para sugerir a quien revisar.',
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: Colors.white,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-}
-
-class _ReconnectItem extends StatelessWidget {
-  final ContactRecord contact;
-
-  const _ReconnectItem({required this.contact});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final name = _displayName(contact);
-    final subtitle = _reconnectSubtitle(contact);
-
-    return Material(
-      color: Colors.white.withValues(alpha: 0.14),
-      borderRadius: BorderRadius.circular(20),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: () => context.go(Routes.connections),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              _Avatar(
-                photoUrl: contact.identity.photoUrl,
-                seed: contact.id,
-                displayName: name,
-                compact: true,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      subtitle,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.9),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.chevron_right_rounded,
-                color: Colors.white.withValues(alpha: 0.9),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
@@ -981,16 +827,6 @@ class _AvatarFallback extends StatelessWidget {
   }
 }
 
-List<ContactRecord> _buildReconnectContacts(List<ContactRecord> contacts) {
-  final sorted = [...contacts];
-  sorted.sort((a, b) {
-    final aScore = _stalenessDate(a);
-    final bScore = _stalenessDate(b);
-    return aScore.compareTo(bScore);
-  });
-  return sorted.take(3).toList();
-}
-
 List<ContactRecord> _buildCareContacts(List<ContactRecord> contacts) {
   final filtered = contacts
       .where((contact) => contact.relationship.wantsToStrengthenRelationship)
@@ -1041,22 +877,6 @@ String _displayName(ContactRecord contact) {
   return contact.relationship.customDisplayName?.trim().isNotEmpty == true
       ? contact.relationship.customDisplayName!
       : contact.identity.displayName;
-}
-
-String _reconnectSubtitle(ContactRecord contact) {
-  final days = DateTime.now().difference(_stalenessDate(contact)).inDays;
-  final context = contact.relationship.contextNote?.trim();
-  final role = contact.identity.jobTitle?.trim();
-
-  if (context != null && context.isNotEmpty) {
-    return context;
-  }
-  if (role != null && role.isNotEmpty) {
-    return '$role · hace $days dias';
-  }
-  return days <= 0
-      ? 'Sin actualizacion reciente'
-      : 'Hace $days dias sin revisar';
 }
 
 String _careSubtitle(ContactRecord contact) {
