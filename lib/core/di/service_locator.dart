@@ -16,8 +16,13 @@ import 'package:peoplesync/features/profile/profile_viewmodel.dart';
 import 'package:peoplesync/features/navigation/navigation_provider.dart';
 import 'package:peoplesync/features/qr_code/qr_service.dart';
 import 'package:peoplesync/features/contacts/contact_import_service.dart';
+import 'package:peoplesync/features/contacts/local_contacts_cache_service.dart';
 import 'package:peoplesync/features/contacts/contact_sync_viewmodel.dart';
+import 'package:peoplesync/features/settings/local_api_server_service.dart';
+import 'package:peoplesync/features/settings/local_developer_token_service.dart';
 import 'package:peoplesync/features/settings/theme_provider.dart';
+import 'package:peoplesync/features/settings/developer_token_service.dart';
+import 'package:peoplesync/features/settings/developer_token_viewmodel.dart';
 import 'package:peoplesync/pages/scanner/scanner_viewmodel.dart';
 
 final getIt = GetIt.instance;
@@ -31,6 +36,24 @@ void setupServiceLocator() {
   getIt.registerLazySingleton<ProfileService>(() => ProfileService());
   getIt.registerLazySingleton<NavigationService>(() => NavigationService());
   getIt.registerLazySingleton<QrService>(() => QrService());
+  getIt.registerLazySingleton<LocalContactsCacheService>(
+    () => LocalContactsCacheService(),
+  );
+  getIt.registerLazySingleton<LocalDeveloperTokenService>(
+    () => LocalDeveloperTokenService(authService: getIt<AuthService>()),
+  );
+  getIt.registerLazySingleton<LocalApiServerService>(
+    () => LocalApiServerService(
+      authService: getIt<AuthService>(),
+      localDeveloperTokenService: getIt<LocalDeveloperTokenService>(),
+      localContactsCacheService: getIt<LocalContactsCacheService>(),
+    ),
+  );
+  getIt.registerLazySingleton<DeveloperTokenService>(
+    () => DeveloperTokenService(
+      localDeveloperTokenService: getIt<LocalDeveloperTokenService>(),
+    ),
+  );
   getIt.registerLazySingleton<ContactImportService>(
     () => ContactImportService(),
   );
@@ -67,6 +90,7 @@ void setupServiceLocator() {
     () => ConnectionsViewModel(
       contactService: getIt<ContactService>(),
       authService: getIt<AuthService>(),
+      localContactsCacheService: getIt<LocalContactsCacheService>(),
     ),
   );
   getIt.registerFactory<ScannerViewModel>(
@@ -89,5 +113,12 @@ void setupServiceLocator() {
   );
   getIt.registerFactory<ContactAiViewModel>(
     () => ContactAiViewModel(aiService: getIt<AiService>()),
+  );
+  getIt.registerFactory<DeveloperTokenViewModel>(
+    () => DeveloperTokenViewModel(
+      developerTokenService: getIt<DeveloperTokenService>(),
+      localApiServerService: getIt<LocalApiServerService>(),
+      contactService: getIt<ContactService>(),
+    ),
   );
 }

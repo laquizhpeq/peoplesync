@@ -29,6 +29,7 @@ Esa separación evita mezclar datos públicos con interpretación personal y hac
 - Firebase Auth
 - Cloud Firestore
 - Supabase Storage
+- SQLite local para cache de contactos
 - Provider
 - get_it
 - go_router

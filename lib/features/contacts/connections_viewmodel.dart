@@ -4,11 +4,13 @@ import 'package:flutter/foundation.dart';
 import 'package:peoplesync/core/services/app_logger.dart';
 import 'package:peoplesync/features/auth/auth_service.dart';
 import 'package:peoplesync/features/contacts/contact_service.dart';
+import 'package:peoplesync/features/contacts/local_contacts_cache_service.dart';
 import 'package:peoplesync/features/contacts/models/contact_record.dart';
 
 class ConnectionsViewModel extends ChangeNotifier {
   final ContactService contactService;
   final AuthService authService;
+  final LocalContactsCacheService localContactsCacheService;
 
   List<ContactRecord> _contacts = [];
   bool _isLoading = true;
@@ -23,9 +25,10 @@ class ConnectionsViewModel extends ChangeNotifier {
   ConnectionsViewModel({
     required this.contactService,
     required this.authService,
+    required this.localContactsCacheService,
   });
 
-  void initialize() {
+  Future<void> initialize() async {
     final currentUid = authService.currentUser?.uid;
     if (currentUid == null || currentUid.isEmpty) {
       AppLogger.warning(
@@ -54,13 +57,16 @@ class ConnectionsViewModel extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
 
+    await _loadCachedContacts(currentUid);
+
     _subscription = contactService
         .streamMyContacts(currentUid)
         .listen(
-          (contacts) {
+          (contacts) async {
             _contacts = contacts;
             _isLoading = false;
             _errorMessage = null;
+            await localContactsCacheService.replaceContacts(currentUid, contacts);
             if (contacts.isEmpty) {
               AppLogger.info(
                 'El usuario no tiene contactos guardados',
@@ -89,13 +95,39 @@ class ConnectionsViewModel extends ChangeNotifier {
 
   void clear() {
     AppLogger.debug('Limpiando estado de conexiones', scope: 'connections');
+    final previousUid = _initializedUid;
     _subscription?.cancel();
     _subscription = null;
     _initializedUid = null;
     _contacts = [];
     _isLoading = false;
     _errorMessage = null;
+    if (previousUid != null && previousUid.isNotEmpty) {
+      unawaited(localContactsCacheService.clearForUser(previousUid));
+    }
     notifyListeners();
+  }
+
+  Future<void> _loadCachedContacts(String uid) async {
+    try {
+      final cachedContacts = await localContactsCacheService.readContacts(uid);
+      if (cachedContacts.isEmpty) return;
+
+      _contacts = cachedContacts;
+      _isLoading = false;
+      AppLogger.debug(
+        'Conexiones cargadas desde cache local: ${cachedContacts.length}',
+        scope: 'connections',
+      );
+      notifyListeners();
+    } catch (error, stackTrace) {
+      AppLogger.error(
+        'No se pudo leer la cache local de contactos',
+        scope: 'connections',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   Future<void> syncContact(String contactoUid) async {

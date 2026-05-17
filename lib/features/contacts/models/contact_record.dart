@@ -94,6 +94,8 @@ class ContactSocialProfile {
       'url': url,
     };
   }
+
+  Map<String, dynamic> toJsonMap() => toMap();
 }
 
 class ContactIdentity {
@@ -167,6 +169,50 @@ class ContactIdentity {
       'phone': phone,
       'social_profiles': socialProfiles
           .map((profile) => profile.toMap())
+          .toList(),
+    };
+  }
+
+  factory ContactIdentity.fromJsonMap(Map<String, dynamic> map) {
+    return ContactIdentity(
+      displayName: map['display_name'] as String? ?? '',
+      photoUrl: map['photo_url'] as String?,
+      age: (map['age'] as num?)?.toInt(),
+      birthday: _dateTimeFromIsoString(map['birthday'] as String?),
+      city: map['city'] as String?,
+      company: map['company'] as String?,
+      jobTitle: map['job_title'] as String?,
+      bio: map['bio'] as String?,
+      about: map['about'] as String?,
+      favoriteSong: map['favorite_song'] as String?,
+      email: map['email'] as String?,
+      phone: map['phone'] as String?,
+      socialProfiles: (map['social_profiles'] as List<dynamic>? ?? const [])
+          .whereType<Map>()
+          .map(
+            (item) =>
+                ContactSocialProfile.fromMap(Map<String, dynamic>.from(item)),
+          )
+          .toList(),
+    );
+  }
+
+  Map<String, dynamic> toJsonMap() {
+    return {
+      'display_name': displayName,
+      'photo_url': photoUrl,
+      'age': age,
+      'birthday': birthday?.toIso8601String(),
+      'city': city,
+      'company': company,
+      'job_title': jobTitle,
+      'bio': bio,
+      'about': about,
+      'favorite_song': favoriteSong,
+      'email': email,
+      'phone': phone,
+      'social_profiles': socialProfiles
+          .map((profile) => profile.toJsonMap())
           .toList(),
     };
   }
@@ -257,6 +303,57 @@ class ContactRelationship {
       'ai_summary_model': aiSummaryModel,
     };
   }
+
+  factory ContactRelationship.fromJsonMap(Map<String, dynamic> map) {
+    return ContactRelationship(
+      relationshipType: map['relationship_type'] as String?,
+      contextNote: map['context_note'] as String?,
+      privateNotes: map['private_notes'] as String?,
+      interests: List<String>.from(map['interests'] ?? const []),
+      lookingFor: List<String>.from(map['looking_for'] ?? const []),
+      personalityTags: List<String>.from(map['personality_tags'] ?? const []),
+      lastInteractionNote: map['last_interaction_note'] as String?,
+      lastInteractionAt: _dateTimeFromIsoString(
+        map['last_interaction_at'] as String?,
+      ),
+      isFavorite: map['is_favorite'] as bool? ?? false,
+      wantsToStrengthenRelationship:
+          map['wants_to_strengthen_relationship'] as bool? ?? false,
+      isArchived: map['is_archived'] as bool? ?? false,
+      customDisplayName: map['custom_display_name'] as String?,
+      aiSummary: map['ai_summary'] is Map<String, dynamic>
+          ? ContactAiSummary.fromMap(map['ai_summary'] as Map<String, dynamic>)
+          : map['ai_summary'] is Map
+          ? ContactAiSummary.fromMap(
+              Map<String, dynamic>.from(map['ai_summary'] as Map),
+            )
+          : null,
+      aiSummaryUpdatedAt: _dateTimeFromIsoString(
+        map['ai_summary_updated_at'] as String?,
+      ),
+      aiSummaryModel: map['ai_summary_model'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJsonMap() {
+    return {
+      'relationship_type': relationshipType,
+      'context_note': contextNote,
+      'private_notes': privateNotes,
+      'interests': interests,
+      'looking_for': lookingFor,
+      'personality_tags': personalityTags,
+      'last_interaction_note': lastInteractionNote,
+      'last_interaction_at': lastInteractionAt?.toIso8601String(),
+      'is_favorite': isFavorite,
+      'wants_to_strengthen_relationship': wantsToStrengthenRelationship,
+      'is_archived': isArchived,
+      'custom_display_name': customDisplayName,
+      'ai_summary': aiSummary?.toMap(),
+      'ai_summary_updated_at': aiSummaryUpdatedAt?.toIso8601String(),
+      'ai_summary_model': aiSummaryModel,
+    };
+  }
 }
 
 class ContactRecord {
@@ -317,6 +414,40 @@ class ContactRecord {
       'relationship': relationship.toMap(),
       'created_at': createdAt ?? FieldValue.serverTimestamp(),
       'updated_at': FieldValue.serverTimestamp(),
+    };
+  }
+
+  factory ContactRecord.fromJsonMap(Map<String, dynamic> map) {
+    return ContactRecord(
+      id: map['id'] as String? ?? '',
+      ownerUid: map['owner_uid'] as String? ?? '',
+      source: _contactSourceFromValue(map['source'] as String?),
+      linkedUserUid: map['linked_user_uid'] as String?,
+      deviceContactId: map['device_contact_id'] as String?,
+      importedFromQrId: map['imported_from_qr_id'] as String?,
+      identity: ContactIdentity.fromJsonMap(
+        Map<String, dynamic>.from(map['identity'] as Map? ?? const {}),
+      ),
+      relationship: ContactRelationship.fromJsonMap(
+        Map<String, dynamic>.from(map['relationship'] as Map? ?? const {}),
+      ),
+      createdAt: _dateTimeFromIsoString(map['created_at'] as String?),
+      updatedAt: _dateTimeFromIsoString(map['updated_at'] as String?),
+    );
+  }
+
+  Map<String, dynamic> toJsonMap() {
+    return {
+      'id': id,
+      'owner_uid': ownerUid,
+      'source': _contactSourceValue(source),
+      'linked_user_uid': linkedUserUid,
+      'device_contact_id': deviceContactId,
+      'imported_from_qr_id': importedFromQrId,
+      'identity': identity.toJsonMap(),
+      'relationship': relationship.toJsonMap(),
+      'created_at': createdAt?.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
     };
   }
 
@@ -399,4 +530,9 @@ String _contactSourceValue(ContactSource source) {
     ContactSource.linkedUser => 'linked_user',
     ContactSource.qrImport => 'qr_import',
   };
+}
+
+DateTime? _dateTimeFromIsoString(String? value) {
+  if (value == null || value.trim().isEmpty) return null;
+  return DateTime.tryParse(value);
 }

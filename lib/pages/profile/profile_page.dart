@@ -8,7 +8,6 @@ import 'package:peoplesync/features/navigation/navigation_provider.dart';
 import 'package:peoplesync/features/profile/models/user_profile.dart';
 import 'package:peoplesync/features/profile/profile_viewmodel.dart';
 import 'package:peoplesync/features/qr_code/qr_service.dart';
-import 'package:peoplesync/features/settings/theme_provider.dart';
 import 'package:peoplesync/shared/widgets/profile/profile_section_card.dart';
 import 'package:peoplesync/shared/widgets/profile/profile_summary_card.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
@@ -76,8 +75,6 @@ class ProfilePage extends StatelessWidget {
 }
 
 enum _ProfileMenuAction { settings, logout }
-
-enum _ProfileSettingsAction { themeSystem, themeLight, themeDark }
 
 class _ProfileSettingsMenu extends StatelessWidget {
   @override
@@ -148,7 +145,9 @@ class _ProfileSettingsMenu extends StatelessWidget {
   ) async {
     switch (action) {
       case _ProfileMenuAction.settings:
-        _showSettingsSubmenu(context);
+        if (context.mounted) {
+          context.push(Routes.settings);
+        }
         break;
       case _ProfileMenuAction.logout:
         await getIt<AuthService>().signOut();
@@ -160,156 +159,6 @@ class _ProfileSettingsMenu extends StatelessWidget {
         }
         break;
     }
-  }
-
-  Future<void> _showSettingsSubmenu(BuildContext context) async {
-    final themeProvider = context.read<ThemeProvider>();
-
-    final selection = await showModalBottomSheet<_ProfileSettingsAction>(
-      context: context,
-      showDragHandle: true,
-      builder: (sheetContext) {
-        final theme = Theme.of(sheetContext);
-
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Configuracion',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Ajustes basicos de la app.',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 18),
-                _SettingsSheetOption(
-                  title: 'Tema automatico',
-                  subtitle: 'Usa la configuracion del sistema',
-                  selected: themeProvider.isSystemMode,
-                  onTap: () => Navigator.pop(
-                    sheetContext,
-                    _ProfileSettingsAction.themeSystem,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                _SettingsSheetOption(
-                  title: 'Modo claro',
-                  subtitle: 'Interfaz clara para uso diario',
-                  selected: themeProvider.isLightMode,
-                  onTap: () => Navigator.pop(
-                    sheetContext,
-                    _ProfileSettingsAction.themeLight,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                _SettingsSheetOption(
-                  title: 'Modo oscuro',
-                  subtitle: 'Interfaz mas comoda por la noche',
-                  selected: themeProvider.isDarkMode,
-                  onTap: () => Navigator.pop(
-                    sheetContext,
-                    _ProfileSettingsAction.themeDark,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-
-    switch (selection) {
-      case _ProfileSettingsAction.themeSystem:
-        themeProvider.setThemeMode(ThemeMode.system);
-        break;
-      case _ProfileSettingsAction.themeLight:
-        themeProvider.setThemeMode(ThemeMode.light);
-        break;
-      case _ProfileSettingsAction.themeDark:
-        themeProvider.setThemeMode(ThemeMode.dark);
-        break;
-      case null:
-        break;
-    }
-  }
-}
-
-class _SettingsSheetOption extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _SettingsSheetOption({
-    required this.title,
-    required this.subtitle,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return InkWell(
-      borderRadius: BorderRadius.circular(18),
-      onTap: onTap,
-      child: Ink(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: selected
-              ? theme.colorScheme.primary.withValues(alpha: 0.1)
-              : theme.colorScheme.surfaceContainerHighest.withValues(
-                  alpha: 0.35,
-                ),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: selected
-                ? theme.colorScheme.primary.withValues(alpha: 0.4)
-                : Colors.transparent,
-          ),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (selected)
-              Icon(
-                Icons.check_circle_rounded,
-                color: theme.colorScheme.primary,
-              ),
-          ],
-        ),
-      ),
-    );
   }
 }
 

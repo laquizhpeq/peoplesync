@@ -9,6 +9,7 @@ import 'package:peoplesync/features/auth/auth_service.dart';
 import 'package:peoplesync/features/contacts/connections_viewmodel.dart';
 import 'package:peoplesync/features/navigation/navigation_provider.dart';
 import 'package:peoplesync/features/profile/profile_service.dart';
+import 'package:peoplesync/features/settings/local_api_server_service.dart';
 import 'package:peoplesync/features/settings/theme_provider.dart';
 import 'package:peoplesync/shared/widgets/common/app_runtime_error_view.dart';
 
@@ -69,6 +70,7 @@ class _SessionBootstrapState extends State<_SessionBootstrap> {
     final connectionsViewModel = getIt<ConnectionsViewModel>();
     final navigationProvider = getIt<NavigationProvider>();
     final profileService = getIt<ProfileService>();
+    final localApiServerService = getIt<LocalApiServerService>();
     final currentUser = authService.currentUser;
 
     if (currentUser == null) {
@@ -77,6 +79,7 @@ class _SessionBootstrapState extends State<_SessionBootstrap> {
       connectionsViewModel.clear();
       profileService.clearCache();
       navigationProvider.clearMenus();
+      await localApiServerService.stop();
       return;
     }
 
@@ -106,7 +109,8 @@ class _SessionBootstrapState extends State<_SessionBootstrap> {
         );
         return;
       }
-      connectionsViewModel.initialize();
+      await connectionsViewModel.initialize();
+      await localApiServerService.syncWithPreference();
       if (!navigationProvider.hasLoaded && !navigationProvider.isLoading) {
         await navigationProvider.loadMenus(currentUser.uid);
       }

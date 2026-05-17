@@ -7,6 +7,20 @@ class AuthService {
 
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
+  Future<String> getIdToken({bool forceRefresh = false}) async {
+    final user = currentUser;
+    if (user == null) {
+      throw Exception('No hay un usuario autenticado.');
+    }
+
+    final token = await user.getIdToken(forceRefresh);
+    if (token == null || token.trim().isEmpty) {
+      throw Exception('No se pudo obtener el token de Firebase.');
+    }
+
+    return token;
+  }
+
   Future<UserCredential> signInWithEmailAndPassword({
     required String email,
     required String password,
