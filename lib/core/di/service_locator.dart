@@ -1,6 +1,8 @@
 import 'package:get_it/get_it.dart';
 import 'package:peoplesync/features/admin/admin_service.dart';
 import 'package:peoplesync/features/admin/admin_users_viewmodel.dart';
+import 'package:peoplesync/features/assistant/assistant_chat_viewmodel.dart';
+import 'package:peoplesync/features/assistant/assistant_service.dart';
 import 'package:peoplesync/features/ai/ai_service.dart';
 import 'package:peoplesync/features/ai/contact_ai_viewmodel.dart';
 import 'package:peoplesync/features/contacts/contact_service.dart';
@@ -31,6 +33,7 @@ void setupServiceLocator() {
   // Services
   getIt.registerLazySingleton<ContactService>(() => ContactService());
   getIt.registerLazySingleton<AdminService>(() => AdminService());
+  getIt.registerLazySingleton<AssistantService>(() => AssistantService());
   getIt.registerLazySingleton<AiService>(() => AiService());
   getIt.registerLazySingleton<AuthService>(() => AuthService());
   getIt.registerLazySingleton<ProfileService>(() => ProfileService());
@@ -113,6 +116,12 @@ void setupServiceLocator() {
   );
   getIt.registerFactory<ContactAiViewModel>(
     () => ContactAiViewModel(aiService: getIt<AiService>()),
+  );
+  getIt.registerFactory<AssistantChatViewModel>(
+    () => AssistantChatViewModel(
+      assistantService: getIt<AssistantService>(),
+      contactService: getIt<ContactService>(),
+    ),
   );
   getIt.registerFactory<DeveloperTokenViewModel>(
     () => DeveloperTokenViewModel(

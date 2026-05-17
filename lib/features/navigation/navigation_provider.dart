@@ -51,6 +51,7 @@ class NavigationProvider extends ChangeNotifier {
     if (normalizedPath == '/profile/edit') return true;
     if (normalizedPath == '/contact-sync') return true;
     if (normalizedPath == '/settings') return true;
+    if (normalizedPath == '/assistant') return true;
     if (path.toLowerCase().startsWith('/connections/')) return true;
     if (path.toLowerCase().startsWith('/contacts/')) return true;
     for (var m in _menus) {

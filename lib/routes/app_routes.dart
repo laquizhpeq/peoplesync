@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:peoplesync/core/constants/routes.dart';
 import 'package:peoplesync/pages/admin/admin_page.dart';
+import 'package:peoplesync/pages/assistant/assistant_page.dart';
 import 'package:peoplesync/pages/home/home_page.dart';
 import 'package:peoplesync/pages/auth/auth_page.dart';
 import 'package:peoplesync/pages/auth/register_page.dart';
@@ -160,6 +161,10 @@ class AppRoutes {
           GoRoute(
             path: Routes.admin,
             builder: (context, state) => const AdminPage(),
+          ),
+          GoRoute(
+            path: Routes.assistant,
+            builder: (context, state) => const AssistantPage(),
           ),
         ],
       ),

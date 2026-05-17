@@ -31,24 +31,7 @@ class AuthViewModel extends ChangeNotifier {
         email: email,
         password: password,
       );
-
-      final uid = authService.currentUser?.uid;
-      if (uid != null) {
-        await profileService.ensureCurrentUserProfile();
-        final profile = profileService.cachedProfile;
-        if (profile != null && !profile.isActive) {
-          await authService.signOut();
-          throw Exception(
-            'Tu cuenta esta desactivada. Contacta con un administrador.',
-          );
-        }
-        await profileService.touchLastLogin();
-        await navigationProvider.loadMenus(uid);
-      }
-
-      _isLoading = false;
-      _errorMessage = null;
-      notifyListeners();
+      await _finalizeAuthenticatedSession();
     } catch (e) {
       _isLoading = false;
       final errorStr = e.toString();
@@ -109,6 +92,26 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   void clearError() {
+    _errorMessage = null;
+    notifyListeners();
+  }
+
+  Future<void> _finalizeAuthenticatedSession() async {
+    final uid = authService.currentUser?.uid;
+    if (uid != null) {
+      await profileService.ensureCurrentUserProfile();
+      final profile = profileService.cachedProfile;
+      if (profile != null && !profile.isActive) {
+        await authService.signOut();
+        throw Exception(
+          'Tu cuenta esta desactivada. Contacta con un administrador.',
+        );
+      }
+      await profileService.touchLastLogin();
+      await navigationProvider.loadMenus(uid);
+    }
+
+    _isLoading = false;
     _errorMessage = null;
     notifyListeners();
   }

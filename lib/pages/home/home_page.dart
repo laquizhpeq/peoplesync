@@ -24,28 +24,77 @@ class HomePage extends StatelessWidget {
           connectionsViewModel.contacts,
         );
 
-        return SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Align(
-                alignment: Alignment.centerRight,
-                child: _QuickActionsMenu(),
+        return Stack(
+          children: [
+            SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Align(
+                    alignment: Alignment.centerRight,
+                    child: _QuickActionsMenu(),
+                  ),
+                  const SizedBox(height: 16),
+                  _RelationshipMapSection(
+                    totalContacts: connectionsViewModel.contacts.length,
+                    mapItems: relationshipMap,
+                  ),
+                  const SizedBox(height: 18),
+                  _CareSection(contacts: careContacts),
+                  const SizedBox(height: 18),
+                  _SpotlightSection(contact: spotlightContact),
+                ],
               ),
-              const SizedBox(height: 16),
-              _RelationshipMapSection(
-                totalContacts: connectionsViewModel.contacts.length,
-                mapItems: relationshipMap,
-              ),
-              const SizedBox(height: 18),
-              _CareSection(contacts: careContacts),
-              const SizedBox(height: 18),
-              _SpotlightSection(contact: spotlightContact),
-            ],
-          ),
+            ),
+            const Positioned(
+              right: 18,
+              bottom: 108,
+              child: _AssistantFloatingButton(),
+            ),
+          ],
         );
       },
+    );
+  }
+}
+
+class _AssistantFloatingButton extends StatelessWidget {
+  const _AssistantFloatingButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(999),
+      child: InkWell(
+        onTap: () => context.push(Routes.assistant),
+        borderRadius: BorderRadius.circular(999),
+        child: Ink(
+          width: 62,
+          height: 62,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFFFF8A65), Color(0xFFE85D5D)],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFE85D5D).withValues(alpha: 0.30),
+                blurRadius: 24,
+                offset: const Offset(0, 14),
+              ),
+            ],
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.82),
+              width: 2,
+            ),
+          ),
+          child: const Icon(Icons.auto_awesome_rounded, color: Colors.white),
+        ),
+      ),
     );
   }
 }

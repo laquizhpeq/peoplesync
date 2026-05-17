@@ -14,4 +14,5 @@ class Routes {
   static const String contactSync = '/contact-sync';
   static const String settings = '/settings';
   static const String admin = '/admin';
+  static const String assistant = '/assistant';
 }

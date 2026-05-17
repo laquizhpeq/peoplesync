@@ -58,17 +58,17 @@ class AuthService {
       case 'user-not-found':
         return 'Usuario no encontrado';
       case 'wrong-password':
-        return 'Contraseña incorrecta';
+        return 'Contrasena incorrecta';
       case 'invalid-email':
-        return 'Email inválido';
+        return 'Email invalido';
       case 'weak-password':
-        return 'La contraseña es demasiado débil';
+        return 'La contrasena es demasiado debil';
       case 'email-already-in-use':
-        return 'El email ya está registrado';
+        return 'El email ya esta registrado';
       case 'user-disabled':
         return 'Usuario deshabilitado';
       default:
-        return 'Error de autenticación';
+        return 'Error de autenticacion';
     }
   }
 }
