@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:peoplesync/core/constants/routes.dart';
+import 'package:peoplesync/core/services/app_feedback_service.dart';
 import 'package:peoplesync/features/auth/auth_viewmodel.dart';
 import 'package:peoplesync/core/constants/app_strings.dart';
 import 'package:peoplesync/shared/widgets/design/layout/app_page.dart';
@@ -42,14 +43,8 @@ class _AuthPageState extends State<AuthPage> {
     if (!mounted) return;
 
     if (viewModel.errorMessage == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Login successful')));
+      AppFeedbackService.showInfo('Sesion iniciada correctamente.');
       context.go(Routes.home);
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(viewModel.errorMessage!)));
     }
   }
 

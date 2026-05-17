@@ -3,6 +3,7 @@ import 'package:peoplesync/shared/themes/app_theme.dart';
 
 import 'package:provider/provider.dart';
 import 'package:peoplesync/core/di/service_locator.dart';
+import 'package:peoplesync/core/services/app_error_mapper.dart';
 import 'package:peoplesync/core/services/app_feedback_service.dart';
 import 'package:peoplesync/core/services/app_logger.dart';
 import 'package:peoplesync/features/auth/auth_service.dart';
@@ -173,10 +174,10 @@ class _SessionBootstrapState extends State<_SessionBootstrap> {
                     error: details.exception,
                     stackTrace: details.stack,
                   );
-                  return const AppRuntimeErrorView(
+                  return AppRuntimeErrorView(
                     title: 'Esta parte de la app no se pudo mostrar',
                     description:
-                        'Prueba a volver atras, recargar la pantalla o reiniciar la aplicacion. Si el problema persiste, revisa los logs de depuracion.',
+                        '${AppErrorMapper.toShortReason(details.exception)} Prueba a volver atras o recargar la pantalla.',
                   );
                 };
                 return child ?? const SizedBox.shrink();

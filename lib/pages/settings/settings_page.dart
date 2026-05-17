@@ -373,7 +373,10 @@ class _DeveloperTokenSection extends StatelessWidget {
       if (!context.mounted) return;
       await _showGeneratedTokenDialog(context, generatedToken);
     } catch (error) {
-      AppFeedbackService.showError(error.toString().replaceFirst('Exception: ', ''));
+      AppFeedbackService.showException(
+        error,
+        fallbackMessage: 'No se pudo generar el token. Vuelve a intentarlo.',
+      );
     }
   }
 
@@ -390,8 +393,10 @@ class _DeveloperTokenSection extends StatelessWidget {
             : 'Modo desarrollador desactivado.',
       );
     } catch (error) {
-      AppFeedbackService.showError(
-        error.toString().replaceFirst('Exception: ', ''),
+      AppFeedbackService.showException(
+        error,
+        fallbackMessage:
+            'No se pudo cambiar el modo desarrollador. Vuelve a intentarlo.',
       );
     }
   }
@@ -427,7 +432,10 @@ class _DeveloperTokenSection extends StatelessWidget {
       await viewModel.revokeToken();
       AppFeedbackService.showInfo('Token revocado.');
     } catch (error) {
-      AppFeedbackService.showError(error.toString().replaceFirst('Exception: ', ''));
+      AppFeedbackService.showException(
+        error,
+        fallbackMessage: 'No se pudo revocar el token. Vuelve a intentarlo.',
+      );
     }
   }
 
@@ -486,8 +494,10 @@ class _DeveloperTokenSection extends StatelessWidget {
         ),
       );
     } catch (error) {
-      AppFeedbackService.showError(
-        error.toString().replaceFirst('Exception: ', ''),
+      AppFeedbackService.showException(
+        error,
+        fallbackMessage:
+            'No se pudo exportar el JSON de contactos. Vuelve a intentarlo.',
       );
     }
   }

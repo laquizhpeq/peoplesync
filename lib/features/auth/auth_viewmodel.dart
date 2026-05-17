@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:peoplesync/core/services/app_error_mapper.dart';
 import 'package:peoplesync/core/services/app_logger.dart';
 import 'package:peoplesync/features/navigation/navigation_provider.dart';
 import 'package:peoplesync/features/profile/profile_service.dart';
@@ -34,11 +35,11 @@ class AuthViewModel extends ChangeNotifier {
       await _finalizeAuthenticatedSession();
     } catch (e) {
       _isLoading = false;
-      final errorStr = e.toString();
       AppLogger.error('Fallo el login de usuario', scope: 'auth', error: e);
-      _errorMessage = errorStr.startsWith('Exception: ')
-          ? errorStr.substring(11)
-          : errorStr;
+      _errorMessage = AppErrorMapper.toUserMessage(
+        e,
+        fallback: 'No se pudo iniciar sesion. Vuelve a intentarlo.',
+      );
       notifyListeners();
     }
   }
@@ -77,10 +78,10 @@ class AuthViewModel extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       _isLoading = false;
-      final errorStr = e.toString();
-      _errorMessage = errorStr.startsWith('Exception: ')
-          ? errorStr.substring(11)
-          : errorStr;
+      _errorMessage = AppErrorMapper.toUserMessage(
+        e,
+        fallback: 'No se pudo crear la cuenta. Revisa tus datos y prueba otra vez.',
+      );
       notifyListeners();
     }
   }

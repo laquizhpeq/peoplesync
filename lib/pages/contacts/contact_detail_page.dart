@@ -516,7 +516,9 @@ class _HeroIconButton extends StatelessWidget {
         child: SizedBox(
           width: 44,
           height: 44,
-          child: Icon(icon, color: Colors.white),
+          child: Center(
+            child: Icon(icon, color: Colors.white),
+          ),
         ),
       ),
     );
@@ -548,7 +550,7 @@ class _ActionRow extends StatelessWidget {
             label: Text(
               contact.relationship.wantsToStrengthenRelationship
                   ? 'Quitar cuidado'
-                  : 'Mejorar relacion',
+                  : 'Mejorar',
             ),
           ),
         ),
@@ -562,18 +564,15 @@ class _ActionRow extends StatelessWidget {
         ),
         const SizedBox(width: 10),
         Expanded(
-          child: FilledButton.icon(
+          child: FilledButton.tonal(
             onPressed: () => viewModel.toggleFavorite(
               contact.id,
               !contact.relationship.isFavorite,
             ),
-            icon: Icon(
+            child: Icon(
               contact.relationship.isFavorite
                   ? Icons.favorite_rounded
                   : Icons.favorite_border_rounded,
-            ),
-            label: Text(
-              contact.relationship.isFavorite ? 'Favorito' : 'Guardar',
             ),
           ),
         ),
@@ -1739,13 +1738,11 @@ Future<void> _confirmDelete(BuildContext context, ContactRecord contact) async {
   if (!context.mounted) return;
 
   if (error != null) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+    AppFeedbackService.showError(error);
     return;
   }
 
-  ScaffoldMessenger.of(
-    context,
-  ).showSnackBar(const SnackBar(content: Text('Contacto eliminado')));
+  AppFeedbackService.showInfo('Contacto eliminado.');
   context.go(Routes.connections);
 }
 

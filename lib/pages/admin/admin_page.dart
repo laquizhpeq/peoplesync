@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:peoplesync/core/di/service_locator.dart';
+import 'package:peoplesync/core/services/app_feedback_service.dart';
 import 'package:peoplesync/features/admin/admin_users_viewmodel.dart';
 import 'package:peoplesync/features/admin/models/admin_user_account.dart';
 import 'package:peoplesync/shared/widgets/common/empty_state.dart';
@@ -625,9 +626,7 @@ class _AdminUserCard extends StatelessWidget {
                 );
                 if (!context.mounted) return;
                 if (error != null) {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: Text(error)));
+                  AppFeedbackService.showError(error);
                   return;
                 }
                 Navigator.pop(context, true);
@@ -645,9 +644,7 @@ class _AdminUserCard extends StatelessWidget {
     bioController.dispose();
 
     if (saved == true && context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Usuario actualizado')));
+      AppFeedbackService.showInfo('Usuario actualizado.');
     }
   }
 
@@ -659,9 +656,12 @@ class _AdminUserCard extends StatelessWidget {
     final error = await future;
     if (!context.mounted) return;
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(error ?? successMessage)));
+    if (error != null) {
+      AppFeedbackService.showError(error);
+      return;
+    }
+
+    AppFeedbackService.showInfo(successMessage);
   }
 }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:peoplesync/core/services/app_error_mapper.dart';
 import 'package:peoplesync/features/contacts/contact_import_service.dart';
 import 'package:peoplesync/features/contacts/contact_service.dart';
 import 'package:peoplesync/features/auth/auth_service.dart';
@@ -72,7 +73,11 @@ class ContactSyncViewModel extends ChangeNotifier {
       _isSuccess = true;
       _statusMessage = '¡Exito! Se importaron $count contactos a tu agenda.';
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = AppErrorMapper.toUserMessage(
+        e,
+        fallback:
+            'No se pudieron importar los contactos. Vuelve a intentarlo.',
+      );
       _statusMessage = 'Ocurrio un error';
     } finally {
       _isLoading = false;

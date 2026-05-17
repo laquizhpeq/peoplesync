@@ -8,6 +8,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:peoplesync/core/config/env_config.dart';
 import 'package:peoplesync/core/di/service_locator.dart';
+import 'package:peoplesync/core/services/app_error_mapper.dart';
 import 'package:peoplesync/core/services/app_feedback_service.dart';
 import 'package:peoplesync/core/services/app_logger.dart';
 import 'firebase_options.dart';
@@ -24,7 +25,7 @@ void main() async {
       stackTrace: details.stack,
     );
     AppFeedbackService.showError(
-      'La app encontro un error inesperado. Reinicia la pantalla o vuelve a intentarlo.',
+      'La app encontro un error inesperado. ${AppErrorMapper.toShortReason(details.exception)}',
     );
   };
 
@@ -36,7 +37,7 @@ void main() async {
       stackTrace: stackTrace,
     );
     AppFeedbackService.showError(
-      'Algo fallo en segundo plano. Si se repite, reinicia la app.',
+      'Algo fallo en segundo plano. ${AppErrorMapper.toShortReason(error)}',
     );
     return true;
   };
@@ -76,7 +77,7 @@ void main() async {
         stackTrace: stackTrace,
       );
       AppFeedbackService.showError(
-        'La app fallo durante el arranque. Cierra y vuelve a abrir.',
+        'La app fallo durante el arranque. ${AppErrorMapper.toShortReason(error)}',
       );
     },
   );

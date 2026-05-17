@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:peoplesync/core/services/app_error_mapper.dart';
 import 'package:peoplesync/features/contacts/models/contact_record.dart';
 import 'package:peoplesync/features/profile/models/user_profile.dart';
 import 'package:peoplesync/features/profile/profile_service.dart';
@@ -23,6 +24,7 @@ class ProfileEditorViewModel extends ChangeNotifier {
 
   bool _isLoading = true;
   bool _isSaving = false;
+  bool _isPickingPhoto = false;
   String? _errorMessage;
   UserProfile? _profile;
 
@@ -32,6 +34,7 @@ class ProfileEditorViewModel extends ChangeNotifier {
 
   bool get isLoading => _isLoading;
   bool get isSaving => _isSaving;
+  bool get isPickingPhoto => _isPickingPhoto;
   String? get errorMessage => _errorMessage;
   UserProfile? get profile => _profile;
   Uint8List? get selectedPhotoBytes => _selectedPhotoBytes;
@@ -67,7 +70,10 @@ class ProfileEditorViewModel extends ChangeNotifier {
       _profile = await profileService.getProfile(forceRefresh: true);
       _hydrateControllers(_profile);
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = AppErrorMapper.toUserMessage(
+        e,
+        fallback: 'No se pudo cargar tu perfil. Reintenta en unos segundos.',
+      );
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -75,9 +81,17 @@ class ProfileEditorViewModel extends ChangeNotifier {
   }
 
   Future<void> pickPhoto() async {
-    try {
-      _photoPickerError = null;
+    if (_isPickingPhoto) {
+      _photoPickerError = 'La galeria ya se esta abriendo. Espera un momento.';
+      notifyListeners();
+      return;
+    }
 
+    _isPickingPhoto = true;
+    _photoPickerError = null;
+    notifyListeners();
+
+    try {
       if (_usesDesktopPicker) {
         final picked = await _pickWithFilePicker();
         if (picked) notifyListeners();
@@ -107,6 +121,19 @@ class ProfileEditorViewModel extends ChangeNotifier {
       _photoPickerError =
           'El selector de imagen no esta cargado. Cierra la app por completo y vuelvela a abrir.';
       notifyListeners();
+    } on PlatformException catch (e) {
+      if (e.code == 'already_active') {
+        _photoPickerError =
+            'La galeria ya se esta abriendo. Espera un momento.';
+        notifyListeners();
+        return;
+      }
+
+      _photoPickerError = AppErrorMapper.toUserMessage(
+        e,
+        fallback: 'No se pudo abrir la galeria. Vuelve a intentarlo.',
+      );
+      notifyListeners();
     } catch (e) {
       if ('$e'.contains('LateInitializationError')) {
         _photoPickerError =
@@ -115,7 +142,13 @@ class ProfileEditorViewModel extends ChangeNotifier {
         return;
       }
 
-      _photoPickerError = 'No se pudo abrir la galeria: $e';
+      _photoPickerError = AppErrorMapper.toUserMessage(
+        e,
+        fallback: 'No se pudo abrir la galeria. Vuelve a intentarlo.',
+      );
+      notifyListeners();
+    } finally {
+      _isPickingPhoto = false;
       notifyListeners();
     }
   }
@@ -199,7 +232,10 @@ class ProfileEditorViewModel extends ChangeNotifier {
       _profile = await profileService.getProfile(forceRefresh: true);
       return true;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = AppErrorMapper.toUserMessage(
+        e,
+        fallback: 'No se pudo guardar tu perfil. Vuelve a intentarlo.',
+      );
       return false;
     } finally {
       _isSaving = false;

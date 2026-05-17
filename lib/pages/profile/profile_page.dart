@@ -27,7 +27,64 @@ class ProfilePage extends StatelessWidget {
           }
 
           if (viewModel.errorMessage != null) {
-            return Center(child: Text(viewModel.errorMessage!));
+            final theme = Theme.of(context);
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      constraints: const BoxConstraints(maxWidth: 520),
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.errorContainer.withValues(
+                          alpha: 0.4,
+                        ),
+                        borderRadius: BorderRadius.circular(28),
+                        border: Border.all(
+                          color: theme.colorScheme.error.withValues(alpha: 0.22),
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.warning_amber_rounded,
+                            color: theme.colorScheme.error,
+                            size: 42,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No se pudo cargar tu perfil',
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: theme.colorScheme.error,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            '${viewModel.errorMessage!} Si se repite, cierra y vuelve a abrir la app.',
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurface,
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    FilledButton.icon(
+                      onPressed: viewModel.reload,
+                      icon: const Icon(Icons.refresh_rounded),
+                      label: const Text('Reintentar'),
+                    ),
+                  ],
+                ),
+              ),
+            );
           }
 
           final profile = viewModel.profile;

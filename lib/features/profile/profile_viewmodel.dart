@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:peoplesync/core/services/app_error_mapper.dart';
 import 'profile_service.dart';
 import 'package:peoplesync/features/profile/models/user_profile.dart';
 
@@ -19,6 +20,8 @@ class ProfileViewModel extends ChangeNotifier {
     _loadProfile();
   }
 
+  Future<void> reload() => _loadProfile();
+
   Future<void> _loadProfile() async {
     _isLoading = true;
     _errorMessage = null;
@@ -26,7 +29,10 @@ class ProfileViewModel extends ChangeNotifier {
     try {
       _profile = await profileService.getProfile(forceRefresh: true);
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = AppErrorMapper.toUserMessage(
+        e,
+        fallback: 'No se pudo cargar tu perfil. Reintenta en unos segundos.',
+      );
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -41,7 +47,10 @@ class ProfileViewModel extends ChangeNotifier {
       await profileService.updateProfile(fullName: fullName);
       _profile = await profileService.getProfile(forceRefresh: true);
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = AppErrorMapper.toUserMessage(
+        e,
+        fallback: 'No se pudo actualizar tu perfil. Vuelve a intentarlo.',
+      );
     } finally {
       _isSaving = false;
       notifyListeners();

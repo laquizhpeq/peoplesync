@@ -28,6 +28,8 @@ class ProfileForm extends StatelessWidget {
     final viewModel = context.watch<ProfileEditorViewModel>();
     final profile = viewModel.profile;
     final theme = Theme.of(context);
+    final isPhotoActionDisabled =
+        viewModel.isSaving || viewModel.isPickingPhoto;
 
     return Form(
       key: viewModel.formKey,
@@ -72,7 +74,9 @@ class ProfileForm extends StatelessWidget {
                   child: Column(
                     children: [
                       GestureDetector(
-                        onTap: viewModel.isSaving ? null : viewModel.pickPhoto,
+                        onTap: isPhotoActionDisabled
+                            ? null
+                            : viewModel.pickPhoto,
                         child: Stack(
                           alignment: Alignment.bottomRight,
                           children: [
@@ -113,7 +117,7 @@ class ProfileForm extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           TextButton.icon(
-                            onPressed: viewModel.isSaving
+                            onPressed: isPhotoActionDisabled
                                 ? null
                                 : viewModel.pickPhoto,
                             icon: const Icon(Icons.upload_rounded, size: 18),
@@ -121,7 +125,7 @@ class ProfileForm extends StatelessWidget {
                           ),
                           if (viewModel.hasPhoto)
                             TextButton.icon(
-                              onPressed: viewModel.isSaving
+                              onPressed: isPhotoActionDisabled
                                   ? null
                                   : viewModel.removePhoto,
                               icon: const Icon(

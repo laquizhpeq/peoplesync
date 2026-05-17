@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:peoplesync/core/constants/routes.dart';
 import 'package:peoplesync/core/di/service_locator.dart';
+import 'package:peoplesync/core/services/app_feedback_service.dart';
 import 'package:peoplesync/features/contacts/contact_form_viewmodel.dart';
 import 'package:peoplesync/features/contacts/models/contact_record.dart';
 import 'package:peoplesync/shared/widgets/contacts/contact_manual_form.dart';
@@ -19,20 +20,14 @@ class ContactFormPage extends StatelessWidget {
     if (!context.mounted || error == 'invalid') return;
 
     if (error != null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error)));
+      AppFeedbackService.showError(error);
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          viewModel.isEditMode
-              ? 'Contacto actualizado correctamente'
-              : 'Contacto guardado correctamente',
-        ),
-      ),
+    AppFeedbackService.showInfo(
+      viewModel.isEditMode
+          ? 'Contacto actualizado correctamente.'
+          : 'Contacto guardado correctamente.',
     );
     context.go(Routes.connections);
   }

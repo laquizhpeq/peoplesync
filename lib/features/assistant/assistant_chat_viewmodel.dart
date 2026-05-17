@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:peoplesync/core/services/app_error_mapper.dart';
 import 'package:peoplesync/core/services/app_logger.dart';
 import 'package:peoplesync/features/assistant/assistant_service.dart';
 import 'package:peoplesync/features/assistant/models/assistant_chat_models.dart';
@@ -83,7 +84,11 @@ class AssistantChatViewModel extends ChangeNotifier {
     } catch (error, stackTrace) {
       _errorMessage = error is AssistantServiceException
           ? error.message
-          : '$error';
+          : AppErrorMapper.toUserMessage(
+              error,
+              fallback:
+                  'Chispa no pudo responder ahora mismo. Vuelve a intentarlo.',
+            );
       AppLogger.error(
         'Fallo el asistente conversacional',
         scope: 'assistant',
@@ -122,7 +127,10 @@ class AssistantChatViewModel extends ChangeNotifier {
       _pendingContactDraft = null;
       return null;
     } catch (error, stackTrace) {
-      _errorMessage = 'No se pudo crear el contacto: $error';
+      _errorMessage = AppErrorMapper.toUserMessage(
+        error,
+        fallback: 'No se pudo crear el contacto. Revisa los datos y prueba otra vez.',
+      );
       AppLogger.error(
         'No se pudo ejecutar create_contact',
         scope: 'assistant',
