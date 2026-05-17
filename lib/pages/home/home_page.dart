@@ -305,13 +305,33 @@ class _RelationshipMapSection extends StatelessWidget {
           const SizedBox(height: 18),
           SizedBox(
             height: 280,
-            child: hasData
-                ? _RelationshipMapCanvas(
-                    totalContacts: totalContacts,
-                    items: mapItems,
-                  )
-                : _RelationshipMapEmpty(totalContacts: totalContacts),
+            child: _RelationshipMapCanvas(
+              totalContacts: totalContacts,
+              items: mapItems,
+            ),
           ),
+          if (!hasData) ...[
+            const SizedBox(height: 14),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.35,
+                ),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                totalContacts == 0
+                    ? 'Todavia no hay conexiones. Cuando empieces a guardar contactos, aqui veras el total de tu red.'
+                    : 'Todavia no has clasificado contactos por tipo de relacion, pero aqui ya ves el total de conexiones.',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
           if (hasData) ...[
             const SizedBox(height: 18),
             Wrap(
@@ -517,66 +537,6 @@ class _RelationshipMapLegendChip extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _RelationshipMapEmpty extends StatelessWidget {
-  final int totalContacts;
-
-  const _RelationshipMapEmpty({required this.totalContacts});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            theme.colorScheme.primaryContainer.withValues(alpha: 0.5),
-            theme.colorScheme.secondaryContainer.withValues(alpha: 0.35),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(26),
-      ),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.hub_outlined,
-              size: 42,
-              color: theme.colorScheme.primary,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              totalContacts == 0
-                  ? 'Todavia no hay red que mapear'
-                  : 'Clasifica tus contactos para ver el mapa',
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Text(
-                totalContacts == 0
-                    ? 'Cuando empieces a guardar conexiones, este bloque dibujara como se reparte tu red.'
-                    : 'El mapa gana sentido cuando cada ficha tiene un tipo de relacion claro.',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
