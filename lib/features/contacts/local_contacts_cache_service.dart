@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
 import 'package:peoplesync/features/contacts/models/contact_record.dart';
 import 'package:sqflite/sqflite.dart';
@@ -8,6 +9,7 @@ class LocalContactsCacheService {
   Database? _database;
 
   Future<List<ContactRecord>> readContacts(String uid) async {
+    if (kIsWeb) return const [];
     final database = await _getDatabase();
     final rows = await database.query(
       'contacts_cache',
@@ -26,6 +28,7 @@ class LocalContactsCacheService {
   }
 
   Future<void> replaceContacts(String uid, List<ContactRecord> contacts) async {
+    if (kIsWeb) return;
     final database = await _getDatabase();
     final batch = database.batch();
 
@@ -48,6 +51,7 @@ class LocalContactsCacheService {
   }
 
   Future<void> clearForUser(String uid) async {
+    if (kIsWeb) return;
     final database = await _getDatabase();
     await database.delete(
       'contacts_cache',
@@ -57,6 +61,9 @@ class LocalContactsCacheService {
   }
 
   Future<Database> _getDatabase() async {
+    if (kIsWeb) {
+      throw UnsupportedError('SQLite local cache is not available on web.');
+    }
     final existing = _database;
     if (existing != null) return existing;
 

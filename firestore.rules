@@ -16,7 +16,10 @@ service cloud.firestore {
 
     // Perfil propio del usuario
     match /users/{userId} {
-      allow read, write: if isOwner(userId) || isAdmin();
+      // Lectura global para cualquier usuario autenticado (modo rapido para panel admin)
+      allow read: if isSignedIn();
+      // Escritura restringida a propietario o admin para mantener CRUD controlado
+      allow write: if isOwner(userId) || isAdmin();
 
       // Agenda privada del usuario
       match /contacts/{contactId} {

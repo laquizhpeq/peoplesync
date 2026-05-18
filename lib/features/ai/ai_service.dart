@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:peoplesync/core/config/env_config.dart';
 import 'package:peoplesync/core/services/app_logger.dart';
@@ -204,12 +203,6 @@ class AiService {
     required String systemPrompt,
     required String userPrompt,
   }) async {
-    if (kIsWeb) {
-      throw const AiServiceException(
-        'Funciones IA directas desde web no son fiables sin backend intermedio. Usa app movil/escritorio o monta un proxy.',
-      );
-    }
-
     final apiKey = EnvConfig.groqApiKey;
     if (apiKey.isEmpty) {
       throw const AiServiceException('Falta GROQ_API_KEY en el archivo .env.');

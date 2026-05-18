@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:peoplesync/core/config/env_config.dart';
 import 'package:peoplesync/core/services/app_logger.dart';
@@ -27,12 +26,6 @@ class AssistantService {
     List<AssistantChatMessage> messages,
     AssistantConversationMode currentMode,
   ) async {
-    if (kIsWeb) {
-      throw const AssistantServiceException(
-        'El asistente no esta disponible en web sin backend intermedio.',
-      );
-    }
-
     final apiKey = EnvConfig.groqApiKey;
     if (apiKey.isEmpty) {
       throw const AssistantServiceException('Falta GROQ_API_KEY en .env.');

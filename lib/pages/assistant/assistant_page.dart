@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -6,21 +5,12 @@ import 'package:peoplesync/core/di/service_locator.dart';
 import 'package:peoplesync/core/services/app_feedback_service.dart';
 import 'package:peoplesync/features/assistant/assistant_chat_viewmodel.dart';
 import 'package:peoplesync/features/assistant/models/assistant_chat_models.dart';
-import 'package:peoplesync/shared/widgets/common/app_runtime_error_view.dart';
 
 class AssistantPage extends StatelessWidget {
   const AssistantPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    if (kIsWeb) {
-      return const AppRuntimeErrorView(
-        title: 'Chispa no esta disponible aqui',
-        description:
-            'Las funciones IA directas de esta app no son fiables en web sin backend intermedio. Usa movil o escritorio.',
-      );
-    }
-
     return ChangeNotifierProvider<AssistantChatViewModel>(
       create: (_) => getIt<AssistantChatViewModel>(),
       child: const _AssistantView(),
