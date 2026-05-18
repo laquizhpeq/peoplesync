@@ -9,6 +9,8 @@ class UserProfile {
   String? photoUrl;
   String? city;
   String? bio;
+  String? favoriteSong;
+  List<String> affinities;
   List<ContactSocialProfile> socialProfiles;
   bool onboardingCompleted;
   bool isActive;
@@ -25,6 +27,8 @@ class UserProfile {
     this.photoUrl,
     this.city,
     this.bio,
+    this.favoriteSong,
+    this.affinities = const [],
     this.socialProfiles = const [],
     this.onboardingCompleted = false,
     this.isActive = true,
@@ -43,6 +47,8 @@ class UserProfile {
       photoUrl: map['photo_url'],
       city: map['city'],
       bio: map['bio'],
+      favoriteSong: map['favorite_song'] as String?,
+      affinities: List<String>.from(map['affinities'] ?? const []),
       socialProfiles: (map['social_profiles'] as List<dynamic>? ?? const [])
           .whereType<Map>()
           .map(
@@ -67,6 +73,8 @@ class UserProfile {
       'photo_url': photoUrl,
       'city': city,
       'bio': bio,
+      'favorite_song': favoriteSong,
+      'affinities': affinities,
       'social_profiles': socialProfiles
           .map((profile) => profile.toMap())
           .toList(),

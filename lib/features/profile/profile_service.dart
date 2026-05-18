@@ -81,6 +81,8 @@ class ProfileService {
       'photo_url': null,
       'city': null,
       'bio': null,
+      'favorite_song': null,
+      'affinities': const [],
       'social_profiles': const [],
       'onboarding_completed': false,
       'is_active': true,
@@ -98,6 +100,8 @@ class ProfileService {
       photoUrl: null,
       city: null,
       bio: null,
+      favoriteSong: null,
+      affinities: const [],
       socialProfiles: const [],
       onboardingCompleted: false,
       isActive: true,
@@ -177,6 +181,8 @@ class ProfileService {
     String? photoUrl,
     String? city,
     String? bio,
+    String? favoriteSong,
+    List<String> affinities = const [],
     List<ContactSocialProfile> socialProfiles = const [],
     bool? onboardingCompleted,
   }) async {
@@ -185,6 +191,8 @@ class ProfileService {
       'photo_url': photoUrl,
       'city': city,
       'bio': bio,
+      'favorite_song': favoriteSong,
+      'affinities': affinities,
       'social_profiles': socialProfiles
           .map((profile) => profile.toMap())
           .toList(),
@@ -212,6 +220,8 @@ class ProfileService {
     String? photoUrl,
     String? city,
     String? bio,
+    String? favoriteSong,
+    List<String> affinities = const [],
     List<ContactSocialProfile> socialProfiles = const [],
   }) async {
     await saveProfile(
@@ -219,6 +229,8 @@ class ProfileService {
       photoUrl: photoUrl,
       city: city,
       bio: bio,
+      favoriteSong: favoriteSong,
+      affinities: affinities,
       socialProfiles: socialProfiles,
     );
   }

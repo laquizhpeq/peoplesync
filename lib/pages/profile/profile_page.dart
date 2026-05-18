@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:peoplesync/core/di/service_locator.dart';
 import 'package:peoplesync/features/auth/auth_service.dart';
+import 'package:peoplesync/features/contacts/models/contact_record.dart';
 import 'package:peoplesync/features/contacts/connections_viewmodel.dart';
 import 'package:peoplesync/features/navigation/navigation_provider.dart';
 import 'package:peoplesync/features/profile/models/user_profile.dart';
@@ -120,6 +121,8 @@ class ProfilePage extends StatelessWidget {
                 _QrIdentityCard(profile: profile),
                 const SizedBox(height: 24),
                 _AboutYouSection(profile: profile),
+                const SizedBox(height: 24),
+                _ProfileSocialsSection(profile: profile),
                 const SizedBox(height: 24),
                 _AffinityHighlights(profile: profile),
               ],
@@ -312,10 +315,13 @@ class _AffinityHighlights extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final favoriteSong =
-        'Tu cancion favorita ayuda a que la gente te recuerde mejor.';
-    final affinityText = profile.bio?.trim().isNotEmpty == true
-        ? 'Tu bio ya aporta tono personal. Completa afinidades desde editar perfil para que tu ficha tenga mas identidad.'
-        : 'Intereses, hobbies y rasgos que quieres que otros asocien contigo.';
+        profile.favoriteSong?.trim().isNotEmpty == true
+        ? profile.favoriteSong!
+        : 'No has definido una cancion favorita.';
+    final affinities = profile.affinities;
+    final affinityText = affinities.isNotEmpty
+        ? affinities.join(', ')
+        : 'No has definido gustos o afinidades.';
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -414,6 +420,112 @@ class _HighlightCard extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _ProfileSocialsSection extends StatelessWidget {
+  final UserProfile profile;
+
+  const _ProfileSocialsSection({required this.profile});
+
+  @override
+  Widget build(BuildContext context) {
+    final socialProfiles = profile.socialProfiles;
+
+    return ProfileSectionCard(
+      title: 'Redes visibles',
+      subtitle:
+          'Estas son las redes que has configurado en editar perfil y que forman parte de tu ficha.',
+      child: socialProfiles.isEmpty
+          ? const Text('No has agregado redes sociales todavia.')
+          : Column(
+              children: socialProfiles
+                  .map(
+                    (profileItem) => Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: _ProfileSocialRow(profileItem: profileItem),
+                    ),
+                  )
+                  .toList(),
+            ),
+    );
+  }
+}
+
+class _ProfileSocialRow extends StatelessWidget {
+  final ContactSocialProfile profileItem;
+
+  const _ProfileSocialRow({required this.profileItem});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final label = profileItem.label?.trim().isNotEmpty == true
+        ? profileItem.label!
+        : _socialPlatformLabel(profileItem.platform);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.public_rounded, color: theme.colorScheme.primary),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  profileItem.value,
+                  style: theme.textTheme.bodyMedium,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+String _socialPlatformLabel(SocialPlatform platform) {
+  switch (platform) {
+    case SocialPlatform.instagram:
+      return 'Instagram';
+    case SocialPlatform.x:
+      return 'X';
+    case SocialPlatform.tiktok:
+      return 'TikTok';
+    case SocialPlatform.linkedin:
+      return 'LinkedIn';
+    case SocialPlatform.facebook:
+      return 'Facebook';
+    case SocialPlatform.telegram:
+      return 'Telegram';
+    case SocialPlatform.whatsapp:
+      return 'WhatsApp';
+    case SocialPlatform.youtube:
+      return 'YouTube';
+    case SocialPlatform.twitch:
+      return 'Twitch';
+    case SocialPlatform.snapchat:
+      return 'Snapchat';
+    case SocialPlatform.website:
+      return 'Sitio web';
+    case SocialPlatform.other:
+      return 'Otra red';
   }
 }
 

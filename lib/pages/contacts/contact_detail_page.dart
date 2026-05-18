@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:peoplesync/core/constants/routes.dart';
@@ -810,12 +811,7 @@ class _RelationshipTypeSelectorCard extends StatelessWidget {
                   .toList(),
               onChanged: (value) async {
                 await viewModel.updateRelationshipType(contact.id, value);
-                if (!context.mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Tipo de relacion actualizado'),
-                  ),
-                );
+                AppFeedbackService.showInfo('Tipo de relacion actualizado.');
               },
             ),
           ),
@@ -1605,12 +1601,14 @@ IconData _socialPlatformIcon(SocialPlatform platform) {
 }
 
 Future<void> _openExternalUri(BuildContext context, Uri uri) async {
-  final success = await launchUrl(uri, mode: LaunchMode.externalApplication);
-  if (success || !context.mounted) return;
+  try {
+    final success = kIsWeb
+        ? await launchUrl(uri)
+        : await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (success) return;
+  } catch (_) {}
 
-  ScaffoldMessenger.of(
-    context,
-  ).showSnackBar(const SnackBar(content: Text('No se pudo abrir el enlace')));
+  AppFeedbackService.showError('No se pudo abrir el enlace.');
 }
 
 Future<void> _openSocialProfile(
@@ -1626,10 +1624,7 @@ Future<void> _openSocialProfile(
   );
 
   if (preparedUrl == null) {
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('No hay un perfil valido para abrir')),
-    );
+    AppFeedbackService.showWarning('No hay un perfil valido para abrir.');
     return;
   }
 

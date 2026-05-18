@@ -16,6 +16,8 @@ class ProfileEditorViewModel extends ChangeNotifier {
   final fullNameController = TextEditingController();
   final cityController = TextEditingController();
   final bioController = TextEditingController();
+  final favoriteSongController = TextEditingController();
+  final affinitiesController = TextEditingController();
   final ImagePicker _imagePicker = ImagePicker();
 
   final List<ProfileSocialProfileDraft> socialProfiles = [
@@ -223,6 +225,8 @@ class ProfileEditorViewModel extends ChangeNotifier {
         photoUrl: uploadedPhotoUrl,
         city: _normalizedText(cityController),
         bio: _normalizedText(bioController),
+        favoriteSong: _normalizedText(favoriteSongController),
+        affinities: _normalizedTags(affinitiesController.text),
         socialProfiles: _buildSocialProfiles(),
         onboardingCompleted: markOnboardingCompleteOnSave ? true : null,
       );
@@ -255,6 +259,9 @@ class ProfileEditorViewModel extends ChangeNotifier {
     _photoUrl = profile?.photoUrl;
     cityController.text = profile?.city ?? '';
     bioController.text = profile?.bio ?? '';
+    favoriteSongController.text = profile?.favoriteSong ?? '';
+    affinitiesController.text = (profile?.affinities ?? const <String>[])
+        .join(', ');
 
     for (final draft in socialProfiles) {
       draft.dispose();
@@ -291,11 +298,22 @@ class ProfileEditorViewModel extends ChangeNotifier {
     return value.isEmpty ? null : value;
   }
 
+  List<String> _normalizedTags(String rawValue) {
+    return rawValue
+        .split(',')
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty)
+        .toSet()
+        .toList();
+  }
+
   @override
   void dispose() {
     fullNameController.dispose();
     cityController.dispose();
     bioController.dispose();
+    favoriteSongController.dispose();
+    affinitiesController.dispose();
     for (final draft in socialProfiles) {
       draft.dispose();
     }

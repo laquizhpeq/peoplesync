@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:peoplesync/core/constants/routes.dart';
+import 'package:peoplesync/core/services/app_feedback_service.dart';
 import 'package:peoplesync/features/contacts/connections_viewmodel.dart';
 import 'package:peoplesync/features/contacts/models/contact_record.dart';
 import 'package:peoplesync/features/contacts/models/relationship_type_preset.dart';
@@ -291,11 +292,7 @@ class _ContactActionsMenu extends StatelessWidget {
           );
         } else if (value == 'sync') {
           await viewModel.syncContact(contact.linkedUserUid!);
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Identidad sincronizada')),
-            );
-          }
+          AppFeedbackService.showInfo('Identidad sincronizada.');
         } else if (value == 'notes') {
           showEditNotesDialog(context, viewModel, contact);
         }
