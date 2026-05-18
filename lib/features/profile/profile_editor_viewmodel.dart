@@ -5,11 +5,14 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:peoplesync/core/services/app_error_mapper.dart';
 import 'package:peoplesync/features/contacts/models/contact_record.dart';
+import 'package:peoplesync/features/profile/models/spotify_track.dart';
 import 'package:peoplesync/features/profile/models/user_profile.dart';
 import 'package:peoplesync/features/profile/profile_service.dart';
+import 'package:peoplesync/features/profile/spotify_service.dart';
 
 class ProfileEditorViewModel extends ChangeNotifier {
   final ProfileService profileService;
+  final SpotifyService spotifyService;
   final bool markOnboardingCompleteOnSave;
 
   final formKey = GlobalKey<FormState>();
@@ -33,6 +36,9 @@ class ProfileEditorViewModel extends ChangeNotifier {
   Uint8List? _selectedPhotoBytes;
   String? _photoUrl;
   String? _photoPickerError;
+  bool _isSearchingSpotify = false;
+  List<SpotifyTrack> _spotifyResults = const [];
+  SpotifyTrack? _selectedSpotifyTrack;
 
   bool get isLoading => _isLoading;
   bool get isSaving => _isSaving;
@@ -42,12 +48,16 @@ class ProfileEditorViewModel extends ChangeNotifier {
   Uint8List? get selectedPhotoBytes => _selectedPhotoBytes;
   String? get photoUrl => _photoUrl;
   String? get photoPickerError => _photoPickerError;
+  bool get isSearchingSpotify => _isSearchingSpotify;
+  List<SpotifyTrack> get spotifyResults => _spotifyResults;
+  SpotifyTrack? get selectedSpotifyTrack => _selectedSpotifyTrack;
   bool get hasPhoto =>
       _selectedPhotoBytes != null ||
       (_photoUrl != null && _photoUrl!.isNotEmpty);
 
   ProfileEditorViewModel({
     required this.profileService,
+    required this.spotifyService,
     this.markOnboardingCompleteOnSave = false,
   }) {
     _loadProfile();
@@ -226,6 +236,10 @@ class ProfileEditorViewModel extends ChangeNotifier {
         city: _normalizedText(cityController),
         bio: _normalizedText(bioController),
         favoriteSong: _normalizedText(favoriteSongController),
+        favoriteSongTrackId: _selectedSpotifyTrack?.id,
+        favoriteSongArtist: _selectedSpotifyTrack?.artist,
+        favoriteSongCoverUrl: _selectedSpotifyTrack?.albumImageUrl,
+        favoriteSongExternalUrl: _selectedSpotifyTrack?.externalUrl,
         affinities: _normalizedTags(affinitiesController.text),
         socialProfiles: _buildSocialProfiles(),
         onboardingCompleted: markOnboardingCompleteOnSave ? true : null,
@@ -254,6 +268,44 @@ class ProfileEditorViewModel extends ChangeNotifier {
     return _photoUrl;
   }
 
+  Future<void> searchSpotifyTrack() async {
+    final query = favoriteSongController.text.trim();
+    if (query.isEmpty) {
+      _spotifyResults = const [];
+      _errorMessage = 'Escribe una cancion antes de buscar en Spotify.';
+      notifyListeners();
+      return;
+    }
+
+    _isSearchingSpotify = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _spotifyResults = await spotifyService.searchTracks(query);
+      if (_spotifyResults.isEmpty) {
+        _errorMessage = 'Spotify no devolvio resultados para esa busqueda.';
+      }
+    } catch (_) {
+      _errorMessage = 'Esta caracteristica aun no esta disponible.';
+    } finally {
+      _isSearchingSpotify = false;
+      notifyListeners();
+    }
+  }
+
+  void selectSpotifyTrack(SpotifyTrack track) {
+    _selectedSpotifyTrack = track;
+    favoriteSongController.text = track.name;
+    _spotifyResults = const [];
+    notifyListeners();
+  }
+
+  void clearSpotifyTrack() {
+    _selectedSpotifyTrack = null;
+    notifyListeners();
+  }
+
   void _hydrateControllers(UserProfile? profile) {
     fullNameController.text = profile?.fullName ?? '';
     _photoUrl = profile?.photoUrl;
@@ -262,6 +314,17 @@ class ProfileEditorViewModel extends ChangeNotifier {
     favoriteSongController.text = profile?.favoriteSong ?? '';
     affinitiesController.text = (profile?.affinities ?? const <String>[])
         .join(', ');
+    if (profile?.favoriteSongTrackId?.trim().isNotEmpty == true) {
+      _selectedSpotifyTrack = SpotifyTrack(
+        id: profile!.favoriteSongTrackId!,
+        name: profile.favoriteSong ?? '',
+        artist: profile.favoriteSongArtist ?? 'Artista desconocido',
+        albumImageUrl: profile.favoriteSongCoverUrl,
+        externalUrl: profile.favoriteSongExternalUrl ?? '',
+      );
+    } else {
+      _selectedSpotifyTrack = null;
+    }
 
     for (final draft in socialProfiles) {
       draft.dispose();

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 import 'package:peoplesync/features/profile/profile_editor_viewmodel.dart';
+import 'package:peoplesync/features/profile/models/spotify_track.dart';
 import 'package:peoplesync/shared/widgets/contacts/contact_form_section_card.dart';
 import 'package:peoplesync/shared/widgets/contacts/contact_multiline_field.dart';
 import 'package:peoplesync/shared/widgets/design/buttons/app_primary_button.dart';
@@ -66,6 +68,52 @@ class ProfileForm extends StatelessWidget {
                   label: 'Cancion favorita',
                   prefixIcon: const Icon(Icons.music_note_rounded),
                 ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: viewModel.isSearchingSpotify
+                            ? null
+                            : viewModel.searchSpotifyTrack,
+                        icon: viewModel.isSearchingSpotify
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.search_rounded),
+                        label: const Text('Buscar en Spotify'),
+                      ),
+                    ),
+                    if (viewModel.selectedSpotifyTrack != null) ...[
+                      const SizedBox(width: 10),
+                      IconButton(
+                        onPressed: viewModel.clearSpotifyTrack,
+                        icon: const Icon(Icons.clear_rounded),
+                        tooltip: 'Quitar seleccion',
+                      ),
+                    ],
+                  ],
+                ),
+                if (viewModel.selectedSpotifyTrack != null) ...[
+                  const SizedBox(height: 12),
+                  _SpotifySelectedTrackCard(
+                    track: viewModel.selectedSpotifyTrack!,
+                  ),
+                ],
+                if (viewModel.spotifyResults.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  ...viewModel.spotifyResults.map(
+                    (track) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: _SpotifySearchResultTile(
+                        track: track,
+                        onSelect: () => viewModel.selectSpotifyTrack(track),
+                      ),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 16),
                 ContactMultilineField(
                   controller: viewModel.affinitiesController,
@@ -261,5 +309,112 @@ class ProfileForm extends StatelessWidget {
       return NetworkImage(url);
     }
     return null;
+  }
+}
+
+class _SpotifySelectedTrackCard extends StatelessWidget {
+  final SpotifyTrack track;
+
+  const _SpotifySelectedTrackCard({required this.track});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return InkWell(
+      onTap: () async {
+        final uri = Uri.tryParse(track.externalUrl);
+        if (uri != null) {
+          await launchUrl(uri);
+        }
+      },
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          children: [
+            _SpotifyCover(url: track.albumImageUrl),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    track.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    track.artist,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.open_in_new_rounded, size: 18),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SpotifySearchResultTile extends StatelessWidget {
+  final SpotifyTrack track;
+  final VoidCallback onSelect;
+
+  const _SpotifySearchResultTile({required this.track, required this.onSelect});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      onTap: onSelect,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      tileColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+      leading: _SpotifyCover(url: track.albumImageUrl),
+      title: Text(track.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+      subtitle: Text(track.artist, maxLines: 1, overflow: TextOverflow.ellipsis),
+      trailing: const Icon(Icons.check_circle_outline_rounded),
+    );
+  }
+}
+
+class _SpotifyCover extends StatelessWidget {
+  final String? url;
+
+  const _SpotifyCover({this.url});
+
+  @override
+  Widget build(BuildContext context) {
+    if (url == null || url!.trim().isEmpty) {
+      return Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: Colors.black12,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Icon(Icons.music_note_rounded),
+      );
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Image.network(
+        url!,
+        width: 44,
+        height: 44,
+        fit: BoxFit.cover,
+      ),
+    );
   }
 }

@@ -12,6 +12,7 @@ import 'package:peoplesync/features/qr_code/qr_service.dart';
 import 'package:peoplesync/shared/widgets/profile/profile_section_card.dart';
 import 'package:peoplesync/shared/widgets/profile/profile_summary_card.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:peoplesync/core/constants/routes.dart';
 
 class ProfilePage extends StatelessWidget {
@@ -349,11 +350,7 @@ class _AffinityHighlights extends StatelessWidget {
         return Row(
           children: [
             Expanded(
-              child: _HighlightCard(
-                icon: Icons.music_note_rounded,
-                title: 'Cancion favorita',
-                subtitle: favoriteSong,
-              ),
+              child: _SpotifyFavoriteCard(profile: profile, fallbackText: favoriteSong),
             ),
             SizedBox(width: 12),
             Expanded(
@@ -448,6 +445,103 @@ class _ProfileSocialsSection extends StatelessWidget {
                   )
                   .toList(),
             ),
+    );
+  }
+}
+
+class _SpotifyFavoriteCard extends StatelessWidget {
+  final UserProfile profile;
+  final String fallbackText;
+
+  const _SpotifyFavoriteCard({
+    required this.profile,
+    required this.fallbackText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasSpotify =
+        profile.favoriteSongTrackId?.trim().isNotEmpty == true &&
+        profile.favoriteSongExternalUrl?.trim().isNotEmpty == true;
+
+    if (!hasSpotify) {
+      return _HighlightCard(
+        icon: Icons.music_note_rounded,
+        title: 'Cancion favorita',
+        subtitle: fallbackText,
+      );
+    }
+
+    return InkWell(
+      onTap: () async {
+        final uri = Uri.tryParse(profile.favoriteSongExternalUrl!);
+        if (uri != null) {
+          await launchUrl(uri);
+        }
+      },
+      borderRadius: BorderRadius.circular(24),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
+          ),
+        ),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: profile.favoriteSongCoverUrl?.trim().isNotEmpty == true
+                  ? Image.network(
+                      profile.favoriteSongCoverUrl!,
+                      width: 54,
+                      height: 54,
+                      fit: BoxFit.cover,
+                    )
+                  : Container(
+                      width: 54,
+                      height: 54,
+                      color: Colors.black12,
+                      child: const Icon(Icons.music_note_rounded),
+                    ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    profile.favoriteSong ?? 'Cancion favorita',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    profile.favoriteSongArtist ?? 'Spotify',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Abrir en Spotify',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.open_in_new_rounded, size: 18),
+          ],
+        ),
+      ),
     );
   }
 }

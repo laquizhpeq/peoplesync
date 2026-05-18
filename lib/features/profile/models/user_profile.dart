@@ -10,6 +10,10 @@ class UserProfile {
   String? city;
   String? bio;
   String? favoriteSong;
+  String? favoriteSongTrackId;
+  String? favoriteSongArtist;
+  String? favoriteSongCoverUrl;
+  String? favoriteSongExternalUrl;
   List<String> affinities;
   List<ContactSocialProfile> socialProfiles;
   bool onboardingCompleted;
@@ -28,6 +32,10 @@ class UserProfile {
     this.city,
     this.bio,
     this.favoriteSong,
+    this.favoriteSongTrackId,
+    this.favoriteSongArtist,
+    this.favoriteSongCoverUrl,
+    this.favoriteSongExternalUrl,
     this.affinities = const [],
     this.socialProfiles = const [],
     this.onboardingCompleted = false,
@@ -48,6 +56,10 @@ class UserProfile {
       city: map['city'],
       bio: map['bio'],
       favoriteSong: map['favorite_song'] as String?,
+      favoriteSongTrackId: map['favorite_song_track_id'] as String?,
+      favoriteSongArtist: map['favorite_song_artist'] as String?,
+      favoriteSongCoverUrl: map['favorite_song_cover_url'] as String?,
+      favoriteSongExternalUrl: map['favorite_song_external_url'] as String?,
       affinities: List<String>.from(map['affinities'] ?? const []),
       socialProfiles: (map['social_profiles'] as List<dynamic>? ?? const [])
           .whereType<Map>()
@@ -74,6 +86,10 @@ class UserProfile {
       'city': city,
       'bio': bio,
       'favorite_song': favoriteSong,
+      'favorite_song_track_id': favoriteSongTrackId,
+      'favorite_song_artist': favoriteSongArtist,
+      'favorite_song_cover_url': favoriteSongCoverUrl,
+      'favorite_song_external_url': favoriteSongExternalUrl,
       'affinities': affinities,
       'social_profiles': socialProfiles
           .map((profile) => profile.toMap())

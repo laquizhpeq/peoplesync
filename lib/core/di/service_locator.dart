@@ -12,6 +12,7 @@ import 'package:peoplesync/features/contacts/models/contact_record.dart';
 import 'package:peoplesync/features/auth/auth_service.dart';
 import 'package:peoplesync/features/profile/profile_service.dart';
 import 'package:peoplesync/features/profile/profile_editor_viewmodel.dart';
+import 'package:peoplesync/features/profile/spotify_service.dart';
 import 'package:peoplesync/features/navigation/navigation_service.dart';
 import 'package:peoplesync/features/auth/auth_viewmodel.dart';
 import 'package:peoplesync/features/profile/profile_viewmodel.dart';
@@ -37,6 +38,7 @@ void setupServiceLocator() {
   getIt.registerLazySingleton<AiService>(() => AiService());
   getIt.registerLazySingleton<AuthService>(() => AuthService());
   getIt.registerLazySingleton<ProfileService>(() => ProfileService());
+  getIt.registerLazySingleton<SpotifyService>(() => SpotifyService());
   getIt.registerLazySingleton<NavigationService>(() => NavigationService());
   getIt.registerLazySingleton<QrService>(() => QrService());
   getIt.registerLazySingleton<LocalContactsCacheService>(
@@ -80,6 +82,7 @@ void setupServiceLocator() {
   getIt.registerFactoryParam<ProfileEditorViewModel, bool, void>(
     (markOnboardingCompleteOnSave, _) => ProfileEditorViewModel(
       profileService: getIt<ProfileService>(),
+      spotifyService: getIt<SpotifyService>(),
       markOnboardingCompleteOnSave: markOnboardingCompleteOnSave,
     ),
   );
