@@ -50,16 +50,18 @@ class AdminService {
     String? bio,
     bool? onboardingCompleted,
   }) async {
-    await _usersCollection.doc(uid).set({
+    final updates = <String, dynamic>{
       'full_name': fullName.trim(),
       'email': email.trim(),
       'rol_id': rolId.trim(),
       'city': _normalize(city),
       'bio': _normalize(bio),
-      if (onboardingCompleted != null)
-        'onboarding_completed': onboardingCompleted,
       'updated_at': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    };
+    if (onboardingCompleted != null) {
+      updates['onboarding_completed'] = onboardingCompleted;
+    }
+    await _usersCollection.doc(uid).set(updates, SetOptions(merge: true));
   }
 
   Future<void> setUserActiveStatus({

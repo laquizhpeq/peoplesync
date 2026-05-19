@@ -18,7 +18,7 @@ class ConnectionsPage extends StatelessWidget {
   }
 }
 
-enum _ConnectionFilter { all, favorites, care, recent, linked }
+enum _ConnectionFilter { all, favorites }
 
 class _ConnectionsView extends StatefulWidget {
   const _ConnectionsView();

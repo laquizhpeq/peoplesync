@@ -56,7 +56,6 @@ class NavigationService {
     } catch (_) {
       return [];
     }
-    return [];
   }
 
   Future<List<MenuOption>> fetchMenusForUser(String uid) async {

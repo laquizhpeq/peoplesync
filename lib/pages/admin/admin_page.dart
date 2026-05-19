@@ -86,7 +86,7 @@ class _AdminUsersView extends StatelessWidget {
                       'Ajusta la busqueda o cambia el filtro para ver resultados.',
                 )
               else
-                ...users.map((user) => _AdminUserCard(user: user)).toList(),
+                ...users.map((user) => _AdminUserCard(user: user)),
             ],
           ),
         );
@@ -565,7 +565,7 @@ class _AdminUserCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
-                    value: viewModel.roles.contains(selectedRole)
+                    initialValue: viewModel.roles.contains(selectedRole)
                         ? selectedRole
                         : viewModel.roles.first,
                     decoration: const InputDecoration(labelText: 'Rol'),

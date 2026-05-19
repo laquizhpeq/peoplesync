@@ -167,7 +167,7 @@ class ContactManualForm extends StatelessWidget {
             child: Column(
               children: [
                 DropdownButtonFormField<String>(
-                  value: viewModel.selectedRelationshipType,
+                  initialValue: viewModel.selectedRelationshipType,
                   decoration: const InputDecoration(
                     labelText: 'Tipo de relacion',
                     prefixIcon: Icon(Icons.category_outlined),

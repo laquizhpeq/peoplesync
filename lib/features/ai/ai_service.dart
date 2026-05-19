@@ -374,6 +374,4 @@ Devuelve solo JSON valido con estas claves:
 
     return content;
   }
-
-  bool _hasText(String? value) => value != null && value.trim().isNotEmpty;
 }

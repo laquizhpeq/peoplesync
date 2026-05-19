@@ -69,7 +69,7 @@ class LocalContactsCacheService {
     _database = await openDatabase(
       databasePath,
       version: 1,
-      onCreate: (database, _version) async {
+      onCreate: (database, version) async {
         await database.execute('''
           CREATE TABLE contacts_cache (
             owner_uid TEXT NOT NULL,

@@ -779,7 +779,7 @@ class _RelationshipTypeSelectorCard extends StatelessWidget {
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 320),
             child: DropdownButtonFormField<String>(
-              value: currentValue,
+              initialValue: currentValue,
               alignment: Alignment.center,
               decoration: const InputDecoration(
                 prefixIcon: Icon(Icons.category_outlined),
@@ -1132,7 +1132,6 @@ class _AiMessageSuggestionSnapshot extends StatelessWidget {
                   Expanded(
                     child: FilledButton.icon(
                       onPressed: () => _openWhatsAppWithMessage(
-                        context,
                         contact: contact,
                         message: suggestion.message,
                       ),
@@ -1481,7 +1480,6 @@ class _SocialRow extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: () => _openSocialProfile(
-          context,
           platform: platform,
           value: value,
           url: secondaryValue,
@@ -1589,7 +1587,7 @@ IconData _socialPlatformIcon(SocialPlatform platform) {
   }
 }
 
-Future<void> _openExternalUri(BuildContext context, Uri uri) async {
+Future<void> _openExternalUri(Uri uri) async {
   try {
     final success = kIsWeb
         ? await launchUrl(uri)
@@ -1600,8 +1598,7 @@ Future<void> _openExternalUri(BuildContext context, Uri uri) async {
   AppFeedbackService.showError('No se pudo abrir el enlace.');
 }
 
-Future<void> _openSocialProfile(
-  BuildContext context, {
+Future<void> _openSocialProfile({
   required SocialPlatform platform,
   required String value,
   String? url,
@@ -1617,7 +1614,7 @@ Future<void> _openSocialProfile(
     return;
   }
 
-  await _openExternalUri(context, preparedUrl);
+  await _openExternalUri(preparedUrl);
 }
 
 Future<void> _copyAiMessage(String message) async {
@@ -1627,8 +1624,7 @@ Future<void> _copyAiMessage(String message) async {
   });
 }
 
-Future<void> _openWhatsAppWithMessage(
-  BuildContext context, {
+Future<void> _openWhatsAppWithMessage({
   required ContactRecord contact,
   required String message,
 }) async {
@@ -1646,7 +1642,7 @@ Future<void> _openWhatsAppWithMessage(
   final whatsappUri = Uri.parse(
     'https://wa.me/$digits?text=${Uri.encodeComponent(message)}',
   );
-  await _openExternalUri(context, whatsappUri);
+  await _openExternalUri(whatsappUri);
 }
 
 void _showDeferredError(String message) {
@@ -1828,10 +1824,10 @@ List<_InfoItemData> _directContactItems(ContactRecord contact) {
         icon: Icons.alternate_email_rounded,
         label: 'Email',
         value: contact.identity.email!,
-        onTap: (context) => _openExternalUri(
-          context,
-          Uri(scheme: 'mailto', path: contact.identity.email!),
-        ),
+        onTap:
+            (context) => _openExternalUri(
+              Uri(scheme: 'mailto', path: contact.identity.email!),
+            ),
       ),
     );
   }
@@ -1847,7 +1843,7 @@ List<_InfoItemData> _directContactItems(ContactRecord contact) {
         label: 'Telefono',
         value: contact.identity.phone!,
         onTap: (context) =>
-            _openExternalUri(context, Uri(scheme: 'tel', path: sanitizedPhone)),
+            _openExternalUri(Uri(scheme: 'tel', path: sanitizedPhone)),
       ),
     );
   }
