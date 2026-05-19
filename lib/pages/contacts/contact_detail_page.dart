@@ -1824,10 +1824,9 @@ List<_InfoItemData> _directContactItems(ContactRecord contact) {
         icon: Icons.alternate_email_rounded,
         label: 'Email',
         value: contact.identity.email!,
-        onTap:
-            (context) => _openExternalUri(
-              Uri(scheme: 'mailto', path: contact.identity.email!),
-            ),
+        onTap: (context) => _openExternalUri(
+          Uri(scheme: 'mailto', path: contact.identity.email!),
+        ),
       ),
     );
   }
