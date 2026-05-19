@@ -275,7 +275,8 @@ class ContactRelationship {
               Map<String, dynamic>.from(map['ai_summary'] as Map),
             )
           : null,
-      aiSummaryUpdatedAt: (map['ai_summary_updated_at'] as Timestamp?)?.toDate(),
+      aiSummaryUpdatedAt: (map['ai_summary_updated_at'] as Timestamp?)
+          ?.toDate(),
       aiSummaryModel: map['ai_summary_model'] as String?,
     );
   }

@@ -16,7 +16,8 @@ class AssistantChatViewModel extends ChangeNotifier {
   String? _errorMessage;
   AssistantCreateContactDraft? _pendingContactDraft;
   String? _latestModel;
-  AssistantConversationMode _conversationMode = AssistantConversationMode.normal;
+  AssistantConversationMode _conversationMode =
+      AssistantConversationMode.normal;
 
   List<AssistantChatMessage> get messages => List.unmodifiable(_messages);
   bool get isSending => _isSending;
@@ -129,7 +130,8 @@ class AssistantChatViewModel extends ChangeNotifier {
     } catch (error, stackTrace) {
       _errorMessage = AppErrorMapper.toUserMessage(
         error,
-        fallback: 'No se pudo crear el contacto. Revisa los datos y prueba otra vez.',
+        fallback:
+            'No se pudo crear el contacto. Revisa los datos y prueba otra vez.',
       );
       AppLogger.error(
         'No se pudo ejecutar create_contact',

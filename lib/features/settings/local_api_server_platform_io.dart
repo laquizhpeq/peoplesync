@@ -65,7 +65,9 @@ class IoLocalApiServerPlatform implements LocalApiServerPlatform {
       }
 
       if (request.method == 'GET' && path == '/v1/contacts/export') {
-        final authHeader = request.headers.value(HttpHeaders.authorizationHeader);
+        final authHeader = request.headers.value(
+          HttpHeaders.authorizationHeader,
+        );
         final token = await localDeveloperTokenService.getActiveToken();
 
         if (token == null || token.isEmpty) {
@@ -114,10 +116,7 @@ class IoLocalApiServerPlatform implements LocalApiServerPlatform {
       }
 
       await _writeJson(request.response, HttpStatus.notFound, {
-        'error': {
-          'code': 'not_found',
-          'message': 'Endpoint no encontrado.',
-        },
+        'error': {'code': 'not_found', 'message': 'Endpoint no encontrado.'},
       });
     } catch (error) {
       await _writeJson(request.response, HttpStatus.internalServerError, {

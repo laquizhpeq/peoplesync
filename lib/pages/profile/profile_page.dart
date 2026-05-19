@@ -45,7 +45,9 @@ class ProfilePage extends StatelessWidget {
                         ),
                         borderRadius: BorderRadius.circular(28),
                         border: Border.all(
-                          color: theme.colorScheme.error.withValues(alpha: 0.22),
+                          color: theme.colorScheme.error.withValues(
+                            alpha: 0.22,
+                          ),
                         ),
                       ),
                       child: Column(
@@ -315,8 +317,7 @@ class _AffinityHighlights extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final favoriteSong =
-        profile.favoriteSong?.trim().isNotEmpty == true
+    final favoriteSong = profile.favoriteSong?.trim().isNotEmpty == true
         ? profile.favoriteSong!
         : 'No has definido una cancion favorita.';
     final affinities = profile.affinities;
@@ -350,7 +351,10 @@ class _AffinityHighlights extends StatelessWidget {
         return Row(
           children: [
             Expanded(
-              child: _SpotifyFavoriteCard(profile: profile, fallbackText: favoriteSong),
+              child: _SpotifyFavoriteCard(
+                profile: profile,
+                fallbackText: favoriteSong,
+              ),
             ),
             SizedBox(width: 12),
             Expanded(
@@ -486,7 +490,9 @@ class _SpotifyFavoriteCard extends StatelessWidget {
           color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
           ),
         ),
         child: Row(
@@ -562,7 +568,9 @@ class _ProfileSocialRow extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(
+          alpha: 0.35,
+        ),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -581,10 +589,7 @@ class _ProfileSocialRow extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  profileItem.value,
-                  style: theme.textTheme.bodyMedium,
-                ),
+                Text(profileItem.value, style: theme.textTheme.bodyMedium),
               ],
             ),
           ),

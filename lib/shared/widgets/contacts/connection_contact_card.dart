@@ -87,7 +87,9 @@ class ConnectionContactCard extends StatelessWidget {
                                 color: theme.colorScheme.primary,
                               ),
                             ),
-                          if (contact.relationship.wantsToStrengthenRelationship)
+                          if (contact
+                              .relationship
+                              .wantsToStrengthenRelationship)
                             Padding(
                               padding: const EdgeInsets.only(right: 4),
                               child: Icon(
@@ -106,7 +108,8 @@ class ConnectionContactCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color:
-                              relationshipMode?.color ?? theme.colorScheme.onSurface,
+                              relationshipMode?.color ??
+                              theme.colorScheme.onSurface,
                           fontWeight: FontWeight.w700,
                           height: 1.25,
                         ),
@@ -150,7 +153,8 @@ class _ContactPhoto extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasPhoto = photoUrl != null && photoUrl!.trim().isNotEmpty;
-    final gradient = relationshipMode?.gradient ??
+    final gradient =
+        relationshipMode?.gradient ??
         const [Color(0xFFFF8A65), Color(0xFFE85D5D)];
 
     return Container(
@@ -413,7 +417,8 @@ String _buildFocusLine(
   if (relationshipMode != null) {
     return 'Relacion enfocada en ${relationshipMode.label.toLowerCase()}.';
   }
-  if (_hasText(contact.identity.jobTitle) && _hasText(contact.identity.company)) {
+  if (_hasText(contact.identity.jobTitle) &&
+      _hasText(contact.identity.company)) {
     return '${contact.identity.jobTitle} en ${contact.identity.company}';
   }
   if (_hasText(contact.identity.jobTitle)) {

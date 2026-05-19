@@ -28,11 +28,7 @@ class SpotifyService {
 
     final token = await _resolveToken();
     final uri = _searchUri.replace(
-      queryParameters: {
-        'q': trimmed,
-        'type': 'track',
-        'limit': '8',
-      },
+      queryParameters: {'q': trimmed, 'type': 'track', 'limit': '8'},
     );
 
     final response = await http.get(

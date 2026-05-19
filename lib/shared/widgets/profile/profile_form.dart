@@ -80,7 +80,9 @@ class ProfileForm extends StatelessWidget {
                             ? const SizedBox(
                                 width: 16,
                                 height: 16,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               )
                             : const Icon(Icons.search_rounded),
                         label: const Text('Buscar en Spotify'),
@@ -331,7 +333,9 @@ class _SpotifySelectedTrackCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+          color: theme.colorScheme.surfaceContainerHighest.withValues(
+            alpha: 0.5,
+          ),
           borderRadius: BorderRadius.circular(14),
         ),
         child: Row(
@@ -379,10 +383,16 @@ class _SpotifySearchResultTile extends StatelessWidget {
     return ListTile(
       onTap: onSelect,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      tileColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+      tileColor: Theme.of(
+        context,
+      ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
       leading: _SpotifyCover(url: track.albumImageUrl),
       title: Text(track.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-      subtitle: Text(track.artist, maxLines: 1, overflow: TextOverflow.ellipsis),
+      subtitle: Text(
+        track.artist,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
       trailing: const Icon(Icons.check_circle_outline_rounded),
     );
   }
@@ -409,12 +419,7 @@ class _SpotifyCover extends StatelessWidget {
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
-      child: Image.network(
-        url!,
-        width: 44,
-        height: 44,
-        fit: BoxFit.cover,
-      ),
+      child: Image.network(url!, width: 44, height: 44, fit: BoxFit.cover),
     );
   }
 }

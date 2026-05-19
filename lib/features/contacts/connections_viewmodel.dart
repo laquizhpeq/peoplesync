@@ -66,7 +66,10 @@ class ConnectionsViewModel extends ChangeNotifier {
             _contacts = contacts;
             _isLoading = false;
             _errorMessage = null;
-            await localContactsCacheService.replaceContacts(currentUid, contacts);
+            await localContactsCacheService.replaceContacts(
+              currentUid,
+              contacts,
+            );
             if (contacts.isEmpty) {
               AppLogger.info(
                 'El usuario no tiene contactos guardados',

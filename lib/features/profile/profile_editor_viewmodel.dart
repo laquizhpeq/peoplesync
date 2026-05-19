@@ -312,8 +312,9 @@ class ProfileEditorViewModel extends ChangeNotifier {
     cityController.text = profile?.city ?? '';
     bioController.text = profile?.bio ?? '';
     favoriteSongController.text = profile?.favoriteSong ?? '';
-    affinitiesController.text = (profile?.affinities ?? const <String>[])
-        .join(', ');
+    affinitiesController.text = (profile?.affinities ?? const <String>[]).join(
+      ', ',
+    );
     if (profile?.favoriteSongTrackId?.trim().isNotEmpty == true) {
       _selectedSpotifyTrack = SpotifyTrack(
         id: profile!.favoriteSongTrackId!,

@@ -51,10 +51,7 @@ class LocalDeveloperTokenService {
     final uid = _currentUid;
 
     await prefs.remove(_tokenKey(uid));
-    await prefs.setString(
-      _revokedAtKey(uid),
-      DateTime.now().toIso8601String(),
-    );
+    await prefs.setString(_revokedAtKey(uid), DateTime.now().toIso8601String());
   }
 
   Future<String?> getActiveToken() async {

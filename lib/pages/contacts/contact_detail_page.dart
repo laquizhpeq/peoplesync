@@ -123,12 +123,7 @@ class _ContactDetailView extends StatelessWidget {
                   return const SizedBox.shrink();
                 }
 
-                return Column(
-                  children: [
-                    const SizedBox(height: 18),
-                    aiCard,
-                  ],
-                );
+                return Column(children: [const SizedBox(height: 18), aiCard]);
               },
             ),
             if (directItems.isNotEmpty) ...[
@@ -204,8 +199,7 @@ class _ContactDetailView extends StatelessWidget {
                     if (interests.isNotEmpty)
                       _ChipGroup(title: 'Intereses', values: interests),
                     if (interests.isNotEmpty &&
-                        (lookingFor.isNotEmpty ||
-                            personalityTags.isNotEmpty))
+                        (lookingFor.isNotEmpty || personalityTags.isNotEmpty))
                       const SizedBox(height: 14),
                     if (lookingFor.isNotEmpty)
                       _ChipGroup(
@@ -520,9 +514,7 @@ class _HeroIconButton extends StatelessWidget {
         child: SizedBox(
           width: 44,
           height: 44,
-          child: Center(
-            child: Icon(icon, color: Colors.white),
-          ),
+          child: Center(child: Icon(icon, color: Colors.white)),
         ),
       ),
     );
@@ -675,10 +667,7 @@ class _AiFloatingButton extends StatelessWidget {
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
                     )
-                  : const Icon(
-                      Icons.auto_awesome_rounded,
-                      color: Colors.white,
-                    ),
+                  : const Icon(Icons.auto_awesome_rounded, color: Colors.white),
             ),
           ),
         ),
@@ -724,8 +713,7 @@ class _AiFloatingButton extends StatelessWidget {
           final message = await aiViewModel.generateMessageSuggestion(contact);
           if (message == null) {
             _showDeferredError(
-              aiViewModel.errorMessage ??
-                  'No se pudo generar el mensaje IA.',
+              aiViewModel.errorMessage ?? 'No se pudo generar el mensaje IA.',
             );
           }
           return;
@@ -753,9 +741,10 @@ class _RelationshipTypeSelectorCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final viewModel = context.read<ConnectionsViewModel>();
-    final currentValue = relationshipTypePresets.any(
-      (preset) => preset.key == contact.relationship.relationshipType,
-    )
+    final currentValue =
+        relationshipTypePresets.any(
+          (preset) => preset.key == contact.relationship.relationshipType,
+        )
         ? contact.relationship.relationshipType
         : null;
 
@@ -1025,10 +1014,7 @@ class _AiSuggestedTopicSnapshot extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 14),
-              _AiSummaryLine(
-                label: 'Enfoque',
-                value: suggestion.openingAngle,
-              ),
+              _AiSummaryLine(label: 'Enfoque', value: suggestion.openingAngle),
               const SizedBox(height: 12),
               _AiSummaryLine(
                 label: 'Romper el hielo',
@@ -1753,9 +1739,7 @@ String _displayName(ContactRecord contact) {
 String _buildAiSummaryMeta({DateTime? generatedAt, String? model}) {
   final parts = <String>[];
   if (generatedAt != null) {
-    parts.add(
-      'Temporal | generado el ${_formatDateTime(generatedAt)}',
-    );
+    parts.add('Temporal | generado el ${_formatDateTime(generatedAt)}');
   }
   if (_hasText(model)) {
     parts.add('Modelo $model');

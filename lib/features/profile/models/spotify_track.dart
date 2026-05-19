@@ -24,9 +24,7 @@ class SpotifyTrack {
     final images = (album['images'] as List<dynamic>? ?? const [])
         .whereType<Map>()
         .toList();
-    final imageUrl = images.isNotEmpty
-        ? images.first['url'] as String?
-        : null;
+    final imageUrl = images.isNotEmpty ? images.first['url'] as String? : null;
 
     final externalUrls =
         map['external_urls'] as Map<String, dynamic>? ?? const {};

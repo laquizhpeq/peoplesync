@@ -126,10 +126,7 @@ class _AssistantHeader extends StatelessWidget {
                 ),
               ],
             ),
-            child: const Icon(
-              Icons.auto_awesome_rounded,
-              color: Colors.white,
-            ),
+            child: const Icon(Icons.auto_awesome_rounded, color: Colors.white),
           ),
         ],
       ),

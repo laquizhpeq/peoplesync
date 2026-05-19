@@ -5,9 +5,7 @@ import 'package:peoplesync/features/settings/models/generated_developer_token.da
 class DeveloperTokenService {
   final LocalDeveloperTokenService localDeveloperTokenService;
 
-  DeveloperTokenService({
-    required this.localDeveloperTokenService,
-  });
+  DeveloperTokenService({required this.localDeveloperTokenService});
 
   Future<DeveloperTokenInfo> fetchTokenInfo() async {
     return localDeveloperTokenService.fetchTokenInfo();

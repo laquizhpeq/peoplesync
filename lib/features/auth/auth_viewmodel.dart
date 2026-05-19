@@ -80,7 +80,8 @@ class AuthViewModel extends ChangeNotifier {
       _isLoading = false;
       _errorMessage = AppErrorMapper.toUserMessage(
         e,
-        fallback: 'No se pudo crear la cuenta. Revisa tus datos y prueba otra vez.',
+        fallback:
+            'No se pudo crear la cuenta. Revisa tus datos y prueba otra vez.',
       );
       notifyListeners();
     }

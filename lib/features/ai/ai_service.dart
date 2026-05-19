@@ -30,10 +30,7 @@ class AiSuggestedTopicResult {
   final ContactAiSuggestedTopic suggestion;
   final String model;
 
-  const AiSuggestedTopicResult({
-    required this.suggestion,
-    required this.model,
-  });
+  const AiSuggestedTopicResult({required this.suggestion, required this.model});
 }
 
 class AiMessageSuggestionResult {
@@ -184,9 +181,8 @@ class AiService {
         'last_interaction_at': contact.relationship.lastInteractionAt
             ?.toIso8601String(),
         'is_favorite': contact.relationship.isFavorite,
-        'wants_to_strengthen_relationship': contact
-            .relationship
-            .wantsToStrengthenRelationship,
+        'wants_to_strengthen_relationship':
+            contact.relationship.wantsToStrengthenRelationship,
         'is_archived': contact.relationship.isArchived,
         'custom_display_name': contact.relationship.customDisplayName,
         'ai_summary': contact.relationship.aiSummary?.toMap(),
@@ -294,9 +290,9 @@ class AiService {
   }
 
   String _buildSummaryPrompt(Map<String, dynamic> contactContext) {
-    final jsonContext = const JsonEncoder.withIndent('  ').convert(
-      contactContext,
-    );
+    final jsonContext = const JsonEncoder.withIndent(
+      '  ',
+    ).convert(contactContext);
 
     return '''
 Genera un resumen de mi relacion con este contacto.
@@ -319,9 +315,9 @@ Devuelve solo JSON valido con estas claves:
   }
 
   String _buildSuggestedTopicPrompt(Map<String, dynamic> contactContext) {
-    final jsonContext = const JsonEncoder.withIndent('  ').convert(
-      contactContext,
-    );
+    final jsonContext = const JsonEncoder.withIndent(
+      '  ',
+    ).convert(contactContext);
 
     return '''
 Sugiere una conversacion o enfoque para llamar o escribir a este contacto.
@@ -342,9 +338,9 @@ Devuelve solo JSON valido con estas claves:
   }
 
   String _buildMessagePrompt(Map<String, dynamic> contactContext) {
-    final jsonContext = const JsonEncoder.withIndent('  ').convert(
-      contactContext,
-    );
+    final jsonContext = const JsonEncoder.withIndent(
+      '  ',
+    ).convert(contactContext);
 
     return '''
 Redacta un mensaje breve para escribir a este contacto.

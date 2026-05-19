@@ -1,7 +1,6 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class EnvConfig {
-
   static String _get(String key) => dotenv.env[key]?.trim() ?? '';
 
   static String get supabaseUrl => _get('SUPABASE_URL').isNotEmpty

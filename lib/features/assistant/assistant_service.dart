@@ -180,9 +180,7 @@ class AssistantService {
       }
 
       return AssistantTurnResult(
-        reply: reply.isEmpty
-            ? 'He procesado tu mensaje.'
-            : reply,
+        reply: reply.isEmpty ? 'He procesado tu mensaje.' : reply,
         toolCall: toolCall,
         model: EnvConfig.groqModel,
         conversationMode: conversationMode,

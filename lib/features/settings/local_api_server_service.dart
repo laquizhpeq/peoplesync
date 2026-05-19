@@ -5,7 +5,8 @@ import 'package:peoplesync/features/settings/local_developer_token_service.dart'
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'local_api_server_platform_stub.dart'
-    if (dart.library.io) 'local_api_server_platform_io.dart' as platform_impl;
+    if (dart.library.io) 'local_api_server_platform_io.dart'
+    as platform_impl;
 
 class LocalApiServerService {
   final LocalApiServerPlatform _platform;
@@ -15,10 +16,10 @@ class LocalApiServerService {
     required LocalDeveloperTokenService localDeveloperTokenService,
     required LocalContactsCacheService localContactsCacheService,
   }) : _platform = platform_impl.createLocalApiServerPlatform(
-          authService: authService,
-          localDeveloperTokenService: localDeveloperTokenService,
-          localContactsCacheService: localContactsCacheService,
-        );
+         authService: authService,
+         localDeveloperTokenService: localDeveloperTokenService,
+         localContactsCacheService: localContactsCacheService,
+       );
 
   bool get isSupported => _platform.isSupported;
   bool get isRunning => _platform.isRunning;

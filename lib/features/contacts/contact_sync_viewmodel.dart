@@ -78,8 +78,7 @@ class ContactSyncViewModel extends ChangeNotifier {
     } catch (e) {
       _errorMessage = AppErrorMapper.toUserMessage(
         e,
-        fallback:
-            'No se pudieron importar los contactos. Vuelve a intentarlo.',
+        fallback: 'No se pudieron importar los contactos. Vuelve a intentarlo.',
       );
       _statusMessage = 'Ocurrio un error';
     } finally {
@@ -143,8 +142,10 @@ class ContactSyncViewModel extends ChangeNotifier {
         await contactService.createImportedContact(contact);
         importedCount++;
 
-        if (importedCount % 30 == 0 || importedCount == contactsPayload.length) {
-          _statusMessage = 'Importados $importedCount de ${contactsPayload.length}...';
+        if (importedCount % 30 == 0 ||
+            importedCount == contactsPayload.length) {
+          _statusMessage =
+              'Importados $importedCount de ${contactsPayload.length}...';
           notifyListeners();
         }
       }

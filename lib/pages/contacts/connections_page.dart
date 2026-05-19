@@ -191,7 +191,8 @@ class _ConnectionsViewState extends State<_ConnectionsView> {
 
       if (_selectedRelationshipTypes.isNotEmpty) {
         final preset = resolveRelationshipPreset(contact);
-        if (preset == null || !_selectedRelationshipTypes.contains(preset.key)) {
+        if (preset == null ||
+            !_selectedRelationshipTypes.contains(preset.key)) {
           return false;
         }
       }

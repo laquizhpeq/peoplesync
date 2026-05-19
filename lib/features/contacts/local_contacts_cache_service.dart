@@ -32,11 +32,7 @@ class LocalContactsCacheService {
     final database = await _getDatabase();
     final batch = database.batch();
 
-    batch.delete(
-      'contacts_cache',
-      where: 'owner_uid = ?',
-      whereArgs: [uid],
-    );
+    batch.delete('contacts_cache', where: 'owner_uid = ?', whereArgs: [uid]);
 
     for (final contact in contacts) {
       batch.insert('contacts_cache', {

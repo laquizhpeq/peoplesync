@@ -183,11 +183,8 @@ class _DeveloperTokenSection extends StatelessWidget {
                 value: viewModel.developerModeEnabled,
                 onChanged: viewModel.isUpdatingDeveloperMode
                     ? null
-                    : (value) => _handleToggleDeveloperMode(
-                          context,
-                          viewModel,
-                          value,
-                        ),
+                    : (value) =>
+                          _handleToggleDeveloperMode(context, viewModel, value),
               ),
             ],
           ),
@@ -251,7 +248,9 @@ class _DeveloperTokenSection extends StatelessWidget {
         const SizedBox(height: 14),
         _SettingsAction(
           icon: Icons.key_rounded,
-          title: tokenInfo?.hasToken == true ? 'Reemplazar token' : 'Generar token',
+          title: tokenInfo?.hasToken == true
+              ? 'Reemplazar token'
+              : 'Generar token',
           subtitle: 'Se mostrara una sola vez y reemplazara el anterior.',
           accentColor: colors.primary,
           onTap: viewModel.isGenerating || viewModel.isRevoking
@@ -344,7 +343,8 @@ class _DeveloperTokenSection extends StatelessWidget {
     BuildContext context,
     DeveloperTokenViewModel viewModel,
   ) async {
-    final shouldReplace = !viewModel.hasToken ||
+    final shouldReplace =
+        !viewModel.hasToken ||
         await showDialog<bool>(
               context: context,
               builder: (context) => AlertDialog(
@@ -405,7 +405,8 @@ class _DeveloperTokenSection extends StatelessWidget {
     BuildContext context,
     DeveloperTokenViewModel viewModel,
   ) async {
-    final shouldRevoke = await showDialog<bool>(
+    final shouldRevoke =
+        await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Revocar token'),
@@ -468,8 +469,9 @@ class _DeveloperTokenSection extends StatelessWidget {
                   child: SingleChildScrollView(
                     child: SelectableText(
                       json,
-                      style: Theme.of(dialogContext).textTheme.bodySmall
-                          ?.copyWith(fontFamily: 'monospace'),
+                      style: Theme.of(
+                        dialogContext,
+                      ).textTheme.bodySmall?.copyWith(fontFamily: 'monospace'),
                     ),
                   ),
                 ),
@@ -515,15 +517,13 @@ class _DeveloperTokenSection extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Copialo ahora. No volvera a mostrarse completo.',
-            ),
+            const Text('Copialo ahora. No volvera a mostrarse completo.'),
             const SizedBox(height: 14),
             SelectableText(
               generatedToken.token,
-              style: Theme.of(dialogContext).textTheme.bodyMedium?.copyWith(
-                fontFamily: 'monospace',
-              ),
+              style: Theme.of(
+                dialogContext,
+              ).textTheme.bodyMedium?.copyWith(fontFamily: 'monospace'),
             ),
           ],
         ),
