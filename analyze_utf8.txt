@@ -1,4 +1,0 @@
-﻿Analyzing peoplesync2...                                        
-
-warning - Unused import: 'package:flutter/material.dart' - lib\routes\app_routes.dart:1:8 - unused_import
-
