@@ -3,18 +3,24 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:peoplesync/core/services/app_error_mapper.dart';
 import 'package:peoplesync/features/contacts/models/contact_record.dart';
+import 'package:peoplesync/features/profile/models/spotify_track.dart';
 import 'package:peoplesync/features/profile/models/user_profile.dart';
 import 'package:peoplesync/features/profile/profile_service.dart';
+import 'package:peoplesync/features/profile/spotify_service.dart';
 
 class ProfileEditorViewModel extends ChangeNotifier {
   final ProfileService profileService;
+  final SpotifyService spotifyService;
   final bool markOnboardingCompleteOnSave;
 
   final formKey = GlobalKey<FormState>();
   final fullNameController = TextEditingController();
   final cityController = TextEditingController();
   final bioController = TextEditingController();
+  final favoriteSongController = TextEditingController();
+  final affinitiesController = TextEditingController();
   final ImagePicker _imagePicker = ImagePicker();
 
   final List<ProfileSocialProfileDraft> socialProfiles = [
@@ -23,26 +29,35 @@ class ProfileEditorViewModel extends ChangeNotifier {
 
   bool _isLoading = true;
   bool _isSaving = false;
+  bool _isPickingPhoto = false;
   String? _errorMessage;
   UserProfile? _profile;
 
   Uint8List? _selectedPhotoBytes;
   String? _photoUrl;
   String? _photoPickerError;
+  bool _isSearchingSpotify = false;
+  List<SpotifyTrack> _spotifyResults = const [];
+  SpotifyTrack? _selectedSpotifyTrack;
 
   bool get isLoading => _isLoading;
   bool get isSaving => _isSaving;
+  bool get isPickingPhoto => _isPickingPhoto;
   String? get errorMessage => _errorMessage;
   UserProfile? get profile => _profile;
   Uint8List? get selectedPhotoBytes => _selectedPhotoBytes;
   String? get photoUrl => _photoUrl;
   String? get photoPickerError => _photoPickerError;
+  bool get isSearchingSpotify => _isSearchingSpotify;
+  List<SpotifyTrack> get spotifyResults => _spotifyResults;
+  SpotifyTrack? get selectedSpotifyTrack => _selectedSpotifyTrack;
   bool get hasPhoto =>
       _selectedPhotoBytes != null ||
       (_photoUrl != null && _photoUrl!.isNotEmpty);
 
   ProfileEditorViewModel({
     required this.profileService,
+    required this.spotifyService,
     this.markOnboardingCompleteOnSave = false,
   }) {
     _loadProfile();
@@ -67,22 +82,28 @@ class ProfileEditorViewModel extends ChangeNotifier {
       _profile = await profileService.getProfile(forceRefresh: true);
       _hydrateControllers(_profile);
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = AppErrorMapper.toUserMessage(
+        e,
+        fallback: 'No se pudo cargar tu perfil. Reintenta en unos segundos.',
+      );
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // Photo picker
-  // ---------------------------------------------------------------------------
-
   Future<void> pickPhoto() async {
-    debugPrint('[ProfileEditor] pickPhoto called');
-    try {
-      _photoPickerError = null;
+    if (_isPickingPhoto) {
+      _photoPickerError = 'La galeria ya se esta abriendo. Espera un momento.';
+      notifyListeners();
+      return;
+    }
 
+    _isPickingPhoto = true;
+    _photoPickerError = null;
+    notifyListeners();
+
+    try {
       if (_usesDesktopPicker) {
         final picked = await _pickWithFilePicker();
         if (picked) notifyListeners();
@@ -112,6 +133,19 @@ class ProfileEditorViewModel extends ChangeNotifier {
       _photoPickerError =
           'El selector de imagen no esta cargado. Cierra la app por completo y vuelvela a abrir.';
       notifyListeners();
+    } on PlatformException catch (e) {
+      if (e.code == 'already_active') {
+        _photoPickerError =
+            'La galeria ya se esta abriendo. Espera un momento.';
+        notifyListeners();
+        return;
+      }
+
+      _photoPickerError = AppErrorMapper.toUserMessage(
+        e,
+        fallback: 'No se pudo abrir la galeria. Vuelve a intentarlo.',
+      );
+      notifyListeners();
     } catch (e) {
       if ('$e'.contains('LateInitializationError')) {
         _photoPickerError =
@@ -120,7 +154,13 @@ class ProfileEditorViewModel extends ChangeNotifier {
         return;
       }
 
-      _photoPickerError = 'No se pudo abrir la galeria: $e';
+      _photoPickerError = AppErrorMapper.toUserMessage(
+        e,
+        fallback: 'No se pudo abrir la galeria. Vuelve a intentarlo.',
+      );
+      notifyListeners();
+    } finally {
+      _isPickingPhoto = false;
       notifyListeners();
     }
   }
@@ -158,10 +198,6 @@ class ProfileEditorViewModel extends ChangeNotifier {
     return true;
   }
 
-  // ---------------------------------------------------------------------------
-  // Social profiles
-  // ---------------------------------------------------------------------------
-
   void addSocialProfile() {
     socialProfiles.add(ProfileSocialProfileDraft());
     notifyListeners();
@@ -184,14 +220,7 @@ class ProfileEditorViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ---------------------------------------------------------------------------
-  // Save
-  // ---------------------------------------------------------------------------
-
   Future<bool> save() async {
-    debugPrint(
-      '[ProfileEditor] save() called – hasPhoto=$hasPhoto, selectedBytes=${_selectedPhotoBytes?.length}, photoUrl=$_photoUrl',
-    );
     if (!formKey.currentState!.validate()) return false;
 
     _isSaving = true;
@@ -206,17 +235,25 @@ class ProfileEditorViewModel extends ChangeNotifier {
         photoUrl: uploadedPhotoUrl,
         city: _normalizedText(cityController),
         bio: _normalizedText(bioController),
+        favoriteSong: _normalizedText(favoriteSongController),
+        favoriteSongTrackId: _selectedSpotifyTrack?.id,
+        favoriteSongArtist: _selectedSpotifyTrack?.artist,
+        favoriteSongCoverUrl: _selectedSpotifyTrack?.albumImageUrl,
+        favoriteSongExternalUrl: _selectedSpotifyTrack?.externalUrl,
+        affinities: _normalizedTags(affinitiesController.text),
         socialProfiles: _buildSocialProfiles(),
         onboardingCompleted: markOnboardingCompleteOnSave ? true : null,
       );
 
       _photoUrl = uploadedPhotoUrl;
       _selectedPhotoBytes = null;
-
       _profile = await profileService.getProfile(forceRefresh: true);
       return true;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = AppErrorMapper.toUserMessage(
+        e,
+        fallback: 'No se pudo guardar tu perfil. Vuelve a intentarlo.',
+      );
       return false;
     } finally {
       _isSaving = false;
@@ -226,32 +263,69 @@ class ProfileEditorViewModel extends ChangeNotifier {
 
   Future<String?> _resolvePhotoUrl() async {
     if (_selectedPhotoBytes != null) {
-      debugPrint(
-        '[ProfileEditor] _resolvePhotoUrl: uploading ${_selectedPhotoBytes!.length} bytes...',
-      );
-      try {
-        final url = await profileService.uploadProfilePhoto(
-          bytes: _selectedPhotoBytes!,
-        );
-        debugPrint('[ProfileEditor] upload succeeded: $url');
-        return url;
-      } catch (e) {
-        debugPrint('[ProfileEditor] upload FAILED: $e');
-        rethrow;
-      }
+      return profileService.uploadProfilePhoto(bytes: _selectedPhotoBytes!);
     }
     return _photoUrl;
   }
 
-  // ---------------------------------------------------------------------------
-  // Helpers
-  // ---------------------------------------------------------------------------
+  Future<void> searchSpotifyTrack() async {
+    final query = favoriteSongController.text.trim();
+    if (query.isEmpty) {
+      _spotifyResults = const [];
+      _errorMessage = 'Escribe una cancion antes de buscar en Spotify.';
+      notifyListeners();
+      return;
+    }
+
+    _isSearchingSpotify = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _spotifyResults = await spotifyService.searchTracks(query);
+      if (_spotifyResults.isEmpty) {
+        _errorMessage = 'Spotify no devolvio resultados para esa busqueda.';
+      }
+    } catch (_) {
+      _errorMessage = 'Esta caracteristica aun no esta disponible.';
+    } finally {
+      _isSearchingSpotify = false;
+      notifyListeners();
+    }
+  }
+
+  void selectSpotifyTrack(SpotifyTrack track) {
+    _selectedSpotifyTrack = track;
+    favoriteSongController.text = track.name;
+    _spotifyResults = const [];
+    notifyListeners();
+  }
+
+  void clearSpotifyTrack() {
+    _selectedSpotifyTrack = null;
+    notifyListeners();
+  }
 
   void _hydrateControllers(UserProfile? profile) {
     fullNameController.text = profile?.fullName ?? '';
     _photoUrl = profile?.photoUrl;
     cityController.text = profile?.city ?? '';
     bioController.text = profile?.bio ?? '';
+    favoriteSongController.text = profile?.favoriteSong ?? '';
+    affinitiesController.text = (profile?.affinities ?? const <String>[]).join(
+      ', ',
+    );
+    if (profile?.favoriteSongTrackId?.trim().isNotEmpty == true) {
+      _selectedSpotifyTrack = SpotifyTrack(
+        id: profile!.favoriteSongTrackId!,
+        name: profile.favoriteSong ?? '',
+        artist: profile.favoriteSongArtist ?? 'Artista desconocido',
+        albumImageUrl: profile.favoriteSongCoverUrl,
+        externalUrl: profile.favoriteSongExternalUrl ?? '',
+      );
+    } else {
+      _selectedSpotifyTrack = null;
+    }
 
     for (final draft in socialProfiles) {
       draft.dispose();
@@ -288,11 +362,22 @@ class ProfileEditorViewModel extends ChangeNotifier {
     return value.isEmpty ? null : value;
   }
 
+  List<String> _normalizedTags(String rawValue) {
+    return rawValue
+        .split(',')
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty)
+        .toSet()
+        .toList();
+  }
+
   @override
   void dispose() {
     fullNameController.dispose();
     cityController.dispose();
     bioController.dispose();
+    favoriteSongController.dispose();
+    affinitiesController.dispose();
     for (final draft in socialProfiles) {
       draft.dispose();
     }

@@ -17,7 +17,7 @@ class ProfileAvatar extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
 
     return Stack(
-      alignment: Alignment.bottomRight,
+      clipBehavior: Clip.none,
       children: [
         Container(
           padding: const EdgeInsets.all(4),
@@ -71,7 +71,7 @@ class ProfileAvatar extends StatelessWidget {
           ),
         ),
         Positioned(
-          bottom: 0,
+          top: 0,
           right: 0,
           child: Container(
             decoration: BoxDecoration(
@@ -86,6 +86,9 @@ class ProfileAvatar extends StatelessWidget {
               ],
             ),
             child: IconButton(
+              constraints: const BoxConstraints.tightFor(width: 40, height: 40),
+              padding: EdgeInsets.zero,
+              visualDensity: VisualDensity.compact,
               icon: const Icon(Icons.camera_alt_rounded),
               onPressed: onEditPhoto,
             ),

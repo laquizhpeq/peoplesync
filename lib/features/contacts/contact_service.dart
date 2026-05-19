@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:typed_data';
 import 'package:peoplesync/core/config/env_config.dart';
+import 'package:peoplesync/features/contacts/models/contact_ai_summary.dart';
 import 'package:peoplesync/features/contacts/models/contact_record.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -192,6 +193,7 @@ class ContactService {
     String? favoriteSong,
     String? email,
     String? phone,
+    String? relationshipType,
     List<String>? interests,
     List<String>? lookingFor,
     List<String>? personalityTags,
@@ -229,6 +231,9 @@ class ContactService {
           .toList();
     }
 
+    if (relationshipType != null) {
+      updates['relationship.relationship_type'] = relationshipType;
+    }
     if (interests != null) updates['relationship.interests'] = interests;
     if (lookingFor != null) {
       updates['relationship.looking_for'] = lookingFor;
@@ -411,6 +416,46 @@ class ContactService {
     } catch (e) {
       throw ContactServiceException(
         'Error al actualizar favorito del contacto $contactId.',
+        cause: e,
+      );
+    }
+  }
+
+  Future<void> updateStrengthenRelationshipStatus({
+    required String contactId,
+    required bool wantsToStrengthenRelationship,
+  }) async {
+    try {
+      final uid = _currentUid;
+      await _contactsCollection(uid).doc(contactId).update({
+        'relationship.wants_to_strengthen_relationship':
+            wantsToStrengthenRelationship,
+        'updated_at': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      throw ContactServiceException(
+        'Error al actualizar relacion a cuidar del contacto $contactId.',
+        cause: e,
+      );
+    }
+  }
+
+  Future<void> updateAiSummary({
+    required String contactId,
+    required ContactAiSummary summary,
+    required String model,
+  }) async {
+    try {
+      final uid = _currentUid;
+      await _contactsCollection(uid).doc(contactId).update({
+        'relationship.ai_summary': summary.toMap(),
+        'relationship.ai_summary_updated_at': FieldValue.serverTimestamp(),
+        'relationship.ai_summary_model': model,
+        'updated_at': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      throw ContactServiceException(
+        'Error al guardar el resumen IA del contacto $contactId.',
         cause: e,
       );
     }

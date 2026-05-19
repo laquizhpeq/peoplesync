@@ -21,6 +21,8 @@ class ContactManualForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<ContactFormViewModel>();
+    final isPhotoActionDisabled =
+        viewModel.isSaving || viewModel.isPickingPhoto;
 
     return Form(
       key: viewModel.formKey,
@@ -50,7 +52,7 @@ class ContactManualForm extends StatelessWidget {
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: viewModel.isSaving
+                        onPressed: isPhotoActionDisabled
                             ? null
                             : viewModel.pickPhoto,
                         icon: const Icon(Icons.photo_library_rounded),
@@ -62,7 +64,7 @@ class ContactManualForm extends StatelessWidget {
                     if (viewModel.hasPhoto) ...[
                       const SizedBox(width: 12),
                       IconButton.outlined(
-                        onPressed: viewModel.isSaving
+                        onPressed: isPhotoActionDisabled
                             ? null
                             : viewModel.removePhoto,
                         icon: const Icon(Icons.delete_outline_rounded),
@@ -164,6 +166,25 @@ class ContactManualForm extends StatelessWidget {
                 'Todo lo que solo tu sabes o quieres recordar sobre esta conexion.',
             child: Column(
               children: [
+                DropdownButtonFormField<String>(
+                  initialValue: viewModel.selectedRelationshipType,
+                  decoration: const InputDecoration(
+                    labelText: 'Tipo de relacion',
+                    prefixIcon: Icon(Icons.category_outlined),
+                  ),
+                  items: ContactFormViewModel.relationshipTypeOptions
+                      .map(
+                        (option) => DropdownMenuItem<String>(
+                          value: option,
+                          child: Text(_relationshipTypeLabel(option)),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: viewModel.isSaving
+                      ? null
+                      : viewModel.setRelationshipType,
+                ),
+                const SizedBox(height: 16),
                 AppTextField(
                   controller: viewModel.relationshipInterestsController,
                   label: 'Intereses',
@@ -285,6 +306,25 @@ class ContactManualForm extends StatelessWidget {
   }
 }
 
+String _relationshipTypeLabel(String value) {
+  switch (value) {
+    case 'networking':
+      return 'Networking';
+    case 'amistad':
+      return 'Amistad';
+    case 'clientes':
+      return 'Clientes';
+    case 'colaboradores':
+      return 'Colaboradores';
+    case 'familia':
+      return 'Familia';
+    case 'seguir cultivando':
+      return 'Seguir cultivando';
+    default:
+      return value;
+  }
+}
+
 class _ContactPhotoPicker extends StatelessWidget {
   final ContactFormViewModel viewModel;
 
@@ -293,6 +333,8 @@ class _ContactPhotoPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isPhotoActionDisabled =
+        viewModel.isSaving || viewModel.isPickingPhoto;
     final photoContent = Container(
       width: double.infinity,
       height: 180,
@@ -321,7 +363,7 @@ class _ContactPhotoPicker extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: viewModel.isSaving ? null : viewModel.pickPhoto,
+        onTap: isPhotoActionDisabled ? null : viewModel.pickPhoto,
         borderRadius: BorderRadius.circular(24),
         child: photoContent,
       ),

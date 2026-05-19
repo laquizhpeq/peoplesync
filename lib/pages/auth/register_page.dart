@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:peoplesync/core/constants/app_strings.dart';
 import 'package:peoplesync/core/constants/routes.dart';
+import 'package:peoplesync/core/services/app_feedback_service.dart';
 import 'package:peoplesync/features/auth/auth_viewmodel.dart';
 import 'package:peoplesync/shared/widgets/auth/auth_footer_links.dart';
 import 'package:peoplesync/shared/widgets/auth/auth_logo.dart';
@@ -48,14 +49,8 @@ class _RegisterPageState extends State<RegisterPage> {
     if (!mounted) return;
 
     if (viewModel.errorMessage == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registro completado correctamente')),
-      );
+      AppFeedbackService.showInfo('Cuenta creada correctamente.');
       context.go(Routes.home);
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(viewModel.errorMessage!)));
     }
   }
 

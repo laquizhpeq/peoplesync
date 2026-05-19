@@ -3,10 +3,20 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:peoplesync/core/services/app_error_mapper.dart';
 import 'package:peoplesync/features/contacts/contact_service.dart';
 import 'package:peoplesync/features/contacts/models/contact_record.dart';
 
 class ContactFormViewModel extends ChangeNotifier {
+  static const List<String> relationshipTypeOptions = [
+    'networking',
+    'amistad',
+    'clientes',
+    'colaboradores',
+    'familia',
+    'seguir cultivando',
+  ];
+
   final ContactService contactService;
   final ContactRecord? initialContact;
 
@@ -21,6 +31,7 @@ class ContactFormViewModel extends ChangeNotifier {
   final identityFavoriteSongController = TextEditingController();
   final identityEmailController = TextEditingController();
   final identityPhoneController = TextEditingController();
+  final relationshipTypeController = TextEditingController();
   final relationshipInterestsController = TextEditingController();
   final relationshipLookingForController = TextEditingController();
   final relationshipPersonalityTagsController = TextEditingController();
@@ -33,16 +44,23 @@ class ContactFormViewModel extends ChangeNotifier {
   ];
 
   bool _isSaving = false;
+  bool _isPickingPhoto = false;
   Uint8List? _selectedPhotoBytes;
   String? _photoUrl;
   String? _photoPickerError;
 
   bool get isSaving => _isSaving;
+  bool get isPickingPhoto => _isPickingPhoto;
   bool get isEditMode => initialContact != null;
   String get submitLabel => isEditMode ? 'Guardar cambios' : 'Guardar contacto';
   Uint8List? get selectedPhotoBytes => _selectedPhotoBytes;
   String? get photoUrl => _photoUrl;
   String? get photoPickerError => _photoPickerError;
+  String? get selectedRelationshipType {
+    final value = relationshipTypeController.text.trim();
+    return value.isEmpty ? null : value;
+  }
+
   bool get hasPhoto =>
       _selectedPhotoBytes != null ||
       (_photoUrl != null && _photoUrl!.isNotEmpty);
@@ -80,10 +98,23 @@ class ContactFormViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> pickPhoto() async {
-    try {
-      _photoPickerError = null;
+  void setRelationshipType(String? value) {
+    relationshipTypeController.text = value?.trim() ?? '';
+    notifyListeners();
+  }
 
+  Future<void> pickPhoto() async {
+    if (_isPickingPhoto) {
+      _photoPickerError = 'La galeria ya se esta abriendo. Espera un momento.';
+      notifyListeners();
+      return;
+    }
+
+    _isPickingPhoto = true;
+    _photoPickerError = null;
+    notifyListeners();
+
+    try {
       if (_usesDesktopPicker) {
         final picked = await _pickWithFilePicker();
         if (picked) notifyListeners();
@@ -113,6 +144,19 @@ class ContactFormViewModel extends ChangeNotifier {
       _photoPickerError =
           'El selector de imagen no esta cargado. Cierra la app por completo y vuelvela a abrir.';
       notifyListeners();
+    } on PlatformException catch (e) {
+      if (e.code == 'already_active') {
+        _photoPickerError =
+            'La galeria ya se esta abriendo. Espera un momento.';
+        notifyListeners();
+        return;
+      }
+
+      _photoPickerError = AppErrorMapper.toUserMessage(
+        e,
+        fallback: 'No se pudo abrir la galeria. Vuelve a intentarlo.',
+      );
+      notifyListeners();
     } catch (e) {
       if ('$e'.contains('LateInitializationError')) {
         _photoPickerError =
@@ -121,7 +165,13 @@ class ContactFormViewModel extends ChangeNotifier {
         return;
       }
 
-      _photoPickerError = 'No se pudo abrir la galeria: $e';
+      _photoPickerError = AppErrorMapper.toUserMessage(
+        e,
+        fallback: 'No se pudo abrir la galeria. Vuelve a intentarlo.',
+      );
+      notifyListeners();
+    } finally {
+      _isPickingPhoto = false;
       notifyListeners();
     }
   }
@@ -185,6 +235,7 @@ class ContactFormViewModel extends ChangeNotifier {
           favoriteSong: _normalizedUpdateText(identityFavoriteSongController),
           email: _normalizedUpdateText(identityEmailController),
           phone: _normalizedUpdateText(identityPhoneController),
+          relationshipType: _normalizedUpdateText(relationshipTypeController),
           interests: _splitTags(relationshipInterestsController.text),
           lookingFor: _splitTags(relationshipLookingForController.text),
           personalityTags: _splitTags(
@@ -211,7 +262,10 @@ class ContactFormViewModel extends ChangeNotifier {
 
       return null;
     } catch (e) {
-      return 'No se pudo guardar el contacto: $e';
+      return AppErrorMapper.toUserMessage(
+        e,
+        fallback: 'No se pudo guardar el contacto. Vuelve a intentarlo.',
+      );
     } finally {
       _isSaving = false;
       notifyListeners();
@@ -271,6 +325,7 @@ class ContactFormViewModel extends ChangeNotifier {
 
   ContactRelationship _buildRelationship() {
     return ContactRelationship(
+      relationshipType: _normalizedText(relationshipTypeController),
       contextNote: _normalizedText(relationshipContextNoteController),
       interests: _splitTags(relationshipInterestsController.text),
       lookingFor: _splitTags(relationshipLookingForController.text),
@@ -314,6 +369,8 @@ class ContactFormViewModel extends ChangeNotifier {
     identityFavoriteSongController.text = contact.identity.favoriteSong ?? '';
     identityEmailController.text = contact.identity.email ?? '';
     identityPhoneController.text = contact.identity.phone ?? '';
+    relationshipTypeController.text =
+        contact.relationship.relationshipType ?? '';
     relationshipInterestsController.text = contact.relationship.interests.join(
       ', ',
     );
@@ -360,6 +417,7 @@ class ContactFormViewModel extends ChangeNotifier {
     identityFavoriteSongController.dispose();
     identityEmailController.dispose();
     identityPhoneController.dispose();
+    relationshipTypeController.dispose();
     relationshipInterestsController.dispose();
     relationshipLookingForController.dispose();
     relationshipPersonalityTagsController.dispose();

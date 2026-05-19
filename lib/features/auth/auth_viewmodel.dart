@@ -1,5 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:peoplesync/core/services/app_error_mapper.dart';
+import 'package:peoplesync/core/services/app_logger.dart';
 import 'package:peoplesync/features/navigation/navigation_provider.dart';
 import 'package:peoplesync/features/profile/profile_service.dart';
 import 'auth_service.dart';
@@ -31,29 +32,15 @@ class AuthViewModel extends ChangeNotifier {
         email: email,
         password: password,
       );
-
-      // Attempt to load menus as soon as login succeeds
-      final uid = authService.currentUser?.uid;
-      if (uid != null) {
-        await profileService.ensureCurrentUserProfile();
-        await profileService.touchLastLogin();
-        await navigationProvider.loadMenus(uid);
-      }
-
-      // Login success: clear error and notify
-      _isLoading = false;
-      _errorMessage = null;
-      notifyListeners();
-      debugPrint('AuthViewModel: login success');
+      await _finalizeAuthenticatedSession();
     } catch (e) {
       _isLoading = false;
-      // Extract message from Exception if present
-      final errorStr = e.toString();
-      _errorMessage = errorStr.startsWith('Exception: ')
-          ? errorStr.substring(11)
-          : errorStr;
+      AppLogger.error('Fallo el login de usuario', scope: 'auth', error: e);
+      _errorMessage = AppErrorMapper.toUserMessage(
+        e,
+        fallback: 'No se pudo iniciar sesion. Vuelve a intentarlo.',
+      );
       notifyListeners();
-      debugPrint('AuthViewModel: login error: $_errorMessage');
     }
   }
 
@@ -89,15 +76,14 @@ class AuthViewModel extends ChangeNotifier {
       _isLoading = false;
       _errorMessage = null;
       notifyListeners();
-      debugPrint('AuthViewModel: register success');
     } catch (e) {
       _isLoading = false;
-      final errorStr = e.toString();
-      _errorMessage = errorStr.startsWith('Exception: ')
-          ? errorStr.substring(11)
-          : errorStr;
+      _errorMessage = AppErrorMapper.toUserMessage(
+        e,
+        fallback:
+            'No se pudo crear la cuenta. Revisa tus datos y prueba otra vez.',
+      );
       notifyListeners();
-      debugPrint('AuthViewModel: register error: $_errorMessage');
     }
   }
 
@@ -108,6 +94,26 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   void clearError() {
+    _errorMessage = null;
+    notifyListeners();
+  }
+
+  Future<void> _finalizeAuthenticatedSession() async {
+    final uid = authService.currentUser?.uid;
+    if (uid != null) {
+      await profileService.ensureCurrentUserProfile();
+      final profile = profileService.cachedProfile;
+      if (profile != null && !profile.isActive) {
+        await authService.signOut();
+        throw Exception(
+          'Tu cuenta esta desactivada. Contacta con un administrador.',
+        );
+      }
+      await profileService.touchLastLogin();
+      await navigationProvider.loadMenus(uid);
+    }
+
+    _isLoading = false;
     _errorMessage = null;
     notifyListeners();
   }

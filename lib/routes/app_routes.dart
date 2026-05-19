@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:peoplesync/core/constants/routes.dart';
+import 'package:peoplesync/pages/admin/admin_page.dart';
+import 'package:peoplesync/pages/assistant/assistant_page.dart';
 import 'package:peoplesync/pages/home/home_page.dart';
 import 'package:peoplesync/pages/auth/auth_page.dart';
 import 'package:peoplesync/pages/auth/register_page.dart';
@@ -45,19 +47,19 @@ class AppRoutes {
       }
 
       if (isAuth) {
-        await profileService.ensureCurrentUserProfile();
-        final needsOnboarding = await profileService.requiresOnboarding();
+        final needsOnboarding = profileService.requiresOnboardingFromCache();
 
-        if (needsOnboarding && !isOnboardingRoute) {
+        if (needsOnboarding == true && !isOnboardingRoute) {
           return Routes.onboardingProfile;
         }
 
-        if (!needsOnboarding && isOnboardingRoute) {
+        if (needsOnboarding == false && isOnboardingRoute) {
           return Routes.home;
         }
 
         if (isAuthRoute) {
-          return needsOnboarding ? Routes.onboardingProfile : Routes.home;
+          if (needsOnboarding == true) return Routes.onboardingProfile;
+          return Routes.home;
         }
       }
 
@@ -155,6 +157,14 @@ class AppRoutes {
           GoRoute(
             path: Routes.settings,
             builder: (context, state) => const SettingsPage(),
+          ),
+          GoRoute(
+            path: Routes.admin,
+            builder: (context, state) => const AdminPage(),
+          ),
+          GoRoute(
+            path: Routes.assistant,
+            builder: (context, state) => const AssistantPage(),
           ),
         ],
       ),
