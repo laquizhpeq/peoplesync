@@ -1,6 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:peoplesync/core/config/env_config.dart';
 import 'package:peoplesync/features/contacts/models/contact_record.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -12,11 +12,9 @@ class ProfileService {
   UserProfile? _cachedProfile;
   String? _cachedUid;
 
-  // Reference to the current user's document
   DocumentReference get _userDoc =>
       _firestore.collection('users').doc(_auth.currentUser?.uid);
 
-  // Stream of profile updates
   Stream<UserProfile?> get profileStream {
     return _userDoc.snapshots().map((doc) {
       if (!doc.exists) return null;
@@ -28,7 +26,14 @@ class ProfileService {
     });
   }
 
-  // Get profile once
+  UserProfile? get cachedProfile {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null || _cachedUid != uid) return null;
+    return _cachedProfile;
+  }
+
+  bool get hasCachedCurrentUserProfile => cachedProfile != null;
+
   Future<UserProfile?> getProfile({bool forceRefresh = false}) async {
     final uid = _auth.currentUser?.uid;
     if (!forceRefresh &&
@@ -44,6 +49,7 @@ class ProfileService {
       _cachedUid = uid;
       return null;
     }
+
     final data = doc.data() as Map<String, dynamic>;
     final profile = UserProfile.fromMap(data, doc.id);
     _cachedUid = doc.id;
@@ -51,12 +57,12 @@ class ProfileService {
     return profile;
   }
 
-  // Get external profile (for importing via QR)
   Future<UserProfile?> getUserProfile(String uid) async {
     final doc = await _firestore.collection('users').doc(uid).get();
     if (!doc.exists) {
       return null;
     }
+
     final data = doc.data() as Map<String, dynamic>;
     return UserProfile.fromMap(data, doc.id);
   }
@@ -67,6 +73,7 @@ class ProfileService {
     required String fullName,
     String roleId = 'usuario',
   }) async {
+    final now = DateTime.now();
     await _firestore.collection('users').doc(uid).set({
       'full_name': fullName,
       'email': email,
@@ -74,14 +81,43 @@ class ProfileService {
       'photo_url': null,
       'city': null,
       'bio': null,
+      'favorite_song': null,
+      'favorite_song_track_id': null,
+      'favorite_song_artist': null,
+      'favorite_song_cover_url': null,
+      'favorite_song_external_url': null,
+      'affinities': const [],
       'social_profiles': const [],
       'onboarding_completed': false,
+      'is_active': true,
+      'deactivated_at': null,
       'created_at': FieldValue.serverTimestamp(),
       'updated_at': FieldValue.serverTimestamp(),
       'last_login': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
-    _cachedProfile = null;
     _cachedUid = uid;
+    _cachedProfile = UserProfile(
+      uid: uid,
+      fullName: fullName,
+      email: email,
+      rolId: roleId,
+      photoUrl: null,
+      city: null,
+      bio: null,
+      favoriteSong: null,
+      favoriteSongTrackId: null,
+      favoriteSongArtist: null,
+      favoriteSongCoverUrl: null,
+      favoriteSongExternalUrl: null,
+      affinities: const [],
+      socialProfiles: const [],
+      onboardingCompleted: false,
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+      lastLogin: now,
+      deactivatedAt: null,
+    );
   }
 
   Future<void> ensureCurrentUserProfile() async {
@@ -97,7 +133,12 @@ class ProfileService {
         email: user.email ?? '',
         fullName: user.displayName ?? '',
       );
+      return;
     }
+
+    final data = doc.data() as Map<String, dynamic>;
+    _cachedUid = doc.id;
+    _cachedProfile = UserProfile.fromMap(data, doc.id);
   }
 
   Future<bool> requiresOnboarding() async {
@@ -107,7 +148,13 @@ class ProfileService {
     return profile.fullName.trim().isEmpty;
   }
 
-  /// Sube una foto de perfil a Supabase Storage y devuelve la URL publica.
+  bool? requiresOnboardingFromCache() {
+    final profile = cachedProfile;
+    if (profile == null) return null;
+    if (!profile.onboardingCompleted) return true;
+    return profile.fullName.trim().isEmpty;
+  }
+
   Future<String> uploadProfilePhoto({required Uint8List bytes}) async {
     final uid = _auth.currentUser?.uid;
     if (uid == null || uid.isEmpty) {
@@ -116,10 +163,6 @@ class ProfileService {
 
     final bucket = EnvConfig.supabaseContactPhotosBucket;
     final folder = EnvConfig.supabaseProfilePhotosFolder;
-
-    debugPrint(
-      '[ProfileService] uploadProfilePhoto: bucket=$bucket, folder=$folder, uid=$uid, bytes=${bytes.length}',
-    );
 
     if (EnvConfig.supabaseUrl.isEmpty || EnvConfig.supabaseAnonKey.isEmpty) {
       throw Exception('Supabase no esta configurado en .env.');
@@ -132,17 +175,13 @@ class ProfileService {
     final filePath =
         '$folder/$uid/${DateTime.now().millisecondsSinceEpoch}.jpg';
 
-    debugPrint('[ProfileService] uploading to: $filePath');
-
     await storage.uploadBinary(
       filePath,
       bytes,
       fileOptions: const FileOptions(upsert: true, contentType: 'image/jpeg'),
     );
 
-    final publicUrl = storage.getPublicUrl(filePath);
-    debugPrint('[ProfileService] upload OK — publicUrl=$publicUrl');
-    return publicUrl;
+    return storage.getPublicUrl(filePath);
   }
 
   Future<void> saveProfile({
@@ -150,6 +189,12 @@ class ProfileService {
     String? photoUrl,
     String? city,
     String? bio,
+    String? favoriteSong,
+    String? favoriteSongTrackId,
+    String? favoriteSongArtist,
+    String? favoriteSongCoverUrl,
+    String? favoriteSongExternalUrl,
+    List<String> affinities = const [],
     List<ContactSocialProfile> socialProfiles = const [],
     bool? onboardingCompleted,
   }) async {
@@ -158,6 +203,12 @@ class ProfileService {
       'photo_url': photoUrl,
       'city': city,
       'bio': bio,
+      'favorite_song': favoriteSong,
+      'favorite_song_track_id': favoriteSongTrackId,
+      'favorite_song_artist': favoriteSongArtist,
+      'favorite_song_cover_url': favoriteSongCoverUrl,
+      'favorite_song_external_url': favoriteSongExternalUrl,
+      'affinities': affinities,
       'social_profiles': socialProfiles
           .map((profile) => profile.toMap())
           .toList(),
@@ -185,6 +236,12 @@ class ProfileService {
     String? photoUrl,
     String? city,
     String? bio,
+    String? favoriteSong,
+    String? favoriteSongTrackId,
+    String? favoriteSongArtist,
+    String? favoriteSongCoverUrl,
+    String? favoriteSongExternalUrl,
+    List<String> affinities = const [],
     List<ContactSocialProfile> socialProfiles = const [],
   }) async {
     await saveProfile(
@@ -192,7 +249,18 @@ class ProfileService {
       photoUrl: photoUrl,
       city: city,
       bio: bio,
+      favoriteSong: favoriteSong,
+      favoriteSongTrackId: favoriteSongTrackId,
+      favoriteSongArtist: favoriteSongArtist,
+      favoriteSongCoverUrl: favoriteSongCoverUrl,
+      favoriteSongExternalUrl: favoriteSongExternalUrl,
+      affinities: affinities,
       socialProfiles: socialProfiles,
     );
+  }
+
+  void clearCache() {
+    _cachedProfile = null;
+    _cachedUid = null;
   }
 }

@@ -1,16 +1,26 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 
 class AuthService {
   FirebaseAuth get _auth => FirebaseAuth.instance;
 
-  // Usuario actual
   User? get currentUser => _auth.currentUser;
 
-  // Stream de cambios de autenticación
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-  // Iniciar sesión con email y contraseña
+  Future<String> getIdToken({bool forceRefresh = false}) async {
+    final user = currentUser;
+    if (user == null) {
+      throw Exception('No hay un usuario autenticado.');
+    }
+
+    final token = await user.getIdToken(forceRefresh);
+    if (token == null || token.trim().isEmpty) {
+      throw Exception('No se pudo obtener el token de Firebase.');
+    }
+
+    return token;
+  }
+
   Future<UserCredential> signInWithEmailAndPassword({
     required String email,
     required String password,
@@ -21,12 +31,10 @@ class AuthService {
         password: password,
       );
     } on FirebaseAuthException catch (e) {
-      debugPrint('AuthService.signInWithEmailAndPassword -> ${e.code}');
       throw Exception(_mapFirebaseError(e));
     }
   }
 
-  // Registro con email y contraseña
   Future<UserCredential> createUserWithEmailAndPassword({
     required String email,
     required String password,
@@ -37,33 +45,30 @@ class AuthService {
         password: password,
       );
     } on FirebaseAuthException catch (e) {
-      debugPrint('AuthService.createUserWithEmailAndPassword -> ${e.code}');
       throw Exception(_mapFirebaseError(e));
     }
   }
 
-  // Cerrar sesión
   Future<void> signOut() async {
     await _auth.signOut();
   }
 
-  // Mapeo centralizado de errores Firebase
   String _mapFirebaseError(FirebaseAuthException e) {
     switch (e.code) {
       case 'user-not-found':
         return 'Usuario no encontrado';
       case 'wrong-password':
-        return 'Contraseña incorrecta';
+        return 'Contrasena incorrecta';
       case 'invalid-email':
-        return 'Email inválido';
+        return 'Email invalido';
       case 'weak-password':
-        return 'La contraseña es demasiado débil';
+        return 'La contrasena es demasiado debil';
       case 'email-already-in-use':
-        return 'El email ya está registrado';
+        return 'El email ya esta registrado';
       case 'user-disabled':
         return 'Usuario deshabilitado';
       default:
-        return 'Error de autenticación';
+        return 'Error de autenticacion';
     }
   }
 }

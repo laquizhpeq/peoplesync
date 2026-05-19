@@ -20,8 +20,6 @@ class ScannerViewModel extends ChangeNotifier {
     required this.qrService,
   });
 
-  /// Processes the barcode value.
-  /// Returns a displayName if a user is linked successfully, or null if invalid/error.
   Future<String?> processQrCode(String? barcode) async {
     if (barcode == null || _isProcessing) return null;
 
@@ -35,18 +33,15 @@ class ScannerViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Usamos el nuevo método de networking que centraliza la lógica.
       await contactService.saveScannedContact(
         miUid: miUid,
         contactoUid: contactoUid,
-        notaContexto: 'Escaneado vía QR',
+        notaContexto: 'Escaneado via QR',
       );
 
-      // Obtenemos el nombre para el feedback visual en la UI.
       final profile = await profileService.getUserProfile(contactoUid);
       return profile?.fullName;
-    } catch (e) {
-      debugPrint('Error integrando contacto: $e');
+    } catch (_) {
       return null;
     } finally {
       _isProcessing = false;

@@ -9,11 +9,19 @@ class UserProfile {
   String? photoUrl;
   String? city;
   String? bio;
+  String? favoriteSong;
+  String? favoriteSongTrackId;
+  String? favoriteSongArtist;
+  String? favoriteSongCoverUrl;
+  String? favoriteSongExternalUrl;
+  List<String> affinities;
   List<ContactSocialProfile> socialProfiles;
   bool onboardingCompleted;
+  bool isActive;
   DateTime? createdAt;
   DateTime? updatedAt;
   DateTime? lastLogin;
+  DateTime? deactivatedAt;
 
   UserProfile({
     required this.uid,
@@ -23,11 +31,19 @@ class UserProfile {
     this.photoUrl,
     this.city,
     this.bio,
+    this.favoriteSong,
+    this.favoriteSongTrackId,
+    this.favoriteSongArtist,
+    this.favoriteSongCoverUrl,
+    this.favoriteSongExternalUrl,
+    this.affinities = const [],
     this.socialProfiles = const [],
     this.onboardingCompleted = false,
+    this.isActive = true,
     this.createdAt,
     this.updatedAt,
     this.lastLogin,
+    this.deactivatedAt,
   });
 
   factory UserProfile.fromMap(Map<String, dynamic> map, String uid) {
@@ -39,6 +55,12 @@ class UserProfile {
       photoUrl: map['photo_url'],
       city: map['city'],
       bio: map['bio'],
+      favoriteSong: map['favorite_song'] as String?,
+      favoriteSongTrackId: map['favorite_song_track_id'] as String?,
+      favoriteSongArtist: map['favorite_song_artist'] as String?,
+      favoriteSongCoverUrl: map['favorite_song_cover_url'] as String?,
+      favoriteSongExternalUrl: map['favorite_song_external_url'] as String?,
+      affinities: List<String>.from(map['affinities'] ?? const []),
       socialProfiles: (map['social_profiles'] as List<dynamic>? ?? const [])
           .whereType<Map>()
           .map(
@@ -47,9 +69,11 @@ class UserProfile {
           )
           .toList(),
       onboardingCompleted: map['onboarding_completed'] as bool? ?? false,
+      isActive: map['is_active'] as bool? ?? true,
       createdAt: (map['created_at'] as Timestamp?)?.toDate(),
       updatedAt: (map['updated_at'] as Timestamp?)?.toDate(),
       lastLogin: (map['last_login'] as Timestamp?)?.toDate(),
+      deactivatedAt: (map['deactivated_at'] as Timestamp?)?.toDate(),
     );
   }
 
@@ -61,13 +85,23 @@ class UserProfile {
       'photo_url': photoUrl,
       'city': city,
       'bio': bio,
+      'favorite_song': favoriteSong,
+      'favorite_song_track_id': favoriteSongTrackId,
+      'favorite_song_artist': favoriteSongArtist,
+      'favorite_song_cover_url': favoriteSongCoverUrl,
+      'favorite_song_external_url': favoriteSongExternalUrl,
+      'affinities': affinities,
       'social_profiles': socialProfiles
           .map((profile) => profile.toMap())
           .toList(),
       'onboarding_completed': onboardingCompleted,
+      'is_active': isActive,
       'created_at': createdAt ?? FieldValue.serverTimestamp(),
       'updated_at': updatedAt ?? FieldValue.serverTimestamp(),
       'last_login': lastLogin ?? FieldValue.serverTimestamp(),
+      'deactivated_at': deactivatedAt == null
+          ? null
+          : Timestamp.fromDate(deactivatedAt!),
     };
   }
 }

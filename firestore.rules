@@ -9,9 +9,17 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    function isAdmin() {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.rol_id == 'admin';
+    }
+
     // Perfil propio del usuario
     match /users/{userId} {
-      allow read, write: if isOwner(userId);
+      // Lectura global para cualquier usuario autenticado (modo rapido para panel admin)
+      allow read: if isSignedIn();
+      // Escritura restringida a propietario o admin para mantener CRUD controlado
+      allow write: if isOwner(userId) || isAdmin();
 
       // Agenda privada del usuario
       match /contacts/{contactId} {

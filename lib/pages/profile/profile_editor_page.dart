@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:peoplesync/core/constants/routes.dart';
 import 'package:peoplesync/core/di/service_locator.dart';
+import 'package:peoplesync/core/services/app_feedback_service.dart';
 import 'package:peoplesync/features/navigation/navigation_provider.dart';
 import 'package:peoplesync/features/profile/profile_editor_viewmodel.dart';
 import 'package:peoplesync/shared/widgets/profile/profile_form.dart';
@@ -58,13 +59,9 @@ class ProfileEditorPage extends StatelessWidget {
                       if (!context.mounted) return;
 
                       if (!success) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              viewModel.errorMessage ??
-                                  'No se pudo guardar el perfil',
-                            ),
-                          ),
+                        AppFeedbackService.showError(
+                          viewModel.errorMessage ??
+                              'No se pudo guardar el perfil. Vuelve a intentarlo.',
                         );
                         return;
                       }
@@ -80,10 +77,8 @@ class ProfileEditorPage extends StatelessWidget {
                         return;
                       }
 
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Perfil guardado con exito'),
-                        ),
+                      AppFeedbackService.showInfo(
+                        'Perfil guardado correctamente.',
                       );
                       context.pop();
                     },

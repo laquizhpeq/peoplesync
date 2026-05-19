@@ -1,10 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:peoplesync/core/constants/routes.dart';
 import 'package:peoplesync/core/di/service_locator.dart';
+import 'package:peoplesync/core/services/app_feedback_service.dart';
+import 'package:peoplesync/core/services/app_logger.dart';
+import 'package:peoplesync/features/ai/contact_ai_viewmodel.dart';
+import 'package:peoplesync/features/ai/models/contact_ai_message_suggestion.dart';
+import 'package:peoplesync/features/ai/models/contact_ai_suggested_topic.dart';
 import 'package:peoplesync/features/contacts/connections_viewmodel.dart';
+import 'package:peoplesync/features/contacts/models/contact_ai_summary.dart';
 import 'package:peoplesync/features/contacts/models/contact_record.dart';
+import 'package:peoplesync/features/contacts/models/relationship_type_preset.dart';
+import 'package:peoplesync/shared/widgets/contacts/contact_avatar_placeholder.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ContactDetailPage extends StatelessWidget {
@@ -15,45 +25,45 @@ class ContactDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<ConnectionsViewModel>(
-      create: (_) => getIt<ConnectionsViewModel>(),
-      child: Consumer<ConnectionsViewModel>(
-        builder: (context, viewModel, _) {
-          final contact = _resolveContact(
-            viewModel.contacts,
-            contactId,
-            initialContact,
-          );
+    return Consumer<ConnectionsViewModel>(
+      builder: (context, viewModel, _) {
+        final contact = _resolveContact(
+          viewModel.contacts,
+          contactId,
+          initialContact,
+        );
 
-          if (contact == null) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.person_search_rounded, size: 52),
-                    const SizedBox(height: 12),
-                    Text(
-                      'No se encontro este contacto',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+        if (contact == null) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.person_search_rounded, size: 52),
+                  const SizedBox(height: 12),
+                  Text(
+                    'No se encontro este contacto',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
                     ),
-                    const SizedBox(height: 12),
-                    FilledButton(
-                      onPressed: () => context.go(Routes.connections),
-                      child: const Text('Volver a conexiones'),
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 12),
+                  FilledButton(
+                    onPressed: () => context.go(Routes.connections),
+                    child: const Text('Volver a conexiones'),
+                  ),
+                ],
               ),
-            );
-          }
+            ),
+          );
+        }
 
-          return _ContactDetailView(contact: contact);
-        },
-      ),
+        return ChangeNotifierProvider<ContactAiViewModel>(
+          create: (_) => getIt<ContactAiViewModel>(),
+          child: _ContactDetailView(contact: contact),
+        );
+      },
     );
   }
 
@@ -90,174 +100,191 @@ class _ContactDetailView extends StatelessWidget {
     final personalityTags = contact.relationship.personalityTags;
     final socialProfiles = contact.identity.socialProfiles;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 120),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _HeroCard(
-            contact: contact,
-            name: _displayName(contact),
-            subtitle: _subtitle(contact),
-          ),
-          const SizedBox(height: 18),
-          _ActionRow(contact: contact),
-          if (directItems.isNotEmpty) ...[
-            const SizedBox(height: 18),
-            _DetailSection(
-              title: 'Contacto directo',
-              child: _InfoGrid(items: directItems),
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 120),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _HeroCard(
+              contact: contact,
+              name: _displayName(contact),
+              subtitle: _subtitle(contact),
             ),
-          ],
-          if (essentialItems.isNotEmpty) ...[
             const SizedBox(height: 18),
-            _DetailSection(
-              title: 'Lo esencial',
-              child: _InfoGrid(items: essentialItems),
+            _ActionRow(contact: contact),
+            const SizedBox(height: 18),
+            _RelationshipTypeSelectorCard(contact: contact),
+            Consumer<ContactAiViewModel>(
+              builder: (context, aiViewModel, _) {
+                final aiCard = _buildTransientAiCard(contact, aiViewModel);
+                if (aiCard == null) {
+                  return const SizedBox.shrink();
+                }
+
+                return Column(children: [const SizedBox(height: 18), aiCard]);
+              },
             ),
-          ],
-          if (_hasText(contact.relationship.contextNote) ||
-              _hasText(contact.identity.bio) ||
-              _hasText(contact.identity.about)) ...[
-            const SizedBox(height: 18),
-            _DetailSection(
-              title: 'Contexto',
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (_hasText(contact.relationship.contextNote))
-                    _TextBlock(
-                      label: 'Como os conocisteis',
-                      value: contact.relationship.contextNote!,
-                    ),
-                  if (_hasText(contact.identity.bio)) ...[
+            if (directItems.isNotEmpty) ...[
+              const SizedBox(height: 18),
+              _DetailSection(
+                title: 'Contacto directo',
+                child: _InfoGrid(items: directItems),
+              ),
+            ],
+            if (essentialItems.isNotEmpty) ...[
+              const SizedBox(height: 18),
+              _DetailSection(
+                title: 'Lo esencial',
+                child: _InfoGrid(items: essentialItems),
+              ),
+            ],
+            if (_hasText(contact.relationship.contextNote) ||
+                _hasText(contact.identity.bio) ||
+                _hasText(contact.identity.about)) ...[
+              const SizedBox(height: 18),
+              _DetailSection(
+                title: 'Contexto',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     if (_hasText(contact.relationship.contextNote))
-                      const SizedBox(height: 14),
-                    _TextBlock(
-                      label: 'Bio breve',
-                      value: contact.identity.bio!,
-                    ),
+                      _TextBlock(
+                        label: 'Como os conocisteis',
+                        value: contact.relationship.contextNote!,
+                      ),
+                    if (_hasText(contact.identity.bio)) ...[
+                      if (_hasText(contact.relationship.contextNote))
+                        const SizedBox(height: 14),
+                      _TextBlock(
+                        label: 'Bio breve',
+                        value: contact.identity.bio!,
+                      ),
+                    ],
+                    if (_hasText(contact.identity.about)) ...[
+                      if (_hasText(contact.relationship.contextNote) ||
+                          _hasText(contact.identity.bio))
+                        const SizedBox(height: 14),
+                      _TextBlock(
+                        label: 'Como es esta persona',
+                        value: contact.identity.about!,
+                      ),
+                    ],
                   ],
-                  if (_hasText(contact.identity.about)) ...[
-                    if (_hasText(contact.relationship.contextNote) ||
-                        _hasText(contact.identity.bio))
+                ),
+              ),
+            ],
+            if (interests.isNotEmpty ||
+                lookingFor.isNotEmpty ||
+                personalityTags.isNotEmpty ||
+                _hasText(contact.identity.favoriteSong)) ...[
+              const SizedBox(height: 18),
+              _DetailSection(
+                title: 'Afinidades',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (_hasText(contact.identity.favoriteSong))
+                      _InfoStrip(
+                        icon: Icons.music_note_rounded,
+                        label: 'Cancion favorita',
+                        value: contact.identity.favoriteSong!,
+                      ),
+                    if (_hasText(contact.identity.favoriteSong) &&
+                        (interests.isNotEmpty ||
+                            lookingFor.isNotEmpty ||
+                            personalityTags.isNotEmpty))
                       const SizedBox(height: 14),
-                    _TextBlock(
-                      label: 'Como es esta persona',
-                      value: contact.identity.about!,
-                    ),
+                    if (interests.isNotEmpty)
+                      _ChipGroup(title: 'Intereses', values: interests),
+                    if (interests.isNotEmpty &&
+                        (lookingFor.isNotEmpty || personalityTags.isNotEmpty))
+                      const SizedBox(height: 14),
+                    if (lookingFor.isNotEmpty)
+                      _ChipGroup(
+                        title: 'Que representa esta relacion',
+                        values: lookingFor,
+                      ),
+                    if (lookingFor.isNotEmpty && personalityTags.isNotEmpty)
+                      const SizedBox(height: 14),
+                    if (personalityTags.isNotEmpty)
+                      _ChipGroup(
+                        title: 'Tags de personalidad',
+                        values: personalityTags,
+                      ),
                   ],
-                ],
+                ),
               ),
-            ),
-          ],
-          if (interests.isNotEmpty ||
-              lookingFor.isNotEmpty ||
-              personalityTags.isNotEmpty ||
-              _hasText(contact.identity.favoriteSong)) ...[
-            const SizedBox(height: 18),
-            _DetailSection(
-              title: 'Afinidades',
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (_hasText(contact.identity.favoriteSong))
-                    _InfoStrip(
-                      icon: Icons.music_note_rounded,
-                      label: 'Cancion favorita',
-                      value: contact.identity.favoriteSong!,
-                    ),
-                  if (_hasText(contact.identity.favoriteSong) &&
-                      (interests.isNotEmpty ||
-                          lookingFor.isNotEmpty ||
-                          personalityTags.isNotEmpty))
-                    const SizedBox(height: 14),
-                  if (interests.isNotEmpty)
-                    _ChipGroup(title: 'Intereses', values: interests),
-                  if (interests.isNotEmpty &&
-                      (lookingFor.isNotEmpty || personalityTags.isNotEmpty))
-                    const SizedBox(height: 14),
-                  if (lookingFor.isNotEmpty)
-                    _ChipGroup(
-                      title: 'Que representa esta relacion',
-                      values: lookingFor,
-                    ),
-                  if (lookingFor.isNotEmpty && personalityTags.isNotEmpty)
-                    const SizedBox(height: 14),
-                  if (personalityTags.isNotEmpty)
-                    _ChipGroup(
-                      title: 'Tags de personalidad',
-                      values: personalityTags,
-                    ),
-                ],
+            ],
+            if (socialProfiles.isNotEmpty) ...[
+              const SizedBox(height: 18),
+              _DetailSection(
+                title: 'Redes',
+                child: Column(
+                  children: socialProfiles
+                      .map(
+                        (profile) => Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: _SocialRow(
+                            label: _platformLabel(profile.platform),
+                            value: profile.label?.trim().isNotEmpty == true
+                                ? profile.label!
+                                : profile.value,
+                            platform: profile.platform,
+                            secondaryValue: profile.url,
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
               ),
-            ),
-          ],
-          if (socialProfiles.isNotEmpty) ...[
-            const SizedBox(height: 18),
-            _DetailSection(
-              title: 'Redes',
-              child: Column(
-                children: socialProfiles
-                    .map(
-                      (profile) => Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: _SocialRow(
-                          label: _platformLabel(profile.platform),
-                          value: profile.label?.trim().isNotEmpty == true
-                              ? profile.label!
-                              : profile.value,
-                          platform: profile.platform,
-                          secondaryValue: profile.url,
+            ],
+            if (_hasText(contact.relationship.privateNotes) ||
+                _hasText(contact.relationship.lastInteractionNote) ||
+                contact.relationship.lastInteractionAt != null) ...[
+              const SizedBox(height: 18),
+              _DetailSection(
+                title: 'Memoria privada',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (_hasText(contact.relationship.privateNotes))
+                      _TextBlock(
+                        label: 'Notas privadas',
+                        value: contact.relationship.privateNotes!,
+                      ),
+                    if (_hasText(contact.relationship.privateNotes) &&
+                        (_hasText(contact.relationship.lastInteractionNote) ||
+                            contact.relationship.lastInteractionAt != null))
+                      const SizedBox(height: 14),
+                    if (_hasText(contact.relationship.lastInteractionNote))
+                      _TextBlock(
+                        label: 'Ultima nota',
+                        value: contact.relationship.lastInteractionNote!,
+                      ),
+                    if (_hasText(contact.relationship.lastInteractionNote) &&
+                        contact.relationship.lastInteractionAt != null)
+                      const SizedBox(height: 14),
+                    if (contact.relationship.lastInteractionAt != null)
+                      _InfoStrip(
+                        icon: Icons.schedule_rounded,
+                        label: 'Ultima interaccion',
+                        value: _formatDateTime(
+                          contact.relationship.lastInteractionAt,
                         ),
                       ),
-                    )
-                    .toList(),
+                  ],
+                ),
               ),
-            ),
-          ],
-          if (_hasText(contact.relationship.privateNotes) ||
-              _hasText(contact.relationship.lastInteractionNote) ||
-              contact.relationship.lastInteractionAt != null) ...[
+            ],
             const SizedBox(height: 18),
-            _DetailSection(
-              title: 'Memoria privada',
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (_hasText(contact.relationship.privateNotes))
-                    _TextBlock(
-                      label: 'Notas privadas',
-                      value: contact.relationship.privateNotes!,
-                    ),
-                  if (_hasText(contact.relationship.privateNotes) &&
-                      (_hasText(contact.relationship.lastInteractionNote) ||
-                          contact.relationship.lastInteractionAt != null))
-                    const SizedBox(height: 14),
-                  if (_hasText(contact.relationship.lastInteractionNote))
-                    _TextBlock(
-                      label: 'Ultima nota',
-                      value: contact.relationship.lastInteractionNote!,
-                    ),
-                  if (_hasText(contact.relationship.lastInteractionNote) &&
-                      contact.relationship.lastInteractionAt != null)
-                    const SizedBox(height: 14),
-                  if (contact.relationship.lastInteractionAt != null)
-                    _InfoStrip(
-                      icon: Icons.schedule_rounded,
-                      label: 'Ultima interaccion',
-                      value: _formatDateTime(
-                        contact.relationship.lastInteractionAt,
-                      ),
-                    ),
-                ],
-              ),
-            ),
+            _DangerSection(contact: contact),
           ],
-          const SizedBox(height: 18),
-          _DangerSection(contact: contact),
-        ],
+        ),
       ),
+      floatingActionButton: _AiFloatingButton(contact: contact),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }
@@ -306,11 +333,11 @@ class _HeroCard extends StatelessWidget {
               photoUrl,
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
-                return const _HeroFallback();
+                return _HeroFallback(seed: contact.id, displayName: name);
               },
             )
           else
-            const _HeroFallback(),
+            _HeroFallback(seed: contact.id, displayName: name),
           DecoratedBox(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -329,51 +356,12 @@ class _HeroCard extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                Row(
-                  children: [
-                    _HeroIconButton(
-                      icon: Icons.arrow_back_rounded,
-                      onTap: () => context.pop(),
-                    ),
-                    const Spacer(),
-                    _HeroIconButton(
-                      icon: Icons.edit_rounded,
-                      onTap: () => context.push(
-                        Routes.contactEdit(contact.id),
-                        extra: contact,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    if (contact.relationship.isFavorite)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.16),
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.favorite_rounded,
-                              color: Colors.white,
-                              size: 16,
-                            ),
-                            SizedBox(width: 6),
-                            Text(
-                              'Favorito',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
+                Align(
+                  alignment: Alignment.topLeft,
+                  child: _HeroIconButton(
+                    icon: Icons.arrow_back_rounded,
+                    onTap: () => context.pop(),
+                  ),
                 ),
                 const Spacer(),
                 Align(
@@ -403,6 +391,88 @@ class _HeroCard extends StatelessWidget {
               ],
             ),
           ),
+          Positioned(
+            top: 16,
+            right: 16,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.sizeOf(context).width * 0.6,
+              ),
+              child: Wrap(
+                alignment: WrapAlignment.end,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  _HeroIconButton(
+                    icon: Icons.edit_rounded,
+                    onTap: () => context.push(
+                      Routes.contactEdit(contact.id),
+                      extra: contact,
+                    ),
+                  ),
+                  if (contact.relationship.isFavorite)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.16),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.favorite_rounded,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                          SizedBox(width: 6),
+                          Text(
+                            'Favorito',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  if (contact.relationship.wantsToStrengthenRelationship)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.16),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.auto_awesome_rounded,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                          SizedBox(width: 6),
+                          Text(
+                            'A cuidar',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -410,16 +480,19 @@ class _HeroCard extends StatelessWidget {
 }
 
 class _HeroFallback extends StatelessWidget {
-  const _HeroFallback();
+  final String seed;
+  final String displayName;
+
+  const _HeroFallback({required this.seed, required this.displayName});
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Icon(
-        Icons.person_rounded,
-        size: 120,
-        color: Colors.white.withValues(alpha: 0.85),
-      ),
+    return ContactAvatarPlaceholder(
+      seed: seed,
+      displayName: displayName,
+      shape: BoxShape.rectangle,
+      borderRadius: BorderRadius.circular(32),
+      fontSize: 52,
     );
   }
 }
@@ -441,7 +514,7 @@ class _HeroIconButton extends StatelessWidget {
         child: SizedBox(
           width: 44,
           height: 44,
-          child: Icon(icon, color: Colors.white),
+          child: Center(child: Icon(icon, color: Colors.white)),
         ),
       ),
     );
@@ -461,6 +534,25 @@ class _ActionRow extends StatelessWidget {
       children: [
         Expanded(
           child: FilledButton.tonalIcon(
+            onPressed: () => viewModel.toggleStrengthenRelationship(
+              contact.id,
+              !contact.relationship.wantsToStrengthenRelationship,
+            ),
+            icon: Icon(
+              contact.relationship.wantsToStrengthenRelationship
+                  ? Icons.heart_broken_rounded
+                  : Icons.auto_awesome_rounded,
+            ),
+            label: Text(
+              contact.relationship.wantsToStrengthenRelationship
+                  ? 'Quitar cuidado'
+                  : 'Mejorar',
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: FilledButton.tonalIcon(
             onPressed: () => _showNotesDialog(context, viewModel, contact),
             icon: const Icon(Icons.note_alt_rounded),
             label: const Text('Notas'),
@@ -468,21 +560,599 @@ class _ActionRow extends StatelessWidget {
         ),
         const SizedBox(width: 10),
         Expanded(
-          child: FilledButton.icon(
+          child: FilledButton.tonal(
             onPressed: () => viewModel.toggleFavorite(
               contact.id,
               !contact.relationship.isFavorite,
             ),
-            icon: Icon(
+            child: Icon(
               contact.relationship.isFavorite
                   ? Icons.favorite_rounded
                   : Icons.favorite_border_rounded,
             ),
-            label: Text(
-              contact.relationship.isFavorite ? 'Favorito' : 'Guardar',
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+enum _ContactAiMenuAction { summary, suggestedTopic, message }
+
+class _AiFloatingButton extends StatelessWidget {
+  final ContactRecord contact;
+
+  const _AiFloatingButton({required this.contact});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Consumer<ContactAiViewModel>(
+      builder: (context, aiViewModel, _) => Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(999),
+        child: PopupMenuButton<_ContactAiMenuAction>(
+          enabled: !aiViewModel.isGenerating,
+          tooltip: 'Funciones inteligentes',
+          color: theme.colorScheme.surface,
+          offset: const Offset(-6, -12),
+          onSelected: (action) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!context.mounted) return;
+              _handleAction(context, action);
+            });
+          },
+          itemBuilder: (context) => const [
+            PopupMenuItem<_ContactAiMenuAction>(
+              value: _ContactAiMenuAction.summary,
+              child: Row(
+                children: [
+                  Icon(Icons.auto_awesome_rounded),
+                  SizedBox(width: 10),
+                  Text('Resumen IA'),
+                ],
+              ),
+            ),
+            PopupMenuItem<_ContactAiMenuAction>(
+              value: _ContactAiMenuAction.suggestedTopic,
+              child: Row(
+                children: [
+                  Icon(Icons.forum_rounded),
+                  SizedBox(width: 10),
+                  Text('Sugerir tema'),
+                ],
+              ),
+            ),
+            PopupMenuItem<_ContactAiMenuAction>(
+              value: _ContactAiMenuAction.message,
+              child: Row(
+                children: [
+                  Icon(Icons.chat_bubble_outline_rounded),
+                  SizedBox(width: 10),
+                  Text('Mensaje IA'),
+                ],
+              ),
+            ),
+          ],
+          child: Container(
+            width: 62,
+            height: 62,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFFFF8A65), Color(0xFFE85D5D)],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFE85D5D).withValues(alpha: 0.30),
+                  blurRadius: 24,
+                  offset: const Offset(0, 14),
+                ),
+              ],
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.82),
+                width: 2,
+              ),
+            ),
+            child: Center(
+              child: aiViewModel.isGenerating
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.4,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Icon(Icons.auto_awesome_rounded, color: Colors.white),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Future<void> _handleAction(
+    BuildContext context,
+    _ContactAiMenuAction action,
+  ) async {
+    try {
+      final aiViewModel = context.read<ContactAiViewModel>();
+      if (!aiViewModel.hasEnoughContext(contact)) {
+        AppFeedbackService.showWarning(
+          'No hay suficiente contexto o notas para generar un resumen util.',
+        );
+        return;
+      }
+
+      switch (action) {
+        case _ContactAiMenuAction.summary:
+          final summary = await aiViewModel.generateRelationshipSummary(
+            contact,
+          );
+          if (summary == null) {
+            _showDeferredError(
+              aiViewModel.errorMessage ??
+                  'No se pudo generar el resumen IA. Intentalo de nuevo.',
+            );
+          }
+          return;
+        case _ContactAiMenuAction.suggestedTopic:
+          final topic = await aiViewModel.generateSuggestedTopic(contact);
+          if (topic == null) {
+            _showDeferredError(
+              aiViewModel.errorMessage ??
+                  'No se pudo sugerir un tema ahora mismo.',
+            );
+          }
+          return;
+        case _ContactAiMenuAction.message:
+          final message = await aiViewModel.generateMessageSuggestion(contact);
+          if (message == null) {
+            _showDeferredError(
+              aiViewModel.errorMessage ?? 'No se pudo generar el mensaje IA.',
+            );
+          }
+          return;
+      }
+    } catch (error, stackTrace) {
+      AppLogger.error(
+        'Fallo la accion de Resumen IA en la ficha del contacto',
+        scope: 'ai-ui',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      _showDeferredError(
+        'La funcion IA fallo en esta pantalla. Vuelve a intentarlo.',
+      );
+    }
+  }
+}
+
+class _RelationshipTypeSelectorCard extends StatelessWidget {
+  final ContactRecord contact;
+
+  const _RelationshipTypeSelectorCard({required this.contact});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final viewModel = context.read<ConnectionsViewModel>();
+    final currentValue =
+        relationshipTypePresets.any(
+          (preset) => preset.key == contact.relationship.relationshipType,
+        )
+        ? contact.relationship.relationshipType
+        : null;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface.withValues(alpha: 0.97),
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(
+          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.08),
+        ),
+      ),
+      child: Column(
+        children: [
+          Text(
+            'Tipo de relacion',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Cambialo aqui sin entrar al modo edicion completo.',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 320),
+            child: DropdownButtonFormField<String>(
+              initialValue: currentValue,
+              alignment: Alignment.center,
+              decoration: const InputDecoration(
+                prefixIcon: Icon(Icons.category_outlined),
+              ),
+              items: relationshipTypePresets
+                  .map(
+                    (preset) => DropdownMenuItem<String>(
+                      value: preset.key,
+                      child: Center(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(preset.icon, size: 18, color: preset.color),
+                            const SizedBox(width: 8),
+                            Text(preset.label),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) async {
+                await viewModel.updateRelationshipType(contact.id, value);
+                AppFeedbackService.showInfo('Tipo de relacion actualizado.');
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+Widget? _buildTransientAiCard(
+  ContactRecord contact,
+  ContactAiViewModel aiViewModel,
+) {
+  final feature = aiViewModel.activeFeature;
+  final generatedAt = aiViewModel.latestGeneratedAt;
+  final model = aiViewModel.latestModel;
+
+  switch (feature) {
+    case ContactAiFeatureType.summary:
+      final summary = aiViewModel.latestSummary;
+      if (summary == null || !summary.hasContent) return null;
+      return _DetailSection(
+        title: 'Resumen IA',
+        child: _AiSummarySnapshot(
+          summary: summary,
+          model: model,
+          generatedAt: generatedAt,
+        ),
+      );
+    case ContactAiFeatureType.suggestedTopic:
+      final suggestion = aiViewModel.latestSuggestedTopic;
+      if (suggestion == null || !suggestion.hasContent) return null;
+      return _DetailSection(
+        title: 'Sugerir tema',
+        child: _AiSuggestedTopicSnapshot(
+          suggestion: suggestion,
+          model: model,
+          generatedAt: generatedAt,
+        ),
+      );
+    case ContactAiFeatureType.message:
+      final suggestion = aiViewModel.latestMessageSuggestion;
+      if (suggestion == null || !suggestion.hasContent) return null;
+      return _DetailSection(
+        title: 'Mensaje IA',
+        child: _AiMessageSuggestionSnapshot(
+          contact: contact,
+          suggestion: suggestion,
+          model: model,
+          generatedAt: generatedAt,
+        ),
+      );
+    case null:
+      return null;
+  }
+}
+
+class _AiSummarySnapshot extends StatelessWidget {
+  final ContactAiSummary summary;
+  final String? model;
+  final DateTime? generatedAt;
+
+  const _AiSummarySnapshot({
+    required this.summary,
+    this.model,
+    this.generatedAt,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    if (!summary.hasContent) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFFFFF1E8), Color(0xFFFFE0D2)],
+            ),
+            borderRadius: BorderRadius.circular(22),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.auto_awesome_rounded, size: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Lectura rapida de la relacion',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              _AiSummaryLine(label: 'Quien es', value: summary.whoIs),
+              const SizedBox(height: 12),
+              _AiSummaryLine(
+                label: 'Que os une',
+                value: summary.whatConnectsYou,
+              ),
+              const SizedBox(height: 12),
+              _AiSummaryLine(
+                label: 'Conviene recordar',
+                value: summary.whatToRemember,
+              ),
+              const SizedBox(height: 12),
+              _AiSummaryLine(label: 'Proximo paso', value: summary.nextStep),
+            ],
+          ),
+        ),
+        if (generatedAt != null || _hasText(model)) ...[
+          const SizedBox(height: 10),
+          Text(
+            _buildAiSummaryMeta(generatedAt: generatedAt, model: model),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _AiSummaryLine extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _AiSummaryLine({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: theme.colorScheme.primary,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value.isEmpty ? '-' : value,
+          style: theme.textTheme.bodyMedium?.copyWith(height: 1.45),
+        ),
+      ],
+    );
+  }
+}
+
+class _AiSuggestedTopicSnapshot extends StatelessWidget {
+  final ContactAiSuggestedTopic suggestion;
+  final String? model;
+  final DateTime? generatedAt;
+
+  const _AiSuggestedTopicSnapshot({
+    required this.suggestion,
+    this.model,
+    this.generatedAt,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFFFFF4E7), Color(0xFFFFE7CF)],
+            ),
+            borderRadius: BorderRadius.circular(22),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.forum_rounded, size: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Enfoque para retomar',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              _AiSummaryLine(label: 'Enfoque', value: suggestion.openingAngle),
+              const SizedBox(height: 12),
+              _AiSummaryLine(
+                label: 'Romper el hielo',
+                value: suggestion.iceBreaker,
+              ),
+              if (suggestion.conversationTopics.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Text(
+                  'Temas de conversacion',
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: suggestion.conversationTopics
+                      .map((item) => _TagChip(label: item))
+                      .toList(),
+                ),
+              ],
+            ],
+          ),
+        ),
+        if (generatedAt != null || _hasText(model)) ...[
+          const SizedBox(height: 10),
+          Text(
+            _buildAiSummaryMeta(generatedAt: generatedAt, model: model),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _AiMessageSuggestionSnapshot extends StatelessWidget {
+  final ContactRecord contact;
+  final ContactAiMessageSuggestion suggestion;
+  final String? model;
+  final DateTime? generatedAt;
+
+  const _AiMessageSuggestionSnapshot({
+    required this.contact,
+    required this.suggestion,
+    this.model,
+    this.generatedAt,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFFEFFAF4), Color(0xFFDDF6E7)],
+            ),
+            borderRadius: BorderRadius.circular(22),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.chat_bubble_outline_rounded, size: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Mensaje listo para enviar',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+              if (_hasText(suggestion.intent)) ...[
+                const SizedBox(height: 12),
+                _AiSummaryLine(label: 'Intencion', value: suggestion.intent!),
+              ],
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.72),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Text(
+                  suggestion.message,
+                  style: theme.textTheme.bodyMedium?.copyWith(height: 1.5),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: FilledButton.tonalIcon(
+                      onPressed: () => _copyAiMessage(suggestion.message),
+                      icon: const Icon(Icons.copy_rounded),
+                      label: const Text('Copiar'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: () => _openWhatsAppWithMessage(
+                        contact: contact,
+                        message: suggestion.message,
+                      ),
+                      icon: const Icon(Icons.chat_rounded),
+                      label: const Text('WhatsApp'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        if (generatedAt != null || _hasText(model)) ...[
+          const SizedBox(height: 10),
+          Text(
+            _buildAiSummaryMeta(generatedAt: generatedAt, model: model),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -810,7 +1480,6 @@ class _SocialRow extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: () => _openSocialProfile(
-          context,
           platform: platform,
           value: value,
           url: secondaryValue,
@@ -918,17 +1587,18 @@ IconData _socialPlatformIcon(SocialPlatform platform) {
   }
 }
 
-Future<void> _openExternalUri(BuildContext context, Uri uri) async {
-  final success = await launchUrl(uri, mode: LaunchMode.externalApplication);
-  if (success || !context.mounted) return;
+Future<void> _openExternalUri(Uri uri) async {
+  try {
+    final success = kIsWeb
+        ? await launchUrl(uri)
+        : await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (success) return;
+  } catch (_) {}
 
-  ScaffoldMessenger.of(
-    context,
-  ).showSnackBar(const SnackBar(content: Text('No se pudo abrir el enlace')));
+  AppFeedbackService.showError('No se pudo abrir el enlace.');
 }
 
-Future<void> _openSocialProfile(
-  BuildContext context, {
+Future<void> _openSocialProfile({
   required SocialPlatform platform,
   required String value,
   String? url,
@@ -940,14 +1610,45 @@ Future<void> _openSocialProfile(
   );
 
   if (preparedUrl == null) {
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('No hay un perfil valido para abrir')),
+    AppFeedbackService.showWarning('No hay un perfil valido para abrir.');
+    return;
+  }
+
+  await _openExternalUri(preparedUrl);
+}
+
+Future<void> _copyAiMessage(String message) async {
+  await Clipboard.setData(ClipboardData(text: message));
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    AppFeedbackService.showInfo('Mensaje copiado.');
+  });
+}
+
+Future<void> _openWhatsAppWithMessage({
+  required ContactRecord contact,
+  required String message,
+}) async {
+  await _copyAiMessage(message);
+
+  final rawPhone = contact.identity.phone?.trim() ?? '';
+  final digits = rawPhone.replaceAll(RegExp(r'[^0-9]'), '');
+  if (digits.isEmpty) {
+    _showDeferredError(
+      'No hay telefono valido en esta ficha. El mensaje ya esta copiado.',
     );
     return;
   }
 
-  await _openExternalUri(context, preparedUrl);
+  final whatsappUri = Uri.parse(
+    'https://wa.me/$digits?text=${Uri.encodeComponent(message)}',
+  );
+  await _openExternalUri(whatsappUri);
+}
+
+void _showDeferredError(String message) {
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    AppFeedbackService.showError(message);
+  });
 }
 
 void _showNotesDialog(
@@ -1017,13 +1718,11 @@ Future<void> _confirmDelete(BuildContext context, ContactRecord contact) async {
   if (!context.mounted) return;
 
   if (error != null) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+    AppFeedbackService.showError(error);
     return;
   }
 
-  ScaffoldMessenger.of(
-    context,
-  ).showSnackBar(const SnackBar(content: Text('Contacto eliminado')));
+  AppFeedbackService.showInfo('Contacto eliminado.');
   context.go(Routes.connections);
 }
 
@@ -1031,6 +1730,17 @@ String _displayName(ContactRecord contact) {
   return contact.relationship.customDisplayName?.trim().isNotEmpty == true
       ? contact.relationship.customDisplayName!
       : contact.identity.displayName;
+}
+
+String _buildAiSummaryMeta({DateTime? generatedAt, String? model}) {
+  final parts = <String>[];
+  if (generatedAt != null) {
+    parts.add('Temporal | generado el ${_formatDateTime(generatedAt)}');
+  }
+  if (_hasText(model)) {
+    parts.add('Modelo $model');
+  }
+  return parts.join(' | ');
 }
 
 String? _subtitle(ContactRecord contact) {
@@ -1115,7 +1825,6 @@ List<_InfoItemData> _directContactItems(ContactRecord contact) {
         label: 'Email',
         value: contact.identity.email!,
         onTap: (context) => _openExternalUri(
-          context,
           Uri(scheme: 'mailto', path: contact.identity.email!),
         ),
       ),
@@ -1133,7 +1842,7 @@ List<_InfoItemData> _directContactItems(ContactRecord contact) {
         label: 'Telefono',
         value: contact.identity.phone!,
         onTap: (context) =>
-            _openExternalUri(context, Uri(scheme: 'tel', path: sanitizedPhone)),
+            _openExternalUri(Uri(scheme: 'tel', path: sanitizedPhone)),
       ),
     );
   }

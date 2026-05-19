@@ -1,18 +1,22 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:peoplesync/core/services/app_logger.dart';
 import 'package:peoplesync/features/auth/auth_service.dart';
 import 'package:peoplesync/features/contacts/contact_service.dart';
+import 'package:peoplesync/features/contacts/local_contacts_cache_service.dart';
 import 'package:peoplesync/features/contacts/models/contact_record.dart';
 
 class ConnectionsViewModel extends ChangeNotifier {
   final ContactService contactService;
   final AuthService authService;
+  final LocalContactsCacheService localContactsCacheService;
 
   List<ContactRecord> _contacts = [];
   bool _isLoading = true;
   String? _errorMessage;
   StreamSubscription<List<ContactRecord>>? _subscription;
+  String? _initializedUid;
 
   List<ContactRecord> get contacts => _contacts;
   bool get isLoading => _isLoading;
@@ -21,38 +25,114 @@ class ConnectionsViewModel extends ChangeNotifier {
   ConnectionsViewModel({
     required this.contactService,
     required this.authService,
-  }) {
-    _subscribe();
-  }
+    required this.localContactsCacheService,
+  });
 
-  void _subscribe() {
-    final uid = authService.currentUser?.uid;
-    if (uid == null) {
-      _errorMessage = 'No hay sesión de usuario activa.';
-      _isLoading = false;
-      notifyListeners();
+  Future<void> initialize() async {
+    final currentUid = authService.currentUser?.uid;
+    if (currentUid == null || currentUid.isEmpty) {
+      AppLogger.warning(
+        'Se intento inicializar conexiones sin usuario autenticado',
+        scope: 'connections',
+      );
+      clear();
       return;
     }
 
-    // Usamos streamMyContacts para que Firestore se encargue del ordenamiento por 'updated_at'.
+    if (_initializedUid == currentUid && _subscription != null) {
+      AppLogger.debug(
+        'Conexiones ya inicializadas para el usuario actual',
+        scope: 'connections',
+      );
+      return;
+    }
+
+    AppLogger.info(
+      'Inicializando stream de conexiones para el usuario actual',
+      scope: 'connections',
+    );
+    _subscription?.cancel();
+    _initializedUid = currentUid;
+    _isLoading = _contacts.isEmpty;
+    _errorMessage = null;
+    notifyListeners();
+
+    await _loadCachedContacts(currentUid);
+
     _subscription = contactService
-        .streamMyContacts(uid)
+        .streamMyContacts(currentUid)
         .listen(
-          (contacts) {
+          (contacts) async {
             _contacts = contacts;
             _isLoading = false;
             _errorMessage = null;
+            await localContactsCacheService.replaceContacts(
+              currentUid,
+              contacts,
+            );
+            if (contacts.isEmpty) {
+              AppLogger.info(
+                'El usuario no tiene contactos guardados',
+                scope: 'connections',
+              );
+            } else {
+              AppLogger.debug(
+                'Conexiones cargadas: ${contacts.length}',
+                scope: 'connections',
+              );
+            }
             notifyListeners();
           },
           onError: (error) {
             _errorMessage = '$error';
             _isLoading = false;
+            AppLogger.error(
+              'Fallo el stream de conexiones',
+              scope: 'connections',
+              error: error,
+            );
             notifyListeners();
           },
         );
   }
 
-  /// Sincroniza la identidad del contacto con su perfil público actualizado.
+  void clear() {
+    AppLogger.debug('Limpiando estado de conexiones', scope: 'connections');
+    final previousUid = _initializedUid;
+    _subscription?.cancel();
+    _subscription = null;
+    _initializedUid = null;
+    _contacts = [];
+    _isLoading = false;
+    _errorMessage = null;
+    if (previousUid != null && previousUid.isNotEmpty) {
+      unawaited(localContactsCacheService.clearForUser(previousUid));
+    }
+    notifyListeners();
+  }
+
+  Future<void> _loadCachedContacts(String uid) async {
+    try {
+      final cachedContacts = await localContactsCacheService.readContacts(uid);
+      if (cachedContacts.isEmpty) return;
+
+      _contacts = cachedContacts;
+      _isLoading = false;
+      AppLogger.debug(
+        'Conexiones cargadas desde cache local: ${cachedContacts.length}',
+        scope: 'connections',
+      );
+      notifyListeners();
+    } catch (error, stackTrace) {
+      AppLogger.error(
+        'No se pudo leer la cache local de contactos',
+        scope: 'connections',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
   Future<void> syncContact(String contactoUid) async {
     final miUid = authService.currentUser?.uid;
     if (miUid == null) return;
@@ -63,12 +143,16 @@ class ConnectionsViewModel extends ChangeNotifier {
         contactoUid: contactoUid,
       );
     } catch (e) {
+      AppLogger.error(
+        'No se pudo sincronizar la identidad del contacto',
+        scope: 'connections',
+        error: e,
+      );
       _errorMessage = 'Error al sincronizar: $e';
       notifyListeners();
     }
   }
 
-  /// Actualiza las notas privadas de una conexión.
   Future<void> updateNotes(String contactId, String? notes) async {
     try {
       await contactService.updatePrivateNotes(
@@ -76,7 +160,32 @@ class ConnectionsViewModel extends ChangeNotifier {
         privateNotes: notes,
       );
     } catch (e) {
+      AppLogger.error(
+        'No se pudieron guardar notas privadas',
+        scope: 'connections',
+        error: e,
+      );
       _errorMessage = 'Error al actualizar notas: $e';
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateRelationshipType(
+    String contactId,
+    String? relationshipType,
+  ) async {
+    try {
+      await contactService.updateContact(
+        contactId: contactId,
+        relationshipType: relationshipType ?? '',
+      );
+    } catch (e) {
+      AppLogger.error(
+        'No se pudo actualizar el tipo de relacion',
+        scope: 'connections',
+        error: e,
+      );
+      _errorMessage = 'Error al actualizar el tipo de relacion: $e';
       notifyListeners();
     }
   }
@@ -88,7 +197,32 @@ class ConnectionsViewModel extends ChangeNotifier {
         isFavorite: isFavorite,
       );
     } catch (e) {
+      AppLogger.error(
+        'No se pudo actualizar favorito',
+        scope: 'connections',
+        error: e,
+      );
       _errorMessage = 'Error al actualizar favorito: $e';
+      notifyListeners();
+    }
+  }
+
+  Future<void> toggleStrengthenRelationship(
+    String contactId,
+    bool wantsToStrengthenRelationship,
+  ) async {
+    try {
+      await contactService.updateStrengthenRelationshipStatus(
+        contactId: contactId,
+        wantsToStrengthenRelationship: wantsToStrengthenRelationship,
+      );
+    } catch (e) {
+      AppLogger.error(
+        'No se pudo actualizar la relacion a cuidar',
+        scope: 'connections',
+        error: e,
+      );
+      _errorMessage = 'Error al actualizar relacion a cuidar: $e';
       notifyListeners();
     }
   }
@@ -98,6 +232,11 @@ class ConnectionsViewModel extends ChangeNotifier {
       await contactService.deleteContact(contactId);
       return null;
     } catch (e) {
+      AppLogger.error(
+        'No se pudo eliminar el contacto',
+        scope: 'connections',
+        error: e,
+      );
       _errorMessage = 'Error al eliminar contacto: $e';
       notifyListeners();
       return _errorMessage;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:peoplesync/core/constants/routes.dart';
 import 'package:peoplesync/features/contacts/contact_sync_viewmodel.dart';
 import 'package:peoplesync/shared/widgets/design/layout/base_page.dart';
 
@@ -100,7 +101,7 @@ class ContactSyncPage extends StatelessWidget {
                       SizedBox(
                         width: double.infinity,
                         child: FilledButton(
-                          onPressed: () => context.pop(),
+                          onPressed: () => _closePage(context),
                           child: const Text('Volver al inicio'),
                         ),
                       ),
@@ -124,8 +125,24 @@ class ContactSyncPage extends StatelessWidget {
                       SizedBox(
                         width: double.infinity,
                         height: 56,
+                        child: FilledButton.tonalIcon(
+                          onPressed: viewModel.importFromJson,
+                          icon: const Icon(Icons.upload_file_rounded),
+                          label: const Text(
+                            'Importar desde JSON',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
                         child: OutlinedButton(
-                          onPressed: () => context.pop(),
+                          onPressed: () => _closePage(context),
                           child: const Text('Cancelar'),
                         ),
                       ),
@@ -138,5 +155,13 @@ class ContactSyncPage extends StatelessWidget {
         },
       ),
     );
+  }
+
+  void _closePage(BuildContext context) {
+    if (context.canPop()) {
+      context.pop();
+      return;
+    }
+    context.go(Routes.home);
   }
 }
