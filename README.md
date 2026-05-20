@@ -4,6 +4,8 @@ PeopleSync es una aplicación Flutter multiplataforma centrada en relaciones, no
 
 La idea base del producto es simple: una agenda tradicional guarda nombres y teléfonos; PeopleSync guarda contexto. No solo quién es una persona, sino qué relación tienes con ella, cómo la conociste, qué te importa recordar y cuándo conviene retomar el vínculo.
 
+Descarga de APK: https://drive.google.com/file/d/1767RlHSKkAyFPzOcQFxSVMVg8UdPYspL/view?usp=sharing
+
 ## Qué es hoy
 
 PeopleSync ya no es una demo vacía ni un CRUD plano de contactos. A día de hoy el proyecto incluye:
